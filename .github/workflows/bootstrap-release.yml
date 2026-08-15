@@ -1,0 +1,123 @@
+name: Bootstrap CitaFuego Release
+
+on:
+  push:
+    branches: [release/citafuego-v1]
+    paths:
+      - ".github/workflows/bootstrap-release.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  restore:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: release/citafuego-v1
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Reconstruct verified release archive
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat .restore/000.b64 .restore/001.b64 .restore/002.b64 .restore/003.b64 \
+              .restore/004.b64 .restore/005.b64 .restore/006.b64 .restore/007.b64 > /tmp/citafuego.b64
+          echo "0641bab4fd8d95184be048c6ae60db5588301f1f208798b709aad95056bf4975  /tmp/citafuego.b64" | sha256sum -c -
+          base64 --decode /tmp/citafuego.b64 > /tmp/citafuego.tar.gz
+          echo "9cd15e695594b5721a1115d5282076529221b80949ab02cebb2b29ed83820f1f  /tmp/citafuego.tar.gz" | sha256sum -c -
+          tar -xzf /tmp/citafuego.tar.gz -C .
+
+      - name: Configure release commits
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "CitaFuego Release Bot"
+          git config user.email "135907394+huoago@users.noreply.github.com"
+
+          commit_if_any() {
+            local message="$1"
+            if ! git diff --cached --quiet; then
+              git commit -m "$message"
+            fi
+          }
+
+          git add package.json eslint.config.mjs tsconfig.json next-env.d.ts next.config.ts .gitignore \
+            src/app/globals.css src/app/layout.tsx src/app/page.tsx src/components/mobile-shell.tsx src/components/bottom-nav.tsx \
+            src/lib/config.ts src/lib/types.ts src/lib/supabase src/proxy.ts \
+            supabase/seed.sql supabase/migrations/001_core.sql supabase/migrations/002_matching_chat.sql \
+            supabase/migrations/003_safety_billing_admin.sql supabase/migrations/004_trusted_rpcs.sql \
+            supabase/migrations/005_discovery_rpc.sql supabase/migrations/006_sprint1_auth_onboarding.sql \
+            supabase/migrations/007_discovery_v2.sql supabase/migrations/008_match_chat_read_models.sql \
+            supabase/migrations/009_sprint1_media_finalize.sql supabase/migrations/010_secretless_security.sql \
+            supabase/migrations/011_sprint2_features.sql supabase/migrations/012_security_advisor_hardening.sql \
+            supabase/migrations/013_trigger_function_lockdown.sql supabase/migrations/014_safety_read_models.sql
+          commit_if_any "feat: restore production app scaffold"
+
+          git add 'src/app/(auth)' src/app/auth src/app/login src/app/logout src/app/signup src/app/onboarding src/app/cuenta-restringida \
+            src/app/api/auth src/app/api/onboarding src/app/api/media src/app/api/verification \
+            src/components/auth src/components/onboarding src/lib/auth src/lib/media src/lib/adapters/verification.ts
+          commit_if_any "feat: connect supabase auth and onboarding"
+
+          git add 'src/app/(app)' src/app/discover src/app/chat \
+            src/app/api/discovery src/app/api/interactions src/app/api/messages src/app/api/rewind src/app/api/premium \
+            src/components/discover-deck.tsx src/components/chat src/components/premium \
+            src/lib/discovery src/lib/domain src/lib/billing src/server \
+            supabase/migrations/019_realtime_and_rate_limits.sql supabase/migrations/020_superfuego_entitlements.sql
+          commit_if_any "feat: connect discovery matching chat and premium"
+
+          git add src/app/admin src/app/api/admin src/app/api/safety src/app/api/moderation \
+            src/app/safety src/app/community-guidelines src/app/help src/app/terms src/app/privacy src/app/terminos src/app/privacidad \
+            src/components/admin src/components/safety src/lib/admin src/lib/adapters/moderation.ts src/lib/adapters/payments.ts \
+            supabase/migrations/018_admin_backoffice.sql
+          commit_if_any "feat: add safety flows and admin backoffice"
+
+          git add tests e2e scripts
+          commit_if_any "test: add e2e and security tests"
+
+          git add .github/workflows/ci.yml .github/workflows/production-deploy.yml .github/workflows/daily-health.yml docs .env.example README.md
+          commit_if_any "ci: add production quality gates"
+
+          git add -A ':!.restore' ':!.github/workflows/restore-release.yml' ':!.github/workflows/bootstrap-release.yml'
+          commit_if_any "chore: complete release candidate restore"
+
+      - name: Generate deterministic lockfile
+        run: npm install --package-lock-only --ignore-scripts --no-audit --no-fund
+
+      - name: Commit lockfile and remove bootstrap payload
+        shell: bash
+        run: |
+          set -euo pipefail
+          git add package-lock.json
+          git commit -m "chore: lock production dependencies"
+          git rm -r .restore .github/workflows/restore-release.yml .github/workflows/bootstrap-release.yml
+          git commit -m "chore: remove repository restore bootstrap"
+          git push origin HEAD:release/citafuego-v1
+
+      - name: Clean install
+        run: npm ci
+
+      - name: Secret scan
+        run: node scripts/check-no-secrets.mjs
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Unit and security contracts
+        run: npm test
+
+      - name: Next.js production build
+        run: npm run build
+        env:
+          NEXT_PUBLIC_APP_URL: https://citafuego.com
+          NEXT_PUBLIC_SUPABASE_URL: https://stfbybkutnoqoxhqxyou.supabase.co
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: sb_publishable_ci_placeholder
