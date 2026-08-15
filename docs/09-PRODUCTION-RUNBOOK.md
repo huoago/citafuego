@@ -20,13 +20,23 @@
 - production SMTP working
 - real production two-account E2E passed
 
+## Current database baseline
+
+The production Supabase project `stfbybkutnoqoxhqxyou` is the source of truth. Production migration history currently extends through `020`. Never edit, delete, renumber, or reuse an already-applied migration number.
+
+This RC introduces only the next additive changes:
+
+- `021_admin_backoffice.sql`
+- `022_realtime_and_rate_limits.sql`
+- `023_superfuego_entitlements.sql`
+
 ## Pre-release checklist
 
 1. Confirm `main` has the approved RC commit.
 2. Confirm no secrets are committed: `node scripts/check-no-secrets.mjs`.
 3. Confirm CI status is green for the exact commit.
-4. Compare Supabase migration list with repository migrations. Never edit applied `001`–`014`.
-5. Apply only new migrations (`018+`) in numerical order.
+4. Compare Supabase production migration history with repository metadata. Treat production through `020` as immutable history.
+5. Apply only pending additive migrations `021`–`023`, in order, after CI is green.
 6. Re-run database security check:
 
 ```sql
@@ -78,6 +88,13 @@ Server-only / secret-store only:
 - moderation provider secrets
 - billing provider secrets
 - SMTP credentials are configured in Supabase, not exposed to browser code.
+
+## Rollback order
+
+1. Roll back the application deployment first.
+2. Disable affected feature flags if a backend capability must remain dormant.
+3. Prefer forward-fix database migrations. Do not edit an applied migration in place.
+4. For a required database rollback, write and review a new compensating migration; preserve audit evidence and data before destructive changes.
 
 ## Incident rule
 
