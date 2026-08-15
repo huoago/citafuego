@@ -1,0 +1,3 @@
+import { requireAdmin } from '@/lib/admin/auth';
+export const dynamic='force-dynamic';
+export default async function AdminHome(){const auth=await requireAdmin(['super_admin','trust_safety','support','finance','analyst']);if(!auth)return null;const roles=auth.roles;return <section><h2>Panel operativo</h2><p>Acceso mínimo por rol. Los chats no se muestran por defecto; Trust & Safety solo puede leer el mensaje expresamente asociado a un reporte mediante el read model auditado.</p><div className="softPanel"><b>Seguridad</b><p>Los permisos reales se validan otra vez dentro de los RPC de PostgreSQL. La UI nunca concede privilegios.</p></div><p>Tu rol: {roles.join(', ')}</p></section>}

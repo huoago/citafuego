@@ -1,0 +1,1 @@
+import { createClient } from '@/lib/supabase/server'; export async function POST(){const s=await createClient();const{data,error}=await s.rpc('rewind_last_pass');if(error)return Response.json({error:error.message.includes('premium_required')?'premium_required':'rewind_failed'},{status:error.message.includes('premium_required')?402:400});return Response.json(data);}

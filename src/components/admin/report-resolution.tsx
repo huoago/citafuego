@@ -1,0 +1,4 @@
+'use client';
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+export function ReportResolution({reportId}:{reportId:string}){const[note,setNote]=useState('');const router=useRouter();async function act(dismiss:boolean){if(note.trim().length<3)return;const r=await fetch(`/api/admin/reports/${reportId}`,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({resolution:note,dismiss})});if(r.ok)router.refresh()}return <div className="adminActionForm"><textarea value={note} onChange={e=>setNote(e.target.value)} placeholder="Resolución auditada" maxLength={1000}/><div className="dialogActions"><button className="ghostButton" onClick={()=>void act(true)}>Descartar</button><button className="ctaButton" onClick={()=>void act(false)}>Resolver</button></div></div>}

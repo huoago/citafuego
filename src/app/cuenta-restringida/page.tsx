@@ -1,0 +1,2 @@
+import Link from 'next/link';
+export default function Page(){return <main className="authPage"><div className="authCard"><div className="brandLockup">🔥 CitaFuego</div><h1>Cuenta no disponible</h1><p className="muted">Tu cuenta tiene una restricción activa o está pendiente de una acción de seguridad. No puedes usar Descubrir ni Chat mientras esta restricción esté vigente.</p><Link className="ghostButton" href="/">Volver al inicio</Link></div></main>}

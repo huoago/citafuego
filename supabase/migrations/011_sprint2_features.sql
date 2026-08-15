@@ -31,6 +31,7 @@ end; $$;
 revoke all on function public.update_premium_filters(boolean,smallint,smallint) from public;
 grant execute on function public.update_premium_filters(boolean,smallint,smallint) to authenticated;
 
+-- Paginated discovery with premium filters.
 drop function if exists public.get_discover_page(integer,integer);
 create function public.get_discover_page(p_offset integer default 0,p_limit integer default 12)
 returns table(profile_id uuid,display_name text,age integer,district text,distance_bucket text,bio text,intent public.relationship_intent,verified boolean,primary_photo_path text,interests text[],shared_interest_count integer,chemistry_score integer)
@@ -43,13 +44,21 @@ begin
   if v_has_plus then select * into v_filter from public.premium_discovery_filters where user_id=v_user; end if;
   return query
   select d.profile_id,d.display_name,d.age,d.district,d.distance_bucket,d.bio,d.intent,d.verified,d.primary_photo_path,d.interests,d.shared_interest_count,d.chemistry_score
-  from public.get_discover_candidates(50) d join public.profiles p on p.id=d.profile_id
-  where (not v_has_plus or v_filter.user_id is null or ((not v_filter.verified_only or d.verified) and d.shared_interest_count>=v_filter.min_shared_interests and (v_filter.recently_active_hours is null or p.last_active_at>=now()-make_interval(hours=>v_filter.recently_active_hours))))
-  order by d.chemistry_score desc,d.verified desc offset greatest(coalesce(p_offset,0),0) limit least(greatest(coalesce(p_limit,12),1),25);
+  from public.get_discover_candidates(50) d
+  join public.profiles p on p.id=d.profile_id
+  where (not v_has_plus or v_filter.user_id is null or (
+    (not v_filter.verified_only or d.verified)
+    and d.shared_interest_count>=v_filter.min_shared_interests
+    and (v_filter.recently_active_hours is null or p.last_active_at>=now()-make_interval(hours=>v_filter.recently_active_hours))
+  ))
+  order by d.chemistry_score desc,d.verified desc
+  offset greatest(coalesce(p_offset,0),0)
+  limit least(greatest(coalesce(p_limit,12),1),25);
 end; $$;
 revoke all on function public.get_discover_page(integer,integer) from public;
 grant execute on function public.get_discover_page(integer,integer) to authenticated;
 
+-- Rewind: Plus/Gold only.
 create or replace function public.rewind_last_pass() returns jsonb
 language plpgsql security definer set search_path=public as $$
 declare v_user uuid:=auth.uid(); v_target uuid; v_id uuid;
@@ -64,6 +73,7 @@ end; $$;
 revoke all on function public.rewind_last_pass() from public;
 grant execute on function public.rewind_last_pass() to authenticated;
 
+-- Who Likes You: Gold only.
 create or replace function public.get_who_likes_me(p_offset integer default 0,p_limit integer default 24)
 returns table(profile_id uuid,display_name text,age integer,district text,verified boolean,primary_photo_path text,liked_at timestamptz)
 language plpgsql security definer set search_path=public as $$
@@ -110,18 +120,21 @@ begin
   if auth.uid() is null then raise exception 'not_authenticated'; end if;
   if p_reported is null or p_reported=auth.uid() then raise exception 'invalid_target'; end if;
   if p_category not in ('fake_profile','harassment','scam','sexual_content','minor_risk','paid_sex','impersonation','threat','spam','other') then raise exception 'invalid_category'; end if;
-  insert into public.reports(reporter_id,reported_user_id,conversation_id,message_id,category,description) values(auth.uid(),p_reported,p_conversation,p_message,p_category,left(p_description,2000)) returning id into v_id;
+  insert into public.reports(reporter_id,reported_user_id,conversation_id,message_id,category,description)
+  values(auth.uid(),p_reported,p_conversation,p_message,p_category,left(p_description,2000)) returning id into v_id;
   return v_id;
 end; $$;
 revoke all on function public.submit_report(uuid,text,text,uuid,uuid) from public;
 grant execute on function public.submit_report(uuid,text,text,uuid,uuid) to authenticated;
 
+-- Performance indexes for Sprint2 paths.
 create index if not exists interactions_from_action_updated_idx on public.interactions(from_user_id,action,updated_at desc);
 create index if not exists profiles_active_city_idx on public.profiles(city,country_code,status,last_active_at desc) where status='active';
 create index if not exists profile_photos_approved_user_idx on public.profile_photos(user_id,is_primary desc,position) where status='approved';
 create index if not exists subscriptions_user_status_period_idx on public.subscriptions(user_id,status,current_period_end desc);
 create index if not exists blocks_blocked_idx on public.blocks(blocked_id,blocker_id);
 
+-- Data API grants are explicit on new projects. RLS remains the row-level authority.
 grant usage on schema public to anon,authenticated;
 grant select on public.legal_document_versions to anon,authenticated;
 grant select on public.interests to authenticated;
