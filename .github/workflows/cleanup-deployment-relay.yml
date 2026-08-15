@@ -1,0 +1,38 @@
+name: Cleanup temporary deployment relay
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Remove temporary relay objects through Storage API
+        run: |
+          node --input-type=module <<'NODE'
+          import { createClient } from '@supabase/supabase-js';
+          const supabase = createClient(
+            'https://stfbybkutnoqoxhqxyou.supabase.co',
+            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYXNlIiwicmVmIjoic3RmYnlia3V0bm9xb3hocXh5b3UiLCJyb2xlIjoiYW5vbiIsImlhdCI6MTc4Njc0NjU5NywiZXhwIjoyMTAyMzIyNTk3fQ.YJokmEE5aIpBMvkbiX6aUcxVoU8kKSad7QzFoSGCw74',
+            { auth: { persistSession: false } },
+          );
+          const paths = [
+            'UxE1nf33txQiqTM5W29WVbV3N0uJ4Fug.tgz',
+            'p-4r8kVdyVvYdPl9tjOBfVKo-started.json',
+            'p-4r8kVdyVvYdPl9tjOBfVKo-success.json',
+          ];
+          const { data, error } = await supabase.storage.from('deploy-source-temp').remove(paths);
+          if (error) throw error;
+          console.log(`Removed ${data?.length ?? 0} temporary relay objects.`);
+          NODE
