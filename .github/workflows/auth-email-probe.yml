@@ -1,0 +1,52 @@
+name: Production Auth email probe
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Request two real Magic Links
+        shell: bash
+        run: |
+          node --input-type=module <<'NODE' | tee /tmp/auth-email-probe.txt
+          import { createClient } from '@supabase/supabase-js';
+          const url = 'https://stfbybkutnoqoxhqxyou.supabase.co';
+          const key = 'sb_publishable_bzwmFw6D6rx0X4D5VWonhA_hkxf9c4d';
+          const supabase = createClient(url, key, { auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false } });
+          const emails = ['huoago+citafuego-a@gmail.com', 'huoago+citafuego-b@gmail.com'];
+          for (const email of emails) {
+            const { error } = await supabase.auth.signInWithOtp({
+              email,
+              options: {
+                shouldCreateUser: true,
+                emailRedirectTo: 'https://citafuego.com/auth/confirm',
+                data: {
+                  birth_date: '1990-01-01',
+                  terms_version: '2026-08-15-v1',
+                  privacy_version: '2026-08-15-v1',
+                  sensitive_data_version: '2026-08-15-v1'
+                }
+              }
+            });
+            console.log(JSON.stringify({ email, ok: !error, error: error ? { name: error.name, message: error.message, status: error.status, code: error.code } : null }));
+          }
+          NODE
+      - uses: actions/upload-artifact@v4
+        with:
+          name: citafuego-auth-email-probe
+          path: /tmp/auth-email-probe.txt
+          retention-days: 1
+          if-no-files-found: error
