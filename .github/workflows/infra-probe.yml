@@ -36,10 +36,24 @@ jobs:
             head -c 500 /tmp/probe-body 2>/dev/null || true
             echo
           }
+          resolved_probe() {
+            local host="$1"
+            echo "=== DNS-SIMULATED https://$host/api/health via 76.76.21.21 ==="
+            rm -f /tmp/probe-body
+            curl --silent --show-error --location --max-time 30 \
+              --resolve "$host:443:76.76.21.21" \
+              --output /tmp/probe-body \
+              --write-out 'HTTP=%{http_code} FINAL=%{url_effective} TLS=%{ssl_verify_result}\n' \
+              "https://$host/api/health"
+            head -c 500 /tmp/probe-body 2>/dev/null || true
+            echo
+          }
           probe 'https://citafuego-prod-2sqlhwb3p-huoago-7712s-projects.vercel.app/api/health'
           probe 'https://citafuego-prod-huoago-7712s-projects.vercel.app/api/health'
           probe 'https://citafuego.com/api/health'
           probe 'https://www.citafuego.com/api/health'
+          resolved_probe 'citafuego.com'
+          resolved_probe 'www.citafuego.com'
           exit 0
       - uses: actions/upload-artifact@v4
         with:
