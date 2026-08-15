@@ -15,8 +15,8 @@ This repository is the production Release Candidate for CitaFuego V1.0. The appl
 - Primary locale: Spanish (`es-PE`)
 - Launch market: Lima Metropolitana, Peru
 - Minimum age: 18+
-- Database migrations `001`–`014`: historical/stable — **do not edit**
-- New changes: additive migrations only (`018+`)
+- Production database migrations through `020`: already applied/stable — **do not edit or reuse their numbers**
+- RC database changes: additive migrations `021`–`023`
 
 A successful CI build means **Release Candidate READY**, not that production is live. Production is only considered live after deployment READY, custom domain + HTTPS, DNS propagation, production Auth email, health check 200, and production E2E validation.
 
@@ -94,6 +94,12 @@ scripts/                 Security/release helper scripts
 docs/                    Product, architecture and operating runbooks
 .github/workflows/        CI/deployment/health workflows
 ```
+
+## Database migration truth
+
+The live Supabase project is the source of truth for already-applied migration numbers. At this RC checkpoint it contains production history through `020`, including historical admin/media/rate-limit hardening. Those applied migrations must not be rewritten.
+
+Repository migrations `021_admin_backoffice.sql`, `022_realtime_and_rate_limits.sql`, and `023_superfuego_entitlements.sql` are the next additive RC changes. Apply them only after the exact RC commit is green in CI, then re-run the database security checks.
 
 ## Production operations
 
