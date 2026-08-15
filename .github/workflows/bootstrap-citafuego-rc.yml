@@ -34,20 +34,20 @@ jobs:
           echo "9cd15e695594b5721a1115d5282076529221b80949ab02cebb2b29ed83820f1f  /tmp/citafuego.tar.gz" | sha256sum -c -
           tar -xzf /tmp/citafuego.tar.gz -C .
 
-      - name: Commit restored source
+      - name: Commit restored source without workflow mutations
         shell: bash
         run: |
           set -euo pipefail
           git config user.name "CitaFuego Release Bot"
           git config user.email "135907394+huoago@users.noreply.github.com"
-          git add -A ':!.restore' ':!.github/workflows/restore-release.yml' ':!.github/workflows/bootstrap-release.yml'
+          git add -A ':!.restore' ':!.github/workflows/**'
           if ! git diff --cached --quiet; then
             git commit -m "feat: restore complete CitaFuego V1.0 release candidate"
           fi
           npm install --package-lock-only --ignore-scripts --no-audit --no-fund
           git add package-lock.json
           git commit -m "chore: lock production dependencies"
-          git rm -r .restore .github/workflows/restore-release.yml .github/workflows/bootstrap-release.yml
+          git rm -r .restore
           git commit -m "chore: remove restore payload"
           git push origin HEAD:release/citafuego-v1
 
