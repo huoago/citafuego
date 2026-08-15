@@ -57,3 +57,7 @@ jobs:
                 body
               });
             }
+
+      - name: Fail when production health check fails
+        if: steps.check.outputs.failed == '1'
+        run: exit 1
