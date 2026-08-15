@@ -12,27 +12,27 @@ jobs:
   probe:
     runs-on: ubuntu-latest
     steps:
-      - name: DNS state
+      - name: Probe DNS and HTTPS
         shell: bash
         run: |
+          set +e
+          exec > >(tee /tmp/infra-probe.txt) 2>&1
           echo '=== citafuego.com A ==='
-          dig +short citafuego.com A || true
+          dig +short citafuego.com A
           echo '=== citafuego.com NS ==='
-          dig +short citafuego.com NS || true
+          dig +short citafuego.com NS
           echo '=== www.citafuego.com CNAME ==='
-          dig +short www.citafuego.com CNAME || true
+          dig +short www.citafuego.com CNAME
           echo '=== www.citafuego.com A ==='
-          dig +short www.citafuego.com A || true
-      - name: HTTP health probes
-        shell: bash
-        run: |
+          dig +short www.citafuego.com A
           probe() {
             local url="$1"
             echo "=== $url ==="
+            rm -f /tmp/probe-body
             curl --silent --show-error --location --max-time 30 \
               --output /tmp/probe-body \
               --write-out 'HTTP=%{http_code} FINAL=%{url_effective}\n' \
-              "$url" || true
+              "$url"
             head -c 500 /tmp/probe-body 2>/dev/null || true
             echo
           }
@@ -40,3 +40,10 @@ jobs:
           probe 'https://citafuego-prod-huoago-7712s-projects.vercel.app/api/health'
           probe 'https://citafuego.com/api/health'
           probe 'https://www.citafuego.com/api/health'
+          exit 0
+      - uses: actions/upload-artifact@v4
+        with:
+          name: citafuego-infra-probe
+          path: /tmp/infra-probe.txt
+          retention-days: 1
+          if-no-files-found: error
