@@ -1,0 +1,69 @@
+name: Bootstrap CitaFuego RC from Main
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/bootstrap-citafuego-rc.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  restore:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: release/citafuego-v1
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Restore verified RC archive
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat .restore/000.b64 .restore/001.b64 .restore/002.b64 .restore/003.b64 \
+              .restore/004.b64 .restore/005.b64 .restore/006.b64 .restore/007.b64 > /tmp/citafuego.b64
+          echo "0641bab4fd8d95184be048c6ae60db5588301f1f208798b709aad95056bf4975  /tmp/citafuego.b64" | sha256sum -c -
+          base64 --decode /tmp/citafuego.b64 > /tmp/citafuego.tar.gz
+          echo "9cd15e695594b5721a1115d5282076529221b80949ab02cebb2b29ed83820f1f  /tmp/citafuego.tar.gz" | sha256sum -c -
+          tar -xzf /tmp/citafuego.tar.gz -C .
+
+      - name: Commit restored source
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "CitaFuego Release Bot"
+          git config user.email "135907394+huoago@users.noreply.github.com"
+          git add -A ':!.restore' ':!.github/workflows/restore-release.yml' ':!.github/workflows/bootstrap-release.yml'
+          if ! git diff --cached --quiet; then
+            git commit -m "feat: restore complete CitaFuego V1.0 release candidate"
+          fi
+          npm install --package-lock-only --ignore-scripts --no-audit --no-fund
+          git add package-lock.json
+          git commit -m "chore: lock production dependencies"
+          git rm -r .restore .github/workflows/restore-release.yml .github/workflows/bootstrap-release.yml
+          git commit -m "chore: remove restore payload"
+          git push origin HEAD:release/citafuego-v1
+
+      - name: npm ci
+        run: npm ci
+      - name: Secret scan
+        run: node scripts/check-no-secrets.mjs
+      - name: Lint
+        run: npm run lint
+      - name: Typecheck
+        run: npm run typecheck
+      - name: Tests
+        run: npm test
+      - name: Build
+        run: npm run build
+        env:
+          NEXT_PUBLIC_APP_URL: https://citafuego.com
+          NEXT_PUBLIC_SUPABASE_URL: https://stfbybkutnoqoxhqxyou.supabase.co
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: sb_publishable_ci_placeholder
