@@ -1,108 +1,134 @@
 # CitaFuego V1.0 Release Candidate
 
-CitaFuego 是面向西班牙语用户的 **18+ 真人约会平台**，首发市场为 Lima, Perú。
+**CitaFuego — Conoce. Conecta. Enciende la chispa.**
 
-## 当前产品闭环
+CitaFuego is a mobile-first, Spanish-language, 18+ local dating and social discovery platform launching in Lima Metropolitana, Peru. It is designed for real people to discover compatible adults nearby, match, chat safely, and move toward real-world dates.
 
-```text
-18+ Registro
-→ Magic Link Auth
-→ Onboarding
-→ Fotos privadas
-→ Moderación de fotos
-→ Verificación humana
-→ Profile activo
-→ Discover paginado
-→ Like / Rewind / Who Likes You
-→ Match
-→ Chat moderado
-→ Report / Block / Unblock
-```
+CitaFuego is **not** an escort marketplace, prostitution service, paid-sex marketplace, sugar-dating-for-payment product, pornography platform, or a service for minors.
 
-## 已完成
+## Release status
 
-### Sprint 1
+This repository is the production Release Candidate for CitaFuego V1.0. The application is wired to the existing production Supabase project and preserves the established database/RLS/security model.
 
-- Supabase SSR Auth / Magic Link
-- 18+ 双层校验
-- Onboarding
-- 私有照片 Storage
-- 服务端照片净化
-- 真人验证与 Trust & Safety 审核
-- Profile 激活
-- 真实 Discovery
-- Match / Chat
+- Supabase project ref: `stfbybkutnoqoxhqxyou`
+- Production app URL target: `https://citafuego.com`
+- Primary locale: Spanish (`es-PE`)
+- Launch market: Lima Metropolitana, Peru
+- Minimum age: 18+
+- Production database migrations through `020`: already applied/stable — **do not edit or reuse their numbers**
+- RC database changes: additive migrations `021`–`023`
 
-### Sprint 2
+A successful CI build means **Release Candidate READY**, not that production is live. Production is only considered live after deployment READY, custom domain + HTTPS, DNS propagation, production Auth email, health check 200, and production E2E validation.
 
-- 分页 Discovery
-- Who Likes You
-- Rewind
-- Premium Filters
-- 举报
-- 拉黑 / 解封
-- 安全读取模型
-- SECURITY DEFINER 权限加固
-- 性能索引与 Supabase Advisor 修复
+## Core funnel
 
-## 技术栈
+`Signup → 18+ gate → Onboarding → Photo review → Selfie verification → Active profile → Discovery → Like → Match → Chat → Real date`
 
-- Next.js 16 App Router / `proxy.ts`
-- React 19 / TypeScript
-- Supabase Auth + PostgreSQL + Storage
-- PostgreSQL RLS / SECURITY DEFINER RPC
-- Sharp server-side image sanitization
-- Vercel production hosting target
+## Tech stack
 
-## Supabase
+- Next.js 16 App Router
+- React 19 + TypeScript (strict)
+- Supabase Auth (Magic Link + SSR cookie session)
+- Supabase PostgreSQL + RLS
+- Supabase private Storage
+- Supabase Realtime for chat
+- Sharp for image decoding/sanitization/re-encoding
+- Node test runner for domain/security contract tests
+- GitHub Actions for CI quality gates
 
-Production project ref:
+## Local setup
 
-```text
-stfbybkutnoqoxhqxyou
-```
-
-数据库迁移文件：
-
-```text
-db/migrations/001_core.sql
-...
-db/migrations/014_safety_read_models.sql
-```
-
-> 不要把 `.env.production`、service-role key、SMTP 密钥或第三方 API Secret 提交到 GitHub。
-
-## 环境变量
-
-复制 `.env.example` 为 `.env.local`，至少配置：
-
-```env
-NEXT_PUBLIC_APP_URL=http://localhost:3000
-NEXT_PUBLIC_SUPABASE_URL=https://<project-ref>.supabase.co
-NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=sb_publishable_...
-```
-
-生产环境额外配置审核、邮件、支付供应商时，只通过部署平台 Secret/Environment Variables 管理。
-
-## 本地验证
+Requirements: Node.js 22+ and npm.
 
 ```bash
-npm install
+cp .env.example .env.local
+npm ci
+npm run dev
+```
+
+Required public configuration:
+
+```env
+NEXT_PUBLIC_APP_URL=https://citafuego.com
+NEXT_PUBLIC_SUPABASE_URL=https://stfbybkutnoqoxhqxyou.supabase.co
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=...
+```
+
+Never commit `SUPABASE_SECRET_KEY`, service-role keys, SMTP passwords, Alibaba Cloud secrets, payment private keys, or moderation-provider private credentials.
+
+## Quality gates
+
+```bash
+npm ci
+npm run lint
 npm run typecheck
-npm run domain:test
+npm test
 npm run build
 ```
 
-当前 Release Candidate 的业务与安全契约测试：**17/17 PASS**。
+The GitHub CI workflow runs the same gates. Security contracts additionally protect core invariants such as:
 
-## 生产域名
+- under-18 signup rejected server-side
+- private birth date/location never exposed in Discovery
+- no mock users/likes/matches
+- private photo/selfie buckets
+- reciprocal Discovery filters
+- match/conversation idempotency
+- held messages hidden from recipients
+- server-side Premium gating
+- Trust & Safety RBAC
+- anonymous execution of privileged `SECURITY DEFINER` RPCs remains zero
 
-目标正式域名：
+## Repository structure
 
 ```text
-https://citafuego.com
+src/app/                 Next.js routes and API handlers
+src/components/          UI components
+src/lib/                 Supabase, domain, billing and moderation code
+src/server/              Server-only contracts
+supabase/migrations/     Production-compatible SQL migrations
+supabase/seed.sql        Reference seed data
+tests/                   Unit + security contract tests
+e2e/                     Production smoke checks
+scripts/                 Security/release helper scripts
+docs/                    Product, architecture and operating runbooks
+.github/workflows/        CI/deployment/health workflows
 ```
 
-## 法律状态
+## Database migration truth
 
-`/terminos` 与 `/privacidad` 当前仍属于产品开发草案。正式对公众投放、广告投放或规模化获客之前，必须完成秘鲁当地法律审核，并接入生产 SMTP。
+The live Supabase project is the source of truth for already-applied migration numbers. At this RC checkpoint it contains production history through `020`, including historical admin/media/rate-limit hardening. Those applied migrations must not be rewritten.
+
+Repository migrations `021_admin_backoffice.sql`, `022_realtime_and_rate_limits.sql`, and `023_superfuego_entitlements.sql` are the next additive RC changes. Apply them only after the exact RC commit is green in CI, then re-run the database security checks.
+
+## Production operations
+
+Read these before release:
+
+- [`docs/09-PRODUCTION-RUNBOOK.md`](docs/09-PRODUCTION-RUNBOOK.md)
+- [`docs/10-SMTP.md`](docs/10-SMTP.md)
+- [`docs/11-SECURITY-REVIEW.md`](docs/11-SECURITY-REVIEW.md)
+- [`docs/12-ROLLBACK.md`](docs/12-ROLLBACK.md)
+- [`docs/13-DAILY-MAINTENANCE.md`](docs/13-DAILY-MAINTENANCE.md)
+
+## Legal and safety routes
+
+- `/terms`
+- `/privacy`
+- `/safety`
+- `/community-guidelines`
+- `/help`
+
+The Spanish product routes `/terminos`, `/privacidad`, and `/seguridad` remain supported for compatibility.
+
+## Deployment truth rule
+
+Never report `citafuego.com` as live merely because a build or deployment was created. Live acceptance requires all of the following:
+
+1. Production deployment reports READY.
+2. `citafuego.com` is attached to the intended production project.
+3. HTTPS certificate is valid.
+4. Authoritative DNS has propagated.
+5. `/api/health` returns HTTP 200 on the custom domain.
+6. Production Magic Link email is delivered through configured production SMTP.
+7. Two-account production E2E completes signup → activation → mutual match → chat → report/block.

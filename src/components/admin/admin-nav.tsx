@@ -1,0 +1,3 @@
+import Link from 'next/link';
+const links=[['/admin','Resumen'],['/admin/users','Usuarios'],['/admin/photos','Fotos'],['/admin/verifications','Verificaciones'],['/admin/reports','Reportes'],['/admin/moderation','Moderación'],['/admin/sanctions','Sanciones'],['/admin/audit','Auditoría']] as const;
+export function AdminNav(){return <nav className="adminNav">{links.map(([href,label])=><Link href={href} key={href}>{label}</Link>)}</nav>}

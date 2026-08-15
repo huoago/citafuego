@@ -1,0 +1,59 @@
+name: Daily production health
+
+on:
+  schedule:
+    - cron: '0 13 * * *' # 08:00 America/Lima (UTC-5)
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  health:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Check public production endpoints
+        id: check
+        shell: bash
+        run: |
+          set +e
+          failed=0
+          report=''
+          for path in / /api/health /login /signup /terms /privacy /safety /community-guidelines /help; do
+            url="https://citafuego.com${path}"
+            code=$(curl --silent --show-error --location --max-time 20 --output /dev/null --write-out '%{http_code}' "$url")
+            if [[ "$code" != 2* && "$code" != 3* ]]; then
+              failed=1
+              report+="- ${url}: HTTP ${code}\n"
+            fi
+          done
+          printf 'failed=%s\n' "$failed" >> "$GITHUB_OUTPUT"
+          {
+            echo 'report<<EOF'
+            printf '%b' "$report"
+            echo 'EOF'
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Open incident issue when health check fails
+        if: steps.check.outputs.failed == '1'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const title = `[Health] Production endpoint failure ${new Date().toISOString().slice(0,10)}`;
+            const body = `Automated production health check failed.\n\n${{ steps.check.outputs.report }}\n\nFollow docs/13-DAILY-MAINTENANCE.md before applying a fix.`;
+            const { data: issues } = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+              per_page: 100
+            });
+            if (!issues.some((issue) => issue.title === title)) {
+              await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title,
+                body
+              });
+            }

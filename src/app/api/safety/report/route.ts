@@ -1,0 +1,4 @@
+import { z } from 'zod';
+import { createClient } from '@/lib/supabase/server';
+const schema=z.object({userId:z.string().uuid(),conversationId:z.string().uuid().nullable().optional(),messageId:z.string().uuid().nullable().optional(),category:z.enum(['fake_profile','harassment','scam','sexual_content','minor_risk','paid_sex','impersonation','threat','spam','other']),description:z.string().max(2000).optional()});
+export async function POST(r:Request){const p=schema.safeParse(await r.json());if(!p.success)return Response.json({error:'invalid_payload'},{status:400});const s=await createClient();const{data,error}=await s.rpc('submit_report',{p_reported:p.data.userId,p_category:p.data.category,p_description:p.data.description??null,p_conversation:p.data.conversationId??null,p_message:p.data.messageId??null});if(error)return Response.json({error:'report_failed'},{status:400});return Response.json({ok:true,reportId:data});}

@@ -1,0 +1,2 @@
+export interface ActivationFacts{adult:boolean;bioLength:number;interestedInCount:number;interestCount:number;approvedPhotos:number;verified:boolean;terms:boolean;privacy:boolean;sensitiveData:boolean;blockedBySanction:boolean}
+export function activationEligible(f:ActivationFacts){return f.adult&&f.bioLength>=20&&f.interestedInCount>=1&&f.interestCount>=3&&f.approvedPhotos>=2&&f.verified&&f.terms&&f.privacy&&f.sensitiveData&&!f.blockedBySanction}

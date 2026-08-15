@@ -1,0 +1,3 @@
+import { requireAdmin } from '@/lib/admin/auth';
+export const dynamic='force-dynamic';
+export default async function Audit(){const a=await requireAdmin(['super_admin','trust_safety']);if(!a)return null;const{data}=await a.admin.rpc('admin_get_audit_log',{p_limit:200});return <section><h2>Audit log</h2><table className="adminTable"><thead><tr><th>Fecha</th><th>Admin</th><th>Acción</th><th>Objeto</th><th>Motivo</th></tr></thead><tbody>{(data??[]).map((x:any)=><tr key={x.audit_id}><td>{x.created_at}</td><td>{x.admin_user_id}</td><td>{x.action}</td><td>{x.object_type}:{x.object_id}</td><td>{x.reason??'—'}</td></tr>)}</tbody></table></section>}

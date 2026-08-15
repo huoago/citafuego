@@ -1,0 +1,2 @@
+import Link from 'next/link';
+export default function HelpPage(){return <main className="legalPage"><p className="eyebrow">Ayuda</p><h1>¿Necesitas ayuda?</h1><p>Desde cualquier perfil o chat puedes usar <b>Reportar</b> o <b>Bloquear</b>. El bloqueo es silencioso: la otra persona no recibe una notificación indicando quién la bloqueó.</p><p>Para problemas de seguridad consulta el <Link href="/safety">Centro de seguridad</Link>. Para privacidad y datos revisa <Link href="/privacy">Privacidad</Link>.</p></main>}
