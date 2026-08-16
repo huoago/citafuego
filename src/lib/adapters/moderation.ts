@@ -1,5 +1,6 @@
 import type { ModerationDecision } from '@/lib/domain/moderation';
 import { preModerateText } from '@/lib/domain/moderation';
+import { MEDIA_POLICY_VERSION } from '@/lib/moderation/media-policy';
 
 export interface TextModerationInput {
   text: string;
@@ -31,9 +32,9 @@ class RulesModerationProvider implements ModerationProvider {
   async moderateImage(): Promise<ModerationDecision> {
     return {
       labels: {}, scores: {}, action: 'hold', recommendedAction: 'hold',
-      explanation: 'Image requires the configured image provider or manual Trust & Safety review.',
+      explanation: 'No automated visual classifier is configured; media is held for Trust & Safety review under the current media policy.',
       reasons: ['manual_image_review'], humanReviewRequired: true, provider: 'rules',
-      modelVersion: 'manual-image-v1', policyVersion: '2026-08-v1',
+      modelVersion: 'manual-image-v2', policyVersion: MEDIA_POLICY_VERSION,
     };
   }
 }
