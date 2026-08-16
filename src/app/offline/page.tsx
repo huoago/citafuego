@@ -1,0 +1,2 @@
+import Link from 'next/link';
+export default function OfflinePage(){return <main className="authPage"><div className="authCard"><div className="brandLockup"><span>🔥</span> CitaFuego</div><p className="eyebrow">Sin conexión</p><h1>Vuelve cuando tengas red</h1><p className="muted">Por privacidad, CitaFuego no guarda perfiles, chats ni contenido privado para uso sin conexión. Solo esta pantalla pública está disponible offline.</p><Link className="ctaButton fullWidth" href="/">Volver al inicio</Link></div></main>}
