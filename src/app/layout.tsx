@@ -3,6 +3,7 @@ import './globals.css';
 import './redesign.css';
 import './interaction.css';
 import './growth.css';
+import './blog.css';
 
 export const metadata: Metadata = {
   title: { default: 'CitaFuego — Personas reales. Citas reales.', template: '%s · CitaFuego' },

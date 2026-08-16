@@ -1,0 +1,6 @@
+import { z } from 'zod';
+import { getAuthenticatedUserId } from '@/lib/auth/server';
+import { createClient } from '@/lib/supabase/server';
+import { getModerationProvider } from '@/lib/adapters/moderation';
+const schema=z.object({body:z.string().trim().min(1).max(1500)});
+export async function POST(request:Request,{params}:{params:Promise<{postId:string}>}){const userId=await getAuthenticatedUserId();if(!userId)return Response.json({error:'unauthorized'},{status:401});const{postId}=await params;if(!z.string().uuid().safeParse(postId).success)return Response.json({error:'invalid_post'},{status:400});const p=schema.safeParse(await request.json());if(!p.success)return Response.json({error:'invalid_payload'},{status:400});const moderation=await getModerationProvider().moderateText({text:p.data.body,surface:'blog_comment',userId});if(moderation.action==='hold'||moderation.action==='block')return Response.json({error:'content_blocked'},{status:422});const s=await createClient();const{data,error}=await s.rpc('add_blog_comment',{p_post:postId,p_body:p.data.body});if(error)return Response.json({error:error.message.includes('rate_limited')?'rate_limited':'comment_failed'},{status:409});return Response.json(data,{status:201});}
