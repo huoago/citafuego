@@ -1,0 +1,9 @@
+import { z } from 'zod';
+import { createClient } from '@/lib/supabase/server';
+import { getAuthenticatedUserId } from '@/lib/auth/server';
+import { getModerationProvider } from '@/lib/adapters/moderation';
+const promptKey=z.enum(['plan_ideal','me_gana','domingo','viaje','obsesion','primera_cita']);
+const saveSchema=z.object({slot:z.number().int().min(1).max(3),promptKey,answer:z.string().trim().min(3).max(280)});
+const deleteSchema=z.object({slot:z.number().int().min(1).max(3)});
+export async function POST(request:Request){const userId=await getAuthenticatedUserId();if(!userId)return Response.json({error:'unauthorized'},{status:401});const p=saveSchema.safeParse(await request.json());if(!p.success)return Response.json({error:'invalid_payload'},{status:400});const moderation=await getModerationProvider().moderateText({text:p.data.answer,surface:'prompt',userId});if(moderation.action!=='allow')return Response.json({error:'prompt_moderation_failed'},{status:422});const s=await createClient();const{data,error}=await s.rpc('save_profile_prompt',{p_slot:p.data.slot,p_prompt_key:p.data.promptKey,p_answer:p.data.answer});if(error)return Response.json({error:'prompt_save_failed'},{status:400});await s.from('analytics_events').insert({user_id:userId,event_name:'prompt_saved',properties:{slot:p.data.slot,promptKey:p.data.promptKey}});return Response.json(data)}
+export async function DELETE(request:Request){if(!await getAuthenticatedUserId())return Response.json({error:'unauthorized'},{status:401});const p=deleteSchema.safeParse(await request.json());if(!p.success)return Response.json({error:'invalid_payload'},{status:400});const s=await createClient();const{data,error}=await s.rpc('delete_profile_prompt',{p_slot:p.data.slot});if(error)return Response.json({error:'prompt_delete_failed'},{status:400});return Response.json(data)}

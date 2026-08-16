@@ -1,0 +1,4 @@
+import { createClient } from '@/lib/supabase/server';
+import { NotificationsList } from '@/components/notifications/notifications-list';
+export const dynamic='force-dynamic';
+export default async function Page(){const s=await createClient();const{data}=await s.from('user_notifications').select('id,kind,title,body,href,read_at,created_at').order('created_at',{ascending:false}).limit(60);return <section><div className="pageHeader"><p className="eyebrow">Lo importante, en un lugar</p><h1>Notificaciones</h1><p className="muted">Likes, Matches, mensajes y actividad de tu perfil sin revelar más datos de los necesarios.</p></div><NotificationsList initial={(data??[]).map(x=>({id:String(x.id),kind:String(x.kind),title:String(x.title),body:String(x.body??''),href:x.href?String(x.href):null,read_at:x.read_at?String(x.read_at):null,created_at:String(x.created_at)}))}/></section>}
