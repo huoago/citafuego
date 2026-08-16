@@ -4,7 +4,15 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
-import type { DiscoverProfile } from '@/lib/types';
+import type { DiscoverProfile, RelationshipIntent } from '@/lib/types';
+
+const intentLabels: Record<RelationshipIntent, string> = {
+  serious: 'Relación seria',
+  meet_people: 'Conocer gente',
+  casual: 'Algo casual',
+  friendship: 'Amistad',
+  open_to_see: 'Ver qué pasa',
+};
 
 export function DiscoverDeck({
   initialProfiles,
@@ -97,15 +105,16 @@ export function DiscoverDeck({
   if (!profile) {
     return (
       <section className="emptyState">
+        <p className="eyebrow">Feed honesto</p>
         <h1>Eso es todo por ahora</h1>
-        <p>CitaFuego no rellena el feed con perfiles falsos.</p>
+        <p>CitaFuego no rellena el feed con perfiles falsos ni repite personas para simular actividad.</p>
         {hasMore ? (
           <button className="ctaButton" onClick={() => void refill()}>
-            Cargar más
+            Cargar más perfiles
           </button>
         ) : (
           <Link className="ctaButton" href="/onboarding?edit=1">
-            Revisar preferencias
+            Ajustar preferencias
           </Link>
         )}
       </section>
@@ -116,38 +125,40 @@ export function DiscoverDeck({
     <section>
       <div className="discoverTopline">
         <div>
-          <p className="eyebrow">Lima · resultados reales</p>
+          <p className="eyebrow">Para ti · Lima</p>
           <h1>Descubrir</h1>
         </div>
         <Link className="filterButton" href="/premium/filtros">Filtros</Link>
       </div>
+
       <article className="profileCard">
         <div className="profileMedia">
-          <Image src={profile.imageUrl} alt={`Foto de ${profile.name}`} fill priority sizes="(max-width:560px) 100vw,520px" />
+          <Image src={profile.imageUrl} alt={`Foto de ${profile.name}`} fill priority sizes="(max-width:560px) 100vw,720px" />
           <div className="mediaShade" />
           <div className="profileOverlay">
             <div className="nameLine">
               <h2>{profile.name}, {profile.age}</h2>
-              {profile.verified ? <span className="verifiedBadge">✓</span> : null}
+              {profile.verified ? <span className="verifiedBadge" title="Perfil verificado">✓</span> : null}
             </div>
-            <p>{profile.district} · {profile.distanceBucket}</p>
-            <div className="chemistryBadge">🔥 {profile.chemistryScore}% química</div>
+            <p>{profile.district} · {profile.distanceBucket} · {intentLabels[profile.intent]}</p>
+            <div className="chemistryBadge">🔥 {profile.chemistryScore}% química · {profile.sharedInterestCount} intereses en común</div>
           </div>
         </div>
         <div className="profileBody">
           <p>{profile.bio}</p>
-          <div className="chips">
+          <div className="chips" aria-label="Intereses">
             {profile.interests.map((interest) => <span className="chip" key={interest}>{interest}</span>)}
           </div>
         </div>
       </article>
-      <div className="decisionBar">
-        <button className="roundAction secondaryAction" disabled={busy} onClick={() => void rewind()}>↶</button>
-        <button className="roundAction secondaryAction" disabled={busy} onClick={() => void decide('pass')}>×</button>
-        <button className="roundAction superfuegoAction" disabled={busy} onClick={() => void decide('superfuego')} aria-label="SuperFuego">🔥</button>
-        <button className="roundAction primaryAction" disabled={busy} onClick={() => void decide('like')}>♡</button>
+
+      <div className="decisionBar" aria-label="Acciones del perfil">
+        <button className="roundAction secondaryAction" disabled={busy} onClick={() => void rewind()} aria-label="Recuperar perfil anterior" title="Rewind">↶</button>
+        <button className="roundAction secondaryAction" disabled={busy} onClick={() => void decide('pass')} aria-label={`Omitir a ${profile.name}`} title="Omitir">×</button>
+        <button className="roundAction superfuegoAction" disabled={busy} onClick={() => void decide('superfuego')} aria-label={`Enviar SuperFuego a ${profile.name}`} title="SuperFuego">🔥</button>
+        <button className="roundAction primaryAction" disabled={busy} onClick={() => void decide('like')} aria-label={`Dar Like a ${profile.name}`} title="Like">♡</button>
       </div>
-      {toast ? <div className="toast">{toast}</div> : null}
+      {toast ? <div className="toast" role="status" aria-live="polite">{toast}</div> : null}
     </section>
   );
 }
