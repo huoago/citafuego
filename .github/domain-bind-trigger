@@ -1,2 +1,2 @@
-triggered_at=2026-08-16T23:08:00+08:00
-purpose=verify citafuego.com and www.citafuego.com DNS, Vercel binding, and HTTPS after propagation
+triggered_at=2026-08-16T23:10:00+08:00
+purpose=final idempotent verification of citafuego.com and www.citafuego.com DNS, Vercel binding, and HTTPS
