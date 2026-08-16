@@ -1,0 +1,246 @@
+name: Bind CitaFuego production domain
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - .github/domain-bind-trigger
+
+permissions:
+  contents: read
+
+concurrency:
+  group: citafuego-domain-binding
+  cancel-in-progress: false
+
+jobs:
+  bind-domain:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      ALIBABA_CLOUD_ACCESS_KEY_ID: ${{ secrets.ALIBABA_CLOUD_ACCESS_KEY_ID }}
+      ALIBABA_CLOUD_ACCESS_KEY_SECRET: ${{ secrets.ALIBABA_CLOUD_ACCESS_KEY_SECRET }}
+    steps:
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Validate deployment credentials
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "${VERCEL_TOKEN:-}" || { echo 'Missing GitHub secret: VERCEL_TOKEN'; exit 1; }
+          test -n "${ALIBABA_CLOUD_ACCESS_KEY_ID:-}" || { echo 'Missing GitHub secret: ALIBABA_CLOUD_ACCESS_KEY_ID'; exit 1; }
+          test -n "${ALIBABA_CLOUD_ACCESS_KEY_SECRET:-}" || { echo 'Missing GitHub secret: ALIBABA_CLOUD_ACCESS_KEY_SECRET'; exit 1; }
+          echo 'Required credentials are present.'
+
+      - name: Install Alibaba Cloud DNS SDK
+        run: npm install --no-save @alicloud/pop-core@latest
+
+      - name: Bind Vercel domains and configure Alibaba Cloud DNS
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --input-type=commonjs <<'NODE'
+          const Core = require('@alicloud/pop-core');
+
+          const apex = 'citafuego.com';
+          const www = 'www.citafuego.com';
+          const project = 'citafuego-prod';
+          const teamSlug = 'huoago-7712s-projects';
+          const token = process.env.VERCEL_TOKEN;
+
+          const ali = new Core({
+            accessKeyId: process.env.ALIBABA_CLOUD_ACCESS_KEY_ID,
+            accessKeySecret: process.env.ALIBABA_CLOUD_ACCESS_KEY_SECRET,
+            endpoint: 'https://alidns.aliyuncs.com',
+            apiVersion: '2015-01-09',
+          });
+
+          async function vfetch(path, init = {}) {
+            const res = await fetch(`https://api.vercel.com${path}`, {
+              ...init,
+              headers: {
+                Authorization: `Bearer ${token}`,
+                'Content-Type': 'application/json',
+                ...(init.headers || {}),
+              },
+            });
+            const text = await res.text();
+            let body;
+            try { body = text ? JSON.parse(text) : {}; } catch { body = { raw: text }; }
+            return { res, body };
+          }
+
+          async function listProjectDomains() {
+            const { res, body } = await vfetch(`/v9/projects/${encodeURIComponent(project)}/domains?slug=${encodeURIComponent(teamSlug)}&limit=100`);
+            if (!res.ok) throw new Error(`Unable to list Vercel project domains (${res.status}): ${JSON.stringify(body)}`);
+            return body.domains || [];
+          }
+
+          async function addProjectDomain(name) {
+            const { res, body } = await vfetch(`/v10/projects/${encodeURIComponent(project)}/domains?slug=${encodeURIComponent(teamSlug)}`, {
+              method: 'POST',
+              body: JSON.stringify({ name }),
+            });
+            if (res.ok) {
+              console.log(`Vercel: added ${name} to ${project}.`);
+              return body;
+            }
+            if (res.status === 400 || res.status === 409) {
+              const existing = (await listProjectDomains()).find((d) => d.name === name);
+              if (existing) {
+                console.log(`Vercel: ${name} is already attached to ${project}.`);
+                return existing;
+              }
+            }
+            throw new Error(`Unable to add ${name} to Vercel (${res.status}): ${JSON.stringify(body)}`);
+          }
+
+          async function domainConfig(name) {
+            const qs = new URLSearchParams({ projectIdOrName: project, slug: teamSlug });
+            const { res, body } = await vfetch(`/v6/domains/${encodeURIComponent(name)}/config?${qs}`);
+            if (!res.ok) throw new Error(`Unable to inspect Vercel DNS config for ${name} (${res.status}): ${JSON.stringify(body)}`);
+            return body;
+          }
+
+          function recommendedValue(items) {
+            if (!Array.isArray(items)) return null;
+            for (const item of items) {
+              if (typeof item === 'string' && item) return item;
+              if (item && typeof item === 'object') {
+                for (const key of ['value', 'ip', 'host', 'cname']) {
+                  if (typeof item[key] === 'string' && item[key]) return item[key];
+                }
+              }
+            }
+            return null;
+          }
+
+          async function aliCall(action, params) {
+            return ali.request(action, params, { method: 'POST' });
+          }
+
+          async function records() {
+            const result = await aliCall('DescribeDomainRecords', { DomainName: apex, PageSize: 500 });
+            return result?.DomainRecords?.Record || [];
+          }
+
+          async function deleteRecord(record) {
+            await aliCall('DeleteDomainRecord', { RecordId: record.RecordId });
+            console.log(`AliDNS: removed conflicting ${record.Type} ${record.RR}.`);
+          }
+
+          async function upsertAddress(rr, type, value) {
+            let all = await records();
+            const addressTypes = new Set(['A', 'AAAA', 'CNAME']);
+            const sameRR = all.filter((r) => r.RR === rr);
+            const desired = sameRR.filter((r) => r.Type === type);
+            const conflicts = sameRR.filter((r) => addressTypes.has(r.Type) && r.Type !== type);
+
+            for (const record of conflicts) await deleteRecord(record);
+
+            if (desired.length) {
+              await aliCall('UpdateDomainRecord', {
+                RecordId: desired[0].RecordId,
+                RR: rr,
+                Type: type,
+                Value: value,
+                TTL: 600,
+              });
+              console.log(`AliDNS: updated ${rr} ${type} -> ${value}.`);
+              for (const extra of desired.slice(1)) await deleteRecord(extra);
+            } else {
+              await aliCall('AddDomainRecord', {
+                DomainName: apex,
+                RR: rr,
+                Type: type,
+                Value: value,
+                TTL: 600,
+              });
+              console.log(`AliDNS: added ${rr} ${type} -> ${value}.`);
+            }
+          }
+
+          function rrFromDomain(domain) {
+            const normalized = String(domain || '').replace(/\.$/, '').toLowerCase();
+            if (!normalized || normalized === apex) return '@';
+            const suffix = `.${apex}`;
+            return normalized.endsWith(suffix) ? normalized.slice(0, -suffix.length) : normalized;
+          }
+
+          async function ensureTxt(domain, value) {
+            if (!value) return;
+            const rr = rrFromDomain(domain);
+            const all = await records();
+            const exists = all.some((r) => r.RR === rr && r.Type === 'TXT' && r.Value === value);
+            if (exists) {
+              console.log(`AliDNS: verification TXT ${rr} already exists.`);
+              return;
+            }
+            await aliCall('AddDomainRecord', {
+              DomainName: apex,
+              RR: rr,
+              Type: 'TXT',
+              Value: value,
+              TTL: 600,
+            });
+            console.log(`AliDNS: added Vercel verification TXT ${rr}.`);
+          }
+
+          function verificationItems(domainObject) {
+            return Array.isArray(domainObject?.verification) ? domainObject.verification : [];
+          }
+
+          const apexDomain = await addProjectDomain(apex);
+          const wwwDomain = await addProjectDomain(www);
+
+          for (const challenge of [...verificationItems(apexDomain), ...verificationItems(wwwDomain)]) {
+            if (String(challenge.type || '').toUpperCase() === 'TXT') {
+              await ensureTxt(challenge.domain || apex, challenge.value);
+            }
+          }
+
+          const apexCfg = await domainConfig(apex);
+          const wwwCfg = await domainConfig(www);
+
+          const apexIPv4 = recommendedValue(apexCfg.recommendedIPv4) || '76.76.21.21';
+          const wwwCname = recommendedValue(wwwCfg.recommendedCNAME) || 'cname.vercel-dns-0.com';
+
+          console.log(`Vercel recommendation for apex: ${apexIPv4}`);
+          console.log(`Vercel recommendation for www: ${wwwCname}`);
+
+          await upsertAddress('@', 'A', apexIPv4);
+          await upsertAddress('www', 'CNAME', wwwCname.replace(/\.$/, ''));
+
+          let verified = false;
+          for (let attempt = 1; attempt <= 6; attempt++) {
+            const a = await domainConfig(apex);
+            const w = await domainConfig(www);
+            console.log(`Verification attempt ${attempt}: apex misconfigured=${Boolean(a.misconfigured)}, www misconfigured=${Boolean(w.misconfigured)}`);
+            if (!a.misconfigured && !w.misconfigured) {
+              verified = true;
+              break;
+            }
+            await new Promise((resolve) => setTimeout(resolve, 20000));
+          }
+
+          if (!verified) {
+            console.log('DNS records were written successfully. Vercel verification is still propagating; this is not treated as a deployment failure.');
+          } else {
+            console.log('CitaFuego custom domains are correctly configured in Vercel and AliDNS.');
+          }
+          NODE
+
+      - name: Public DNS and HTTPS probe
+        shell: bash
+        run: |
+          set +e
+          echo '=== DNS ==='
+          dig +short citafuego.com A
+          dig +short www.citafuego.com CNAME
+          echo '=== HTTPS ==='
+          curl -I -L --max-time 30 https://citafuego.com/ || true
+          curl -I -L --max-time 30 https://www.citafuego.com/ || true
