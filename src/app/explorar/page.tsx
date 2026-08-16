@@ -7,7 +7,7 @@ export default function ExplorarPage() {
         <Link href="/" className="brandLockup"><span>🔥</span> CitaFuego</Link>
         <div className="landingNavLinks">
           <Link href="/como-funciona">Cómo funciona</Link>
-          <Link href="/seguridad">Seguridad</Link>
+          <Link href="/safety">Seguridad</Link>
           <Link className="ghostButton" href="/registro">Crear perfil</Link>
         </div>
       </header>
