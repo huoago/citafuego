@@ -1,0 +1,9 @@
+'use client';
+import Image from 'next/image';
+import Link from 'next/link';
+import { useEffect,useState } from 'react';
+import { loadDeviceThread } from '@/lib/chat/device-store';
+
+type Row={conversationId:string;displayName:string;verified:boolean;imageUrl:string|null;matchedAt:string};
+type Preview={text:string;at:string|null};
+export function LocalChatList({rows}:{rows:Row[]}){const[previews,setPreviews]=useState<Record<string,Preview>>({});useEffect(()=>{let live=true;void Promise.all(rows.map(async row=>{const messages=await loadDeviceThread(`match:${row.conversationId}`);const last=messages.at(-1);return[row.conversationId,{text:last?.body??'Historial privado solo en este dispositivo',at:last?.createdAt??null}] as const})).then(entries=>{if(live)setPreviews(Object.fromEntries(entries))});return()=>{live=false}},[rows]);if(!rows.length)return <div className="emptyState"><h2>Aún no tienes chats</h2><p>Cuando hagas Match, la conversación aparecerá aquí. El contenido se guardará únicamente en tus dispositivos.</p><Link href="/descubrir" className="ctaButton">Descubrir personas</Link></div>;return <div className="listCard">{rows.map(row=>{const preview=previews[row.conversationId];return <Link className="chatRow" href={`/chats/${row.conversationId}`} key={row.conversationId}>{row.imageUrl?<span className="chatPhoto"><Image src={row.imageUrl} alt={row.displayName} fill sizes="56px"/></span>:<span className="avatarPlaceholder small">{row.displayName.slice(0,1)}</span>}<span className="chatCopy"><strong>{row.displayName} {row.verified?'✓':''}</strong><span>{preview?.text??'Cargando historial local…'}</span></span><span className="chatMeta"><small>🔒 dispositivo</small>{preview?.at?<time>{new Date(preview.at).toLocaleDateString('es-PE',{day:'2-digit',month:'2-digit'})}</time>:null}</span></Link>})}</div>}
