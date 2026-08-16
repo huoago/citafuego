@@ -69,13 +69,11 @@ jobs:
           const projectId = process.env.VERCEL_PROJECT_ID;
           const name = process.env.VERCEL_PROJECT;
           const sha = process.env.GITHUB_SHA;
-
           const endpoint = `https://api.vercel.com/v13/deployments?teamId=${encodeURIComponent(teamId)}&forceNew=1`;
           const payload = {
             name,
             project: projectId,
             target: 'production',
-            withLatestCommit: true,
             gitSource: {
               type: 'github',
               org: 'huoago',
@@ -94,10 +92,7 @@ jobs:
 
           const res = await fetch(endpoint, {
             method: 'POST',
-            headers: {
-              Authorization: `Bearer ${token}`,
-              'Content-Type': 'application/json',
-            },
+            headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
             body: JSON.stringify(payload),
           });
           const text = await res.text();
@@ -123,23 +118,14 @@ jobs:
           const token = process.env.VERCEL_TOKEN;
           const teamId = process.env.VERCEL_TEAM_ID;
           const id = '${{ steps.deploy.outputs.id }}';
-
           for (let attempt = 1; attempt <= 60; attempt++) {
-            const res = await fetch(`https://api.vercel.com/v13/deployments/${encodeURIComponent(id)}?teamId=${encodeURIComponent(teamId)}`, {
-              headers: { Authorization: `Bearer ${token}` },
-            });
+            const res = await fetch(`https://api.vercel.com/v13/deployments/${encodeURIComponent(id)}?teamId=${encodeURIComponent(teamId)}`, { headers: { Authorization: `Bearer ${token}` } });
             const body = await res.json().catch(() => ({}));
-            if (!res.ok) {
-              console.error(`Unable to inspect deployment (${res.status})`, body);
-              process.exit(1);
-            }
+            if (!res.ok) { console.error(`Unable to inspect deployment (${res.status})`, body); process.exit(1); }
             const state = body.readyState || body.status;
             console.log(`Deployment state attempt ${attempt}: ${state}`);
             if (state === 'READY') process.exit(0);
-            if (['ERROR', 'CANCELED'].includes(state)) {
-              console.error('Deployment did not become READY', body.errorMessage || body.errorCode || body);
-              process.exit(1);
-            }
+            if (['ERROR', 'CANCELED'].includes(state)) { console.error('Deployment did not become READY', body.errorMessage || body.errorCode || body); process.exit(1); }
             await new Promise((resolve) => setTimeout(resolve, 5000));
           }
           console.error('Timed out waiting for Vercel deployment to become READY.');
@@ -174,15 +160,10 @@ jobs:
             for host in citafuego.com www.citafuego.com; do
               body_file=$(mktemp)
               code=$(curl --silent --show-error --location --max-time 30 --output "$body_file" --write-out '%{http_code}' "https://${host}/api/health" || true)
-              if [ "$code" != "200" ] || ! grep -Eq '"ok"[[:space:]]*:[[:space:]]*true' "$body_file" || ! grep -Eq '"service"[[:space:]]*:[[:space:]]*"citafuego"' "$body_file"; then
-                healthy=0
-              fi
+              if [ "$code" != "200" ] || ! grep -Eq '"ok"[[:space:]]*:[[:space:]]*true' "$body_file" || ! grep -Eq '"service"[[:space:]]*:[[:space:]]*"citafuego"' "$body_file"; then healthy=0; fi
               rm -f "$body_file"
             done
-            if [ "$healthy" = "1" ]; then
-              echo 'Production health checks passed for apex and www.'
-              exit 0
-            fi
+            if [ "$healthy" = "1" ]; then echo 'Production health checks passed for apex and www.'; exit 0; fi
             echo "Attempt $attempt: production domains are not healthy yet."
             sleep 10
           done
