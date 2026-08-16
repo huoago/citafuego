@@ -1,0 +1,9 @@
+'use client';
+import { useState } from 'react';
+
+const categories=[['fake_profile','Perfil falso'],['harassment','Acoso'],['scam','Estafa'],['sexual_content','Contenido sexual inapropiado'],['minor_risk','Riesgo relacionado con menores'],['paid_sex','Servicios sexuales de pago'],['impersonation','Suplantación'],['threat','Amenaza'],['spam','Spam'],['other','Otro']] as const;
+export function ReportContentButton({type,contentId,label='Reportar'}:{type:'profile'|'blog_post'|'blog_comment'|'story';contentId:string;label?:string}){
+ const[open,setOpen]=useState(false);const[category,setCategory]=useState<(typeof categories)[number][0]>('other');const[description,setDescription]=useState('');const[busy,setBusy]=useState(false);const[msg,setMsg]=useState('');
+ async function submit(){setBusy(true);const r=await fetch('/api/social/report',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({type,contentId,category,description})});setBusy(false);if(r.ok){setMsg('Reporte enviado a Trust & Safety.');setOpen(false);setDescription('')}else setMsg('No pudimos enviar el reporte.');}
+ return <div className="reportControl"><button type="button" className="textDanger" onClick={()=>setOpen(v=>!v)}>{label}</button>{open?<div className="reportPopover"><strong>Reportar contenido</strong><select value={category} onChange={e=>setCategory(e.target.value as typeof category)}>{categories.map(([v,l])=><option key={v} value={v}>{l}</option>)}</select><textarea value={description} onChange={e=>setDescription(e.target.value)} maxLength={2000} rows={3} placeholder="Describe brevemente el problema…"/><div><button type="button" className="ghostButton" onClick={()=>setOpen(false)}>Cancelar</button><button type="button" className="dangerButton" disabled={busy} onClick={()=>void submit()}>{busy?'Enviando…':'Enviar reporte'}</button></div></div>:null}{msg?<small className="muted">{msg}</small>:null}</div>;
+}
