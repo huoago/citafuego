@@ -4,6 +4,10 @@ on:
   schedule:
     - cron: '0 13 * * *' # 08:00 America/Lima (UTC-5)
   workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/daily-health.yml'
 
 permissions:
   contents: read
@@ -24,63 +28,45 @@ jobs:
         shell: bash
         run: |
           set +e
-          check_site() {
-            local failed=0
-            local report=''
+          failed=0
+          report=''
 
-            apex_a=$(dig +short citafuego.com A | tr '\n' ' ')
-            www_cname=$(dig +short www.citafuego.com CNAME | tr '\n' ' ')
-            if [ -z "$apex_a" ]; then
+          apex_a=$(dig +short citafuego.com A | tr '\n' ' ')
+          www_cname=$(dig +short www.citafuego.com CNAME | tr '\n' ' ')
+          if [ -z "$apex_a" ]; then failed=1; report+="- DNS: citafuego.com has no A record\\n"; fi
+          if [[ "$www_cname" != *"vercel-dns"* ]]; then failed=1; report+="- DNS: unexpected www CNAME: ${www_cname:-<empty>}\\n"; fi
+
+          for host in citafuego.com www.citafuego.com; do
+            if ! echo | openssl s_client -servername "$host" -connect "$host:443" 2>/dev/null | openssl x509 -noout -checkend 604800 >/dev/null 2>&1; then
               failed=1
-              report+="- DNS: citafuego.com has no A record\\n"
+              report+="- TLS: ${host} certificate unavailable or expires within 7 days\\n"
             fi
-            if [[ "$www_cname" != *"vercel-dns"* ]]; then
+            body=$(mktemp)
+            code=$(curl -sS -L --max-time 25 -o "$body" -w '%{http_code}' "https://${host}/api/health" || true)
+            if [ "$code" != 200 ] || ! grep -Eq '"ok"[[:space:]]*:[[:space:]]*true' "$body" || ! grep -Eq '"service"[[:space:]]*:[[:space:]]*"citafuego"' "$body"; then
               failed=1
-              report+="- DNS: www.citafuego.com CNAME is unexpected: ${www_cname:-<empty>}\\n"
+              report+="- Health: ${host}/api/health failed identity/HTTP check (${code:-000})\\n"
             fi
+            rm -f "$body"
+          done
 
-            for host in citafuego.com www.citafuego.com; do
-              if ! echo | openssl s_client -servername "$host" -connect "$host:443" 2>/dev/null | openssl x509 -noout -checkend 604800 >/dev/null 2>&1; then
-                failed=1
-                report+="- TLS: ${host} certificate is unavailable or expires within 7 days\\n"
-              fi
-            done
+          for path in / /login /signup /terms /privacy /safety /community-guidelines /help; do
+            code=$(curl -sS -L --max-time 25 -o /dev/null -w '%{http_code}' "https://citafuego.com${path}" || true)
+            if [[ "$code" != 2* && "$code" != 3* ]]; then
+              failed=1
+              report+="- HTTP: https://citafuego.com${path} returned ${code:-000}\\n"
+            fi
+          done
 
-            for path in / /login /signup /terms /privacy /safety /community-guidelines /help; do
-              url="https://citafuego.com${path}"
-              code=$(curl --silent --show-error --location --max-time 25 --output /dev/null --write-out '%{http_code}' "$url" || true)
-              if [[ "$code" != 2* && "$code" != 3* ]]; then
-                failed=1
-                report+="- HTTP: ${url} returned ${code:-000}\\n"
-              fi
-            done
-
-            for host in citafuego.com www.citafuego.com; do
-              body_file=$(mktemp)
-              code=$(curl --silent --show-error --location --max-time 25 --output "$body_file" --write-out '%{http_code}' "https://${host}/api/health" || true)
-              if [ "$code" != "200" ] || ! grep -Eq '"ok"[[:space:]]*:[[:space:]]*true' "$body_file" || ! grep -Eq '"service"[[:space:]]*:[[:space:]]*"citafuego"' "$body_file"; then
-                failed=1
-                report+="- Health API: https://${host}/api/health failed identity/HTTP check (HTTP ${code:-000})\\n"
-              fi
-              rm -f "$body_file"
-            done
-
-            printf '%s\n' "$failed"
-            printf '%b' "$report" >&2
-          }
-
-          report_file=$(mktemp)
-          failed=$(check_site 2>"$report_file")
+          echo "failed=$failed" >> "$GITHUB_OUTPUT"
           {
-            echo "failed=$failed"
             echo 'report<<EOF'
-            cat "$report_file"
+            printf '%b' "$report"
             echo 'EOF'
           } >> "$GITHUB_OUTPUT"
-          cat "$report_file"
-          rm -f "$report_file"
+          printf '%b' "$report"
 
-      - name: Repair Vercel domain, DNS and HTTPS configuration
+      - name: Repair Vercel domain, AliDNS and HTTPS
         if: steps.initial.outputs.failed == '1'
         continue-on-error: true
         env:
@@ -88,16 +74,12 @@ jobs:
         shell: bash
         run: |
           set +e
-          echo 'Production check failed. Starting infrastructure self-repair.'
           gh workflow run bind-production-domain.yml --repo "$GITHUB_REPOSITORY" --ref main
           sleep 5
           run_id=$(gh run list --repo "$GITHUB_REPOSITORY" --workflow bind-production-domain.yml --event workflow_dispatch --limit 1 --json databaseId --jq '.[0].databaseId')
-          if [ -n "$run_id" ]; then
-            echo "Watching domain repair run $run_id"
-            gh run watch "$run_id" --repo "$GITHUB_REPOSITORY" --exit-status
-          fi
+          [ -z "$run_id" ] || gh run watch "$run_id" --repo "$GITHUB_REPOSITORY" --exit-status
 
-      - name: Recheck after infrastructure repair
+      - name: Check whether infrastructure repair recovered service
         id: infra
         if: steps.initial.outputs.failed == '1'
         shell: bash
@@ -105,25 +87,15 @@ jobs:
           set +e
           sleep 10
           failed=0
-          report=''
           for host in citafuego.com www.citafuego.com; do
-            body_file=$(mktemp)
-            code=$(curl --silent --show-error --location --max-time 25 --output "$body_file" --write-out '%{http_code}' "https://${host}/api/health" || true)
-            if [ "$code" != "200" ] || ! grep -Eq '"ok"[[:space:]]*:[[:space:]]*true' "$body_file" || ! grep -Eq '"service"[[:space:]]*:[[:space:]]*"citafuego"' "$body_file"; then
-              failed=1
-              report+="- ${host}/api/health still failing after infrastructure repair (HTTP ${code:-000})\\n"
-            fi
-            rm -f "$body_file"
+            body=$(mktemp)
+            code=$(curl -sS -L --max-time 25 -o "$body" -w '%{http_code}' "https://${host}/api/health" || true)
+            if [ "$code" != 200 ] || ! grep -Eq '"ok"[[:space:]]*:[[:space:]]*true' "$body" || ! grep -Eq '"service"[[:space:]]*:[[:space:]]*"citafuego"' "$body"; then failed=1; fi
+            rm -f "$body"
           done
-          {
-            echo "failed=$failed"
-            echo 'report<<EOF'
-            printf '%b' "$report"
-            echo 'EOF'
-          } >> "$GITHUB_OUTPUT"
-          printf '%b' "$report"
+          echo "failed=$failed" >> "$GITHUB_OUTPUT"
 
-      - name: Redeploy tested main branch when infrastructure repair is insufficient
+      - name: Clean tested redeploy when infrastructure repair is insufficient
         if: steps.infra.outputs.failed == '1'
         continue-on-error: true
         env:
@@ -131,14 +103,10 @@ jobs:
         shell: bash
         run: |
           set +e
-          echo 'Infrastructure repair was insufficient. Starting a clean tested production redeploy.'
           gh workflow run production-deploy.yml --repo "$GITHUB_REPOSITORY" --ref main
           sleep 5
           run_id=$(gh run list --repo "$GITHUB_REPOSITORY" --workflow production-deploy.yml --event workflow_dispatch --limit 1 --json databaseId --jq '.[0].databaseId')
-          if [ -n "$run_id" ]; then
-            echo "Watching production redeploy run $run_id"
-            gh run watch "$run_id" --repo "$GITHUB_REPOSITORY" --exit-status
-          fi
+          [ -z "$run_id" ] || gh run watch "$run_id" --repo "$GITHUB_REPOSITORY" --exit-status
 
       - name: Final production inspection
         id: final
@@ -149,30 +117,17 @@ jobs:
           sleep 10
           failed=0
           report=''
-
-          apex_a=$(dig +short citafuego.com A | tr '\n' ' ')
-          www_cname=$(dig +short www.citafuego.com CNAME | tr '\n' ' ')
-          if [ -z "$apex_a" ]; then
-            failed=1
-            report+="- DNS: citafuego.com has no A record after repair\\n"
-          fi
-          if [[ "$www_cname" != *"vercel-dns"* ]]; then
-            failed=1
-            report+="- DNS: www CNAME remains unexpected after repair: ${www_cname:-<empty>}\\n"
-          fi
-
           for host in citafuego.com www.citafuego.com; do
-            body_file=$(mktemp)
-            code=$(curl --silent --show-error --location --max-time 25 --output "$body_file" --write-out '%{http_code}' "https://${host}/api/health" || true)
-            if [ "$code" != "200" ] || ! grep -Eq '"ok"[[:space:]]*:[[:space:]]*true' "$body_file" || ! grep -Eq '"service"[[:space:]]*:[[:space:]]*"citafuego"' "$body_file"; then
+            body=$(mktemp)
+            code=$(curl -sS -L --max-time 25 -o "$body" -w '%{http_code}' "https://${host}/api/health" || true)
+            if [ "$code" != 200 ] || ! grep -Eq '"ok"[[:space:]]*:[[:space:]]*true' "$body" || ! grep -Eq '"service"[[:space:]]*:[[:space:]]*"citafuego"' "$body"; then
               failed=1
-              report+="- Health API: ${host} remains unhealthy (HTTP ${code:-000})\\n"
+              report+="- ${host} remains unhealthy (${code:-000})\\n"
             fi
-            rm -f "$body_file"
+            rm -f "$body"
           done
-
+          echo "failed=$failed" >> "$GITHUB_OUTPUT"
           {
-            echo "failed=$failed"
             echo 'report<<EOF'
             printf '%b' "$report"
             echo 'EOF'
@@ -184,27 +139,10 @@ jobs:
         uses: actions/github-script@v7
         with:
           script: |
-            const { data: issues } = await github.rest.issues.listForRepo({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              state: 'open',
-              per_page: 100
-            });
-            for (const issue of issues) {
-              if (issue.title.startsWith('[Health] CitaFuego production unrecovered') || issue.title.startsWith('[Health] Production endpoint failure')) {
-                await github.rest.issues.createComment({
-                  owner: context.repo.owner,
-                  repo: context.repo.repo,
-                  issue_number: issue.number,
-                  body: 'Automated daily health check confirms production is healthy again. Closing this incident.'
-                });
-                await github.rest.issues.update({
-                  owner: context.repo.owner,
-                  repo: context.repo.repo,
-                  issue_number: issue.number,
-                  state: 'closed'
-                });
-              }
+            const { data: issues } = await github.rest.issues.listForRepo({ owner: context.repo.owner, repo: context.repo.repo, state: 'open', per_page: 100 });
+            for (const issue of issues.filter(i => i.title.startsWith('[Health] CitaFuego production unrecovered') || i.title.startsWith('[Health] Production endpoint failure'))) {
+              await github.rest.issues.createComment({ owner: context.repo.owner, repo: context.repo.repo, issue_number: issue.number, body: 'Automated health check confirms CitaFuego production is healthy again. Closing this incident.' });
+              await github.rest.issues.update({ owner: context.repo.owner, repo: context.repo.repo, issue_number: issue.number, state: 'closed' });
             }
 
       - name: Open incident when automatic repair cannot recover production
@@ -212,38 +150,16 @@ jobs:
         uses: actions/github-script@v7
         env:
           INITIAL_REPORT: ${{ steps.initial.outputs.report }}
-          INFRA_REPORT: ${{ steps.infra.outputs.report }}
           FINAL_REPORT: ${{ steps.final.outputs.report }}
         with:
           script: |
             const date = new Date().toISOString().slice(0,10);
             const title = `[Health] CitaFuego production unrecovered ${date}`;
-            const body = [
-              'The daily self-healing workflow detected a production failure and could not fully recover it automatically.',
-              '',
-              '### Initial inspection',
-              process.env.INITIAL_REPORT || '- No detail captured',
-              '',
-              '### After infrastructure repair',
-              process.env.INFRA_REPORT || '- No detail captured',
-              '',
-              '### Final inspection',
-              process.env.FINAL_REPORT || '- No detail captured',
-              '',
-              'Automatic actions attempted: Vercel domain rebind, Alibaba Cloud DNS repair, HTTPS re-verification, and tested production redeploy when required.'
-            ].join('\n');
-            const { data: issues } = await github.rest.issues.listForRepo({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              state: 'open',
-              per_page: 100
-            });
-            const existing = issues.find((issue) => issue.title === title);
-            if (existing) {
-              await github.rest.issues.createComment({ owner: context.repo.owner, repo: context.repo.repo, issue_number: existing.number, body });
-            } else {
-              await github.rest.issues.create({ owner: context.repo.owner, repo: context.repo.repo, title, body });
-            }
+            const body = `Daily self-healing detected a production failure and automatic repair did not fully recover it.\n\n### Initial\n${process.env.INITIAL_REPORT || '- No detail'}\n\n### Final\n${process.env.FINAL_REPORT || '- No detail'}\n\nAttempted: domain/Vercel repair, Alibaba Cloud DNS repair, HTTPS re-verification, and clean tested production redeploy.`;
+            const { data: issues } = await github.rest.issues.listForRepo({ owner: context.repo.owner, repo: context.repo.repo, state: 'open', per_page: 100 });
+            const existing = issues.find(i => i.title === title);
+            if (existing) await github.rest.issues.createComment({ owner: context.repo.owner, repo: context.repo.repo, issue_number: existing.number, body });
+            else await github.rest.issues.create({ owner: context.repo.owner, repo: context.repo.repo, title, body });
 
       - name: Fail only when production remains unhealthy
         if: steps.final.outputs.failed == '1'
