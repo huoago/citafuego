@@ -1,0 +1,5 @@
+import Link from 'next/link';
+
+export function CreatorProgramClosed() {
+  return <section className="creatorCenter"><div className="pageHeader"><p className="eyebrow">CitaFuego Creator</p><h1>Programa de creadores en preparación</h1><p className="muted">Estamos terminando la monetización, los pagos, la verificación comercial y los controles de seguridad antes de abrir solicitudes al público.</p></div><section className="softPanel"><h2>Temporalmente cerrado</h2><p>Durante esta fase no se aceptan solicitudes de creador, KYC/fiscal, retiros, Creator Rewards ni postulaciones a colaboraciones de marca. Tus funciones sociales normales —perfil, blog, Stories, Matches y chat— siguen disponibles.</p><p>Cuando el programa esté completamente validado, CitaFuego lo habilitará de forma independiente sin perder la infraestructura ya preparada.</p><div className="commercialLinks"><Link className="primaryButton" href="/perfil">Volver a mi perfil</Link><Link className="ghostButton" href="/para-ti">Ir a Para ti</Link></div></section></section>;
+}
