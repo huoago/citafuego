@@ -7,13 +7,13 @@ const read = (path: string) => readFileSync(new URL(`../${path}`, import.meta.ur
 test('public CTAs use dedicated routes instead of hash scrolling', () => {
   const source = read('src/app/page.tsx');
   assert.equal(source.includes('href="#'), false);
-  for (const route of ['/registro', '/iniciar-sesion', '/explorar', '/como-funciona', '/seguridad']) {
+  for (const route of ['/registro', '/iniciar-sesion', '/explorar', '/como-funciona', '/safety']) {
     assert.equal(source.includes(`href="${route}"`), true, `missing ${route}`);
   }
 });
 
 test('public product routes have their own screens', () => {
-  for (const page of ['src/app/explorar/page.tsx', 'src/app/como-funciona/page.tsx']) {
+  for (const page of ['src/app/explorar/page.tsx', 'src/app/como-funciona/page.tsx', 'src/app/safety/page.tsx']) {
     assert.equal(existsSync(new URL(`../${page}`, import.meta.url)), true, `${page} must exist`);
   }
 });
@@ -24,7 +24,7 @@ test('authenticated bottom navigation has five dedicated destinations and active
     assert.equal(source.includes(`href: '${route}'`), true, `missing ${route}`);
   }
   assert.equal(source.includes('aria-current'), true);
-  assert.equal(source.includes("usePathname"), true);
+  assert.equal(source.includes('usePathname'), true);
 });
 
 test('premium cards do not expose dead disabled purchase buttons', () => {
@@ -39,4 +39,18 @@ test('profile decision buttons all execute a real interaction handler', () => {
   for (const action of ["rewind()", "decide('pass')", "decide('superfuego')", "decide('like')"]) {
     assert.equal(source.includes(action), true, `missing interaction ${action}`);
   }
+});
+
+test('incoming likes can be accepted or declined from dedicated controls', () => {
+  const source = read('src/components/likes-grid.tsx');
+  assert.equal(source.includes("respond(row.profileId, 'pass')"), true);
+  assert.equal(source.includes("respond(row.profileId, 'like')"), true);
+  assert.equal(source.includes('/api/interactions'), true);
+});
+
+test('chat starter controls populate the real message composer', () => {
+  const source = read('src/components/chat/chat-composer.tsx');
+  assert.equal(source.includes('type="button"'), true);
+  assert.equal(source.includes('setText(starter)'), true);
+  assert.equal(source.includes('/api/messages'), true);
 });
