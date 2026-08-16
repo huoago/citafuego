@@ -1,0 +1,21 @@
+.tileActions {
+  display: grid;
+  grid-template-columns: 42px 1fr;
+  gap: 7px;
+  margin-top: 4px;
+}
+.tileAction {
+  min-height: 40px;
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,.10);
+  color: white;
+  font: inherit;
+  font-size: .78rem;
+  font-weight: 850;
+  cursor: pointer;
+  transition: transform .16s ease, background .16s ease, opacity .16s ease;
+}
+.tileAction:hover:not(:disabled) { transform: translateY(-2px); }
+.tileAction:disabled { opacity: .45; cursor: wait; }
+.tileAction.secondary { background: rgba(255,255,255,.055); }
+.tileAction.primary { background: linear-gradient(118deg, #ff3f71, #ff704a); }
