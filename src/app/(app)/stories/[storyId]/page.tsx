@@ -1,0 +1,3 @@
+import { notFound } from 'next/navigation';import { z } from 'zod';import { getAuthenticatedUserId } from '@/lib/auth/server';import { getStories } from '@/lib/social/server';import { StoryCard } from '@/components/stories/story-card';
+export const dynamic='force-dynamic';
+export default async function Page({params}:{params:Promise<{storyId:string}>}){const me=await getAuthenticatedUserId();if(!me)return null;const{storyId}=await params;if(!z.string().uuid().safeParse(storyId).success)notFound();const stories=await getStories(null);const story=stories.find(s=>s.storyId===storyId);if(!story)notFound();return <section><StoryCard story={story} currentUserId={me}/></section>}
