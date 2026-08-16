@@ -1,0 +1,14 @@
+import assert from 'node:assert/strict';
+import test from 'node:test';
+import { existsSync,readFileSync } from 'node:fs';
+import { HARD_BLOCK_MEDIA_LABELS,LIMITED_MEDIA_LABELS,MEDIA_POLICY_RULES,MEDIA_POLICY_VERSION } from '../src/lib/moderation/media-policy.ts';
+
+const read=(path:string)=>readFileSync(path,'utf8');
+const migration=()=>read('supabase/migrations/039_recommendations_v2_media_safety.sql');
+
+test('recommendation V2 consumes social, dating and content signals',()=>{const s=migration();for(const token of ['recommendation_events','interest_edges','profile_view','blog_view','social_follows','story_views','blog_likes','blog_bookmarks','blog_comments','interactions','matches','chat_activity'])assert.match(s,new RegExp(token));});
+test('For You, follows, stories, blogs and potential matches have recommendation RPCs',()=>{const s=migration();for(const fn of ['get_for_you_feed','get_recommended_follows','get_recommended_stories','get_recommended_blog_posts','get_recommended_matches'])assert.match(s,new RegExp(`function public\\.${fn}`));assert.equal(existsSync('src/app/(app)/para-ti/page.tsx'),true);});
+test('recommendation surfaces preserve privacy and block controls',()=>{const s=migration();assert.match(s,/public\.can_view_social_profile/);assert.match(s,/public\.can_view_blog_post/);assert.match(s,/public\.can_view_story/);assert.match(s,/recommendation_status='eligible'/);});
+test('media policy has separate removal and limited-distribution tiers',()=>{assert.match(MEDIA_POLICY_VERSION,/tiktok-public-adapted/);assert.ok(HARD_BLOCK_MEDIA_LABELS.size>=8);assert.ok(LIMITED_MEDIA_LABELS.size>=4);for(const key of HARD_BLOCK_MEDIA_LABELS)assert.equal(LIMITED_MEDIA_LABELS.has(key),false);assert.equal(MEDIA_POLICY_RULES.some(r=>r.key==='explicit_nudity'&&r.tier==='remove'),true);assert.equal(MEDIA_POLICY_RULES.some(r=>r.key==='sexual_suggestive'&&r.tier==='limited'),true);});
+test('avatar approval is stricter while blog and Story can be excluded from For You',()=>{const actions=read('src/components/admin/review-actions.tsx');const migrationSql=migration();assert.match(actions,/kind==='photo'.*no se puede aprobar|kind==='photo'/s);assert.match(actions,/Aprobar sin Para ti/);assert.match(migrationSql,/review_profile_photo_v2/);assert.match(migrationSql,/review_blog_media_v2/);assert.match(migrationSql,/review_story_media_v2/);assert.match(migrationSql,/p_decision not in \('approved','limited','rejected'\)/);});
+test('automated moderation status synchronization cannot overwrite human limited decisions',()=>{const s=read('supabase/migrations/040_media_recommendation_status_sync.sql');assert.match(s,/new\.reviewed_at is null/);assert.match(s,/new\.status::text='approved'/);assert.match(s,/new\.recommendation_status:='eligible'/);assert.match(s,/new\.recommendation_status:='blocked'/);});
