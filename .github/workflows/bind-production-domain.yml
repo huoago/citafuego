@@ -127,24 +127,39 @@ jobs:
 
           async function records() {
             const result = await aliCall('DescribeDomainRecords', { DomainName: apex, PageSize: 500 });
-            return result?.DomainRecords?.Record || [];
+            const raw = result?.DomainRecords?.Record;
+            return Array.isArray(raw) ? raw : raw ? [raw] : [];
           }
 
           async function deleteRecord(record) {
             await aliCall('DeleteDomainRecord', { RecordId: record.RecordId });
-            console.log(`AliDNS: removed conflicting ${record.Type} ${record.RR}.`);
+            console.log(`AliDNS: removed duplicate/conflicting ${record.Type} ${record.RR} -> ${record.Value}.`);
+          }
+
+          function normalizeValue(type, value) {
+            const text = String(value || '');
+            return type === 'CNAME' ? text.replace(/\.$/, '').toLowerCase() : text;
           }
 
           async function upsertAddress(rr, type, value) {
-            let all = await records();
+            const all = await records();
             const addressTypes = new Set(['A', 'AAAA', 'CNAME']);
             const sameRR = all.filter((r) => r.RR === rr);
-            const desired = sameRR.filter((r) => r.Type === type);
+            let desired = sameRR.filter((r) => r.Type === type);
             const conflicts = sameRR.filter((r) => addressTypes.has(r.Type) && r.Type !== type);
 
             for (const record of conflicts) await deleteRecord(record);
 
+            const expected = normalizeValue(type, value);
+            const exact = desired.find((r) => normalizeValue(type, r.Value) === expected);
+            if (exact) {
+              for (const extra of desired.filter((r) => r.RecordId !== exact.RecordId)) await deleteRecord(extra);
+              console.log(`AliDNS: ${rr} ${type} already correct -> ${value}.`);
+              return;
+            }
+
             if (desired.length) {
+              for (const extra of desired.slice(1)) await deleteRecord(extra);
               await aliCall('UpdateDomainRecord', {
                 RecordId: desired[0].RecordId,
                 RR: rr,
@@ -153,7 +168,6 @@ jobs:
                 TTL: 600,
               });
               console.log(`AliDNS: updated ${rr} ${type} -> ${value}.`);
-              for (const extra of desired.slice(1)) await deleteRecord(extra);
             } else {
               await aliCall('AddDomainRecord', {
                 DomainName: apex,
@@ -182,14 +196,22 @@ jobs:
               console.log(`AliDNS: verification TXT ${rr} already exists.`);
               return;
             }
-            await aliCall('AddDomainRecord', {
-              DomainName: apex,
-              RR: rr,
-              Type: 'TXT',
-              Value: value,
-              TTL: 600,
-            });
-            console.log(`AliDNS: added Vercel verification TXT ${rr}.`);
+            try {
+              await aliCall('AddDomainRecord', {
+                DomainName: apex,
+                RR: rr,
+                Type: 'TXT',
+                Value: value,
+                TTL: 600,
+              });
+              console.log(`AliDNS: added Vercel verification TXT ${rr}.`);
+            } catch (error) {
+              if (error?.code === 'DomainRecordDuplicate') {
+                console.log(`AliDNS: verification TXT ${rr} already exists (duplicate response).`);
+                return;
+              }
+              throw error;
+            }
           }
 
           function verificationItems(domainObject) {
@@ -239,10 +261,20 @@ jobs:
       - name: Public DNS and HTTPS probe
         shell: bash
         run: |
-          set +e
+          set -euo pipefail
           echo '=== DNS ==='
           dig +short citafuego.com A
           dig +short www.citafuego.com CNAME
           echo '=== HTTPS ==='
-          curl -I -L --max-time 30 https://citafuego.com/ || true
-          curl -I -L --max-time 30 https://www.citafuego.com/ || true
+          for attempt in 1 2 3 4 5 6 7 8 9 10 11 12; do
+            apex_code=$(curl --silent --show-error --location --max-time 20 --output /dev/null --write-out '%{http_code}' https://citafuego.com/api/health || true)
+            www_code=$(curl --silent --show-error --location --max-time 20 --output /dev/null --write-out '%{http_code}' https://www.citafuego.com/api/health || true)
+            echo "HTTPS attempt $attempt: apex=$apex_code www=$www_code"
+            if [ "$apex_code" = "200" ] && [ "$www_code" = "200" ]; then
+              echo 'HTTPS health checks passed for both custom domains.'
+              exit 0
+            fi
+            sleep 10
+          done
+          echo 'Custom domains are bound and DNS is correct, but HTTPS is not fully ready yet.'
+          exit 1
