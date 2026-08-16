@@ -1,0 +1,9 @@
+'use client';
+import { useEffect,useMemo,useRef } from 'react';
+import type { AdPayload } from '@/lib/monetization/server';
+function sessionId(){if(typeof window==='undefined')return 'ssr';const key='cf_ad_session';let value=sessionStorage.getItem(key);if(!value){value=crypto.randomUUID();sessionStorage.setItem(key,value)}return value;}
+export function AdCard({ad}:{ad:AdPayload}){const ref=useRef<HTMLElement|null>(null);const sent=useRef(false);const sid=useMemo(()=>sessionId(),[]);if(ad.kind==='external')return <aside className="adCard externalAd"><span className="adDisclosure">Publicidad</span><strong>{ad.providerName}</strong><small>Slot externo configurado: {ad.slotKey}. El adaptador del proveedor se activa cuando se añadan sus credenciales y SDK permitidos.</small></aside>;
+ async function event(type:'impression'|'click'){await fetch('/api/ads/event',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({requestId:ad.requestId,event:type,placementId:ad.placementId,campaignId:ad.campaignId,creativeId:ad.creativeId,creatorContextId:ad.creatorContextId,sessionId:sid})}).catch(()=>null)}
+ useEffect(()=>{const el=ref.current;if(!el)return;const io=new IntersectionObserver(entries=>{if(entries.some(x=>x.isIntersecting&&x.intersectionRatio>=.5)&&!sent.current){sent.current=true;void event('impression')}},{threshold:[.5]});io.observe(el);return()=>io.disconnect()},[]);
+ return <aside ref={ref} className="adCard"><span className="adDisclosure">{ad.disclosure}</span>{ad.imageUrl?<img src={ad.imageUrl} alt="" loading="lazy"/>:null}<div><small>{ad.advertiser}</small><h3>{ad.headline}</h3>{ad.body?<p>{ad.body}</p>:null}{ad.destinationUrl?<a href={ad.destinationUrl} target="_blank" rel="noopener noreferrer sponsored" onClick={()=>void event('click')}>{ad.cta}</a>:null}</div></aside>;
+}
