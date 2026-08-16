@@ -1,9 +1,9 @@
 export type MediaPolicyTier='remove'|'limited';
 export type MediaPolicyRule={key:string;label:string;tier:MediaPolicyTier;summary:string};
 
-// CitaFuego taxonomy adapted from publicly documented large-platform community
-// and recommendation-safety concepts. It does not reproduce proprietary classifiers.
-export const MEDIA_POLICY_VERSION='cf-media-2026-08-public-guidelines-adapted-v1';
+// CitaFuego taxonomy adapted from TikTok's publicly documented Community Guidelines
+// and recommendation-safety concepts. It does not reproduce proprietary classifiers or thresholds.
+export const MEDIA_POLICY_VERSION='cf-media-2026-08-tiktok-public-adapted-v1';
 
 export const MEDIA_POLICY_RULES:MediaPolicyRule[]=[
  {key:'youth_safety',label:'Seguridad de menores',tier:'remove',summary:'Contenido que ponga en riesgo o explote a menores.'},
