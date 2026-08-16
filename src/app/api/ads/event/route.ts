@@ -1,0 +1,5 @@
+import { z } from 'zod';
+import { getAuthenticatedUserId } from '@/lib/auth/server';
+import { createClient } from '@/lib/supabase/server';
+const schema=z.object({requestId:z.string().uuid(),event:z.enum(['impression','click']),placementId:z.number().int().positive(),campaignId:z.number().int().positive(),creativeId:z.number().int().positive(),creatorContextId:z.string().uuid().nullable().optional(),sessionId:z.string().max(120).nullable().optional()});
+export async function POST(request:Request){const userId=await getAuthenticatedUserId();if(!userId)return Response.json({error:'unauthorized'},{status:401});const p=schema.safeParse(await request.json().catch(()=>null));if(!p.success)return Response.json({error:'invalid_payload'},{status:400});const s=await createClient();const{data,error}=await s.rpc('record_ad_event',{p_request:p.data.requestId,p_event:p.data.event,p_placement:p.data.placementId,p_campaign:p.data.campaignId,p_creative:p.data.creativeId,p_creator_context:p.data.creatorContextId??null,p_session_id:p.data.sessionId??null});if(error)return Response.json({error:'ad_event_failed'},{status:400});return Response.json(data??{ok:true});}

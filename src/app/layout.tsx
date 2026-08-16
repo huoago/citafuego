@@ -5,6 +5,7 @@ import './interaction.css';
 import './growth.css';
 import './blog.css';
 import './recommendations.css';
+import './monetization.css';
 
 export const metadata: Metadata = {
   title: { default: 'CitaFuego — Personas reales. Citas reales.', template: '%s · CitaFuego' },

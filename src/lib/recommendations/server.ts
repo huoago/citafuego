@@ -33,6 +33,7 @@ export type MatchRecommendation = FollowRecommendation & {
   distanceBucket: string;
 };
 
+export type LearnedTopic={topicId:number;slug:string;label:string;weight:number;evidenceCount:number};
 const rows = <T extends Record<string, unknown>>(value: unknown) => (Array.isArray(value) ? value as T[] : []);
 
 async function signProfilePhotos(paths: string[]) {
@@ -47,15 +48,18 @@ async function signProfilePhotos(paths: string[]) {
 
 export async function getRecommendationHub() {
   const client = await createClient();
-  const [feedResult, followResult, matchResult] = await Promise.all([
+  const [feedResult, followResult, matchResult,topicResult,variantResult] = await Promise.all([
     client.rpc('get_for_you_feed', { p_limit: 24 }),
     client.rpc('get_recommended_follows', { p_limit: 10 }),
     client.rpc('get_recommended_matches', { p_limit: 10 }),
+    client.rpc('get_my_learned_topics',{p_limit:8}),
+    client.rpc('get_recommendation_variant',{p_experiment:'rec_blend_v3'}),
   ]);
 
   const feedRows = rows<Record<string, unknown>>(feedResult.data);
   const followRows = rows<Record<string, unknown>>(followResult.data);
   const matchRows = rows<Record<string, unknown>>(matchResult.data);
+  const topicRows = rows<Record<string, unknown>>(topicResult.data);
 
   const blogIds = [...new Set(feedRows.filter((item) => item.item_type === 'blog').map((item) => String(item.item_id)))];
   const profileIds = [...new Set(feedRows.filter((item) => item.item_type === 'profile').map((item) => String(item.item_id)))];
@@ -94,29 +98,13 @@ export async function getRecommendationHub() {
   const signed = await signProfilePhotos(photoPaths);
 
   const follows: FollowRecommendation[] = followRows.map((item) => ({
-    profileId: String(item.profile_id),
-    displayName: String(item.display_name ?? ''),
-    district: item.district ? String(item.district) : null,
-    verified: Boolean(item.verified),
-    photoUrl: item.primary_photo_path ? signed.get(String(item.primary_photo_path)) ?? null : null,
-    score: Number(item.recommendation_score ?? 0),
-    reason: String(item.reason ?? 'Para ti'),
+    profileId: String(item.profile_id),displayName: String(item.display_name ?? ''),district: item.district ? String(item.district) : null,verified: Boolean(item.verified),photoUrl: item.primary_photo_path ? signed.get(String(item.primary_photo_path)) ?? null : null,score: Number(item.recommendation_score ?? 0),reason: String(item.reason ?? 'Para ti'),
   }));
 
   const matches: MatchRecommendation[] = matchRows.map((item) => ({
-    profileId: String(item.profile_id),
-    displayName: String(item.display_name ?? ''),
-    district: item.district ? String(item.district) : null,
-    verified: Boolean(item.verified),
-    photoUrl: item.primary_photo_path ? signed.get(String(item.primary_photo_path)) ?? null : null,
-    score: Number(item.recommendation_score ?? 0),
-    reason: String(item.reason ?? 'Compatibilidad para citas'),
-    age: Number(item.age ?? 0),
-    bio: String(item.bio ?? ''),
-    chemistryScore: Number(item.chemistry_score ?? 0),
-    sharedInterestCount: Number(item.shared_interest_count ?? 0),
-    distanceBucket: String(item.distance_bucket ?? ''),
+    profileId: String(item.profile_id),displayName: String(item.display_name ?? ''),district: item.district ? String(item.district) : null,verified: Boolean(item.verified),photoUrl: item.primary_photo_path ? signed.get(String(item.primary_photo_path)) ?? null : null,score: Number(item.recommendation_score ?? 0),reason: String(item.reason ?? 'Compatibilidad para citas'),age: Number(item.age ?? 0),bio: String(item.bio ?? ''),chemistryScore: Number(item.chemistry_score ?? 0),sharedInterestCount: Number(item.shared_interest_count ?? 0),distanceBucket: String(item.distance_bucket ?? ''),
   }));
 
-  return { feed, follows, matches };
+  const topics:LearnedTopic[]=topicRows.map(item=>({topicId:Number(item.topic_id),slug:String(item.slug??''),label:String(item.label_es??''),weight:Number(item.weight??0),evidenceCount:Number(item.evidence_count??0)}));
+  return { feed, follows, matches,topics,variant:String(variantResult.data??'control') };
 }

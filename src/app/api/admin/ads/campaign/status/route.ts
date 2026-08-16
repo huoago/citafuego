@@ -1,0 +1,3 @@
+import { z } from 'zod';import { requireAdmin } from '@/lib/admin/auth';
+const schema=z.object({campaignId:z.number().int().positive(),status:z.enum(['draft','active','paused','completed'])});
+export async function POST(request:Request){const a=await requireAdmin(['super_admin','finance']);if(!a)return Response.json({error:'forbidden'},{status:403});const p=schema.safeParse(await request.json().catch(()=>null));if(!p.success)return Response.json({error:'invalid_payload'},{status:400});const{data,error}=await a.admin.rpc('admin_set_ad_campaign_status',{p_campaign:p.data.campaignId,p_status:p.data.status});if(error)return Response.json({error:'campaign_status_failed'},{status:409});return Response.json(data??{ok:true});}
