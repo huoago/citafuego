@@ -1,2 +1,2 @@
-triggered_at=2026-08-16T22:53:00+08:00
-purpose=bind citafuego.com and www.citafuego.com to citafuego-prod and configure AliDNS
+triggered_at=2026-08-16T23:05:30+08:00
+purpose=bind citafuego.com and www.citafuego.com to citafuego-prod and configure AliDNS after workflow syntax fix
