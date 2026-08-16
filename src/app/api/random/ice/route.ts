@@ -1,0 +1,2 @@
+import { getAuthenticatedUserId } from '@/lib/auth/server';
+export async function GET(){if(!await getAuthenticatedUserId())return Response.json({error:'unauthorized'},{status:401});const iceServers:RTCIceServer[]=[{urls:['stun:stun.l.google.com:19302','stun:stun1.l.google.com:19302']}];const url=process.env.TURN_URL;const username=process.env.TURN_USERNAME;const credential=process.env.TURN_CREDENTIAL;if(url&&username&&credential)iceServers.push({urls:url,username,credential});return Response.json({iceServers,turnConfigured:Boolean(url&&username&&credential)})}

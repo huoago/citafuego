@@ -1,0 +1,3 @@
+import { createClient } from '@/lib/supabase/server';
+import { getAuthenticatedUserId } from '@/lib/auth/server';
+export async function DELETE(_request:Request,{params}:{params:Promise<{sessionId:string}>}){const userId=await getAuthenticatedUserId();if(!userId)return Response.json({error:'unauthorized'},{status:401});const{sessionId}=await params;const s=await createClient();const{data,error}=await s.rpc('leave_random_match',{p_session:sessionId});if(error)return Response.json({error:'session_unavailable'},{status:403});await s.from('analytics_events').insert({user_id:userId,event_name:'random_ended',session_id:sessionId,properties:{}});return Response.json(data)}
