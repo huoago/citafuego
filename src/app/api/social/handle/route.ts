@@ -1,0 +1,3 @@
+import { z } from 'zod';import { getAuthenticatedUserId } from '@/lib/auth/server';import { createClient } from '@/lib/supabase/server';
+const schema=z.object({handle:z.string().trim().min(3).max(24).regex(/^[a-z0-9_]+$/)});
+export async function POST(request:Request){const me=await getAuthenticatedUserId();if(!me)return Response.json({error:'unauthorized'},{status:401});const p=schema.safeParse(await request.json());if(!p.success)return Response.json({error:'invalid_handle'},{status:400});const s=await createClient();const{data,error}=await s.rpc('set_social_handle',{p_handle:p.data.handle});if(error)return Response.json({error:error.message.includes('handle_taken')?'handle_taken':'handle_failed'},{status:409});return Response.json(data);}
