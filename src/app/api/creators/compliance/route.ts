@@ -1,3 +1,3 @@
 import { NextResponse } from 'next/server';import { z } from 'zod';import { createClient } from '@/lib/supabase/server';
-const schema=z.object({type:z.enum(['kyc','tax','payout']),country:z.string().min(2).max(2),declaration:z.record(z.unknown()).default({})});
+const schema=z.object({type:z.enum(['kyc','tax','payout']),country:z.string().min(2).max(2),declaration:z.record(z.string(),z.unknown()).default({})});
 export async function POST(request:Request){const parsed=schema.safeParse(await request.json().catch(()=>null));if(!parsed.success)return NextResponse.json({error:'invalid_request'},{status:400});const s=await createClient();const{data,error}=await s.rpc('submit_creator_compliance',{p_type:parsed.data.type,p_country:parsed.data.country,p_declaration:parsed.data.declaration});if(error)return NextResponse.json({error:error.message},{status:error.message.includes('not_authenticated')?401:400});return NextResponse.json(data)}
