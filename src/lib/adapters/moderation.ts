@@ -52,8 +52,8 @@ function numberAt(value: unknown): number {
 function recursiveMax(value: unknown, depth = 0): number {
   if (depth > 4 || value == null) return 0;
   if (typeof value === 'number') return numberAt(value);
-  if (Array.isArray(value)) return value.reduce((max, item) => Math.max(max, recursiveMax(item, depth + 1)), 0);
-  if (typeof value === 'object') return Object.values(value as Record<string, unknown>).reduce((max, item) => Math.max(max, recursiveMax(item, depth + 1)), 0);
+  if (Array.isArray(value)) return value.reduce<number>((max, item) => Math.max(max, recursiveMax(item, depth + 1)), 0);
+  if (typeof value === 'object') return Object.values(value as Record<string, unknown>).reduce<number>((max, item) => Math.max(max, recursiveMax(item, depth + 1)), 0);
   return 0;
 }
 
@@ -74,7 +74,7 @@ class SightengineModerationProvider implements ModerationProvider {
     try {
       const response = await fetch('https://api.sightengine.com/1.0/check.json', { method: 'POST', body: form, signal: controller.signal, cache: 'no-store' });
       if (!response.ok) return holdDecision(`Visual moderation provider returned ${response.status}; the upload is held for review.`, 'sightengine');
-      const body = await response.json() as Record<string, any>;
+      const body = await response.json() as Record<string, unknown>;
       if (String(body.status ?? 'success') !== 'success') return holdDecision('Visual moderation provider did not return a successful classification.', 'sightengine');
 
       const nudity = (body.nudity ?? {}) as Record<string, unknown>;
@@ -102,8 +102,13 @@ class SightengineModerationProvider implements ModerationProvider {
       const mustBlock = severe >= blockThreshold || sexualActivity >= blockThreshold || sexualDisplay >= blockThreshold || erotica >= blockThreshold;
       const mustHold = !mustBlock && (reasons.length > 0 || verySuggestive >= 0.45 || suggestive >= 0.55);
       const action: ModerationDecision['action'] = mustBlock ? 'block' : mustHold ? 'hold' : 'allow';
+      const labels: ModerationDecision['labels'] = {};
+      const nudityScore = Math.max(sexualActivity, sexualDisplay, erotica, verySuggestive, suggestive);
+      const violenceScore = Math.max(weapon, gore, selfHarm, offensive);
+      if (nudityScore > 0) labels.nudity_image = nudityScore;
+      if (violenceScore > 0) labels.violence_image = violenceScore;
       return {
-        labels: { reasons, surface: input.surface },
+        labels,
         scores: { sexualActivity, sexualDisplay, erotica, verySuggestive, suggestive, weapon, offensive, gore, selfHarm },
         action,
         recommendedAction: action,
