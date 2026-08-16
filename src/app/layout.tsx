@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from 'next';
 import './globals.css';
+import './redesign.css';
 
 export const metadata: Metadata = {
   title: {
@@ -12,7 +13,7 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
-  themeColor: '#160b0b',
+  themeColor: '#0b0710',
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
