@@ -1,0 +1,79 @@
+.tileActions {
+  display: grid;
+  grid-template-columns: 42px 1fr;
+  gap: 7px;
+  margin-top: 4px;
+}
+.tileAction {
+  min-height: 40px;
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,.10);
+  color: white;
+  font: inherit;
+  font-size: .78rem;
+  font-weight: 850;
+  cursor: pointer;
+  transition: transform .16s ease, background .16s ease, opacity .16s ease;
+}
+.tileAction:hover:not(:disabled) { transform: translateY(-2px); }
+.tileAction:disabled { opacity: .45; cursor: wait; }
+.tileAction.secondary { background: rgba(255,255,255,.055); }
+.tileAction.primary { background: linear-gradient(118deg, #ff3f71, #ff704a); }
+
+.chatComposer {
+  display: grid;
+  gap: 9px;
+  margin-top: 14px;
+}
+.starterRail {
+  display: flex;
+  gap: 7px;
+  overflow-x: auto;
+  padding: 2px 1px 4px;
+  scrollbar-width: none;
+}
+.starterRail::-webkit-scrollbar { display: none; }
+.starterChip {
+  flex: 0 0 auto;
+  max-width: 260px;
+  padding: 9px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,.09);
+  background: rgba(255,255,255,.045);
+  color: #dcd2dd;
+  font: inherit;
+  font-size: .76rem;
+  cursor: pointer;
+}
+.starterChip:hover { background: rgba(255,255,255,.09); color: white; }
+.composerRow {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 8px;
+  padding: 7px;
+  border-radius: 18px;
+  border: 1px solid rgba(255,255,255,.10);
+  background: rgba(255,255,255,.045);
+}
+.composerRow input {
+  min-width: 0;
+  min-height: 44px;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: white;
+  font: inherit;
+  padding: 0 8px;
+}
+.composerRow input::placeholder { color: #847a87; }
+.sendButton {
+  min-width: 78px;
+  border: 0;
+  border-radius: 13px;
+  background: linear-gradient(118deg, #ff3f71, #ff704a);
+  color: white;
+  font: inherit;
+  font-weight: 850;
+  cursor: pointer;
+}
+.sendButton:disabled { opacity: .4; cursor: default; }

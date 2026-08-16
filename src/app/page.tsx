@@ -4,55 +4,70 @@ export default function LandingPage() {
   return (
     <main className="landing">
       <header className="landingNav">
-        <div className="brandLockup"><span>🔥</span> CitaFuego</div>
-        <div className="landingNavLinks">
-          <Link href="/seguridad">Seguridad</Link>
+        <Link href="/" className="brandLockup" aria-label="CitaFuego inicio"><span>🔥</span> CitaFuego</Link>
+        <nav className="landingNavLinks" aria-label="Navegación pública">
+          <Link href="/explorar">Explorar</Link>
+          <Link href="/como-funciona">Cómo funciona</Link>
+          <Link href="/safety">Seguridad</Link>
           <Link className="ghostButton" href="/iniciar-sesion">Entrar</Link>
-        </div>
+        </nav>
       </header>
 
       <section className="hero">
         <div className="heroCopy">
-          <div className="heroPill">18+ · Lima · Perfiles reales</div>
-          <h1>Haz match.<br /><span>Enciende la chispa.</span><br />Vive la cita.</h1>
-          <p>CitaFuego está diseñado para conocer personas reales cerca de ti, conversar con intención y llevar una conexión a una cita real.</p>
+          <div className="heroPill">Solo adultos · Lima · Perfiles reales</div>
+          <h1>Menos ruido.<br /><span>Más química.</span><br />Más citas.</h1>
+          <p>Descubre personas con intención clara, perfiles verificados y señales de compatibilidad que te ayudan a decidir rápido sin convertir las citas en un juego infinito.</p>
           <div className="heroActions">
-            <Link className="ctaButton" href="/registro">🔥 Empezar gratis</Link>
-            <Link className="textButton" href="/registro">Cómo funciona</Link>
+            <Link className="ctaButton" href="/registro">🔥 Crear mi perfil</Link>
+            <Link className="textButton" href="/como-funciona">Ver cómo funciona</Link>
           </div>
           <div className="trustRow">
-            <span>✓ Verificación</span><span>◉ Privacidad de ubicación</span><span>⚑ Reporte rápido</span>
+            <span>✓ Verificación real</span>
+            <span>◉ Ubicación aproximada</span>
+            <span>⚑ Reporte y bloqueo</span>
           </div>
         </div>
 
-        <div className="phonePreview" aria-label="Vista previa de CitaFuego">
+        <div className="phonePreview" aria-label="Vista previa de una tarjeta de perfil CitaFuego">
           <div className="phoneGlow" />
           <div className="miniCard">
             <div className="miniPhoto" />
             <div className="miniInfo">
               <div><strong>Lucía, 27</strong> <span className="verifiedBadge">✓</span></div>
-              <span>Miraflores · 1–3 km</span>
+              <span>Miraflores · 1–3 km · Conocer y ver qué pasa</span>
               <div className="miniChem">🔥 91% química</div>
             </div>
           </div>
         </div>
       </section>
 
-      <section className="valueSection">
-        <div className="sectionIntro">
-          <p className="eyebrow">No más swipes vacíos</p>
-          <h2>Diseñado para llegar a una cita real.</h2>
-        </div>
-        <div className="valueGrid">
-          <article><span>✓</span><h3>Personas reales</h3><p>Verificación, moderación y señales de confianza desde el primer día.</p></article>
-          <article><span>📍</span><h3>Cerca de ti</h3><p>Descubre personas por zonas aproximadas sin exponer coordenadas precisas.</p></article>
-          <article><span>🔥</span><h3>Intención clara</h3><p>Relación, conocer gente, algo casual o simplemente ver qué pasa.</p></article>
-        </div>
+      <section className="landingFeatureRail" aria-label="Explora CitaFuego">
+        <Link className="featureLinkCard" href="/explorar">
+          <span>✦</span>
+          <h3>Explora por intención</h3>
+          <p>Conoce cómo presentamos intereses, intención y señales útiles antes de dar Like.</p>
+        </Link>
+        <Link className="featureLinkCard" href="/como-funciona">
+          <span>♡</span>
+          <h3>Del perfil al chat</h3>
+          <p>Cada acción importante abre una experiencia clara: descubrir, match, chat, perfil y seguridad.</p>
+        </Link>
+        <Link className="featureLinkCard" href="/safety">
+          <span>✓</span>
+          <h3>Control primero</h3>
+          <p>Privacidad, verificación, bloqueo y reportes forman parte del producto, no de la letra pequeña.</p>
+        </Link>
       </section>
 
       <footer className="landingFooter">
-        <div className="brandLockup"><span>🔥</span> CitaFuego</div>
-        <p>Solo para mayores de 18 años.</p>
+        <div className="brandLockup"><span>🔥</span> CitaFuego <small>Adultos</small></div>
+        <div className="footerLinks">
+          <Link href="/terminos">Términos</Link>
+          <Link href="/privacidad">Privacidad</Link>
+          <Link href="/community-guidelines">Comunidad</Link>
+          <Link href="/help">Ayuda</Link>
+        </div>
       </footer>
     </main>
   );
