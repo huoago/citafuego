@@ -11,3 +11,7 @@ export function isCreatorProgramEnabled() {
 }
 
 export const CREATOR_PROGRAM_CLOSED_ERROR = 'creator_program_temporarily_closed';
+
+export function creatorProgramClosedResponse() {
+  return Response.json({ error: CREATOR_PROGRAM_CLOSED_ERROR }, { status: 503 });
+}
