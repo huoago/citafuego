@@ -1,0 +1,6 @@
+import { z } from 'zod';
+import { getAuthenticatedUserId } from '@/lib/auth/server';
+import { createClient } from '@/lib/supabase/server';
+const schema=z.object({matchId:z.string().uuid(),venueName:z.string().trim().min(2).max(120),venueAddress:z.string().trim().min(2).max(220),proposedAt:z.string().datetime()});
+export async function GET(){const u=await getAuthenticatedUserId();if(!u)return Response.json({error:'unauthorized'},{status:401});const s=await createClient();const{data,error}=await s.rpc('get_my_date_proposals');if(error)return Response.json({error:'dates_unavailable'},{status:500});return Response.json({dates:data??[]});}
+export async function POST(request:Request){const u=await getAuthenticatedUserId();if(!u)return Response.json({error:'unauthorized'},{status:401});const p=schema.safeParse(await request.json().catch(()=>null));if(!p.success)return Response.json({error:'invalid_payload'},{status:400});const s=await createClient();const{data,error}=await s.rpc('create_date_proposal',{p_match:p.data.matchId,p_venue_name:p.data.venueName,p_venue_address:p.data.venueAddress,p_proposed_at:p.data.proposedAt});if(error)return Response.json({error:error.message.includes('active_match_required')?'active_match_required':'date_create_failed'},{status:409});return Response.json({proposalId:data},{status:201});}
