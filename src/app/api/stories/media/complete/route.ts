@@ -14,10 +14,10 @@ export async function POST(request:Request){
  const[{data:story},{data:profile}]=await Promise.all([s.from('stories').select('id,watermark_enabled').eq('id',storyId).eq('author_id',me).eq('status','draft').maybeSingle(),s.from('profiles').select('display_name').eq('id',me).maybeSingle()]);
  if(!story||!profile)return Response.json({error:'story_unavailable'},{status:409});
  if(String(intent.mime_type).startsWith('video/')){
-  const finalPath=String(intent.storage_path);
-  const{data:mediaId,error}=await s.rpc('finalize_story_media_upload',{p_intent:intent.id,p_final_path:finalPath,p_status:'pending',p_width:null,p_height:null});
+  const finalPath=String(intent.storage_path);const{data:videoBlob}=await s.storage.from('story-media').download(finalPath);const moderation=await getModerationProvider().moderateVideo({surface:'story_video',userId:me,mimeType:String(intent.mime_type),bytes:videoBlob?await videoBlob.arrayBuffer():undefined});const status=moderation.action==='block'?'rejected':moderation.action==='hold'?'pending':'approved';
+  const{data:mediaId,error}=await s.rpc('finalize_story_media_upload',{p_intent:intent.id,p_final_path:finalPath,p_status:status,p_width:null,p_height:null});
   if(error){await s.storage.from('story-media').remove([finalPath]);return Response.json({error:'finalize_failed'},{status:500});}
-  return Response.json({mediaId,status:'pending',reviewRequired:true,reviewMode:'human_video'},{status:201});
+  if(status==='rejected')await s.storage.from('story-media').remove([finalPath]);return Response.json({mediaId,status,reviewRequired:status==='pending',reviewMode:status==='pending'?'human_video':'automated_video',moderationProvider:moderation.provider},{status:201});
  }
  try{
   const image=await sanitizePrivateStorageImage({client:s,bucket:'story-media',rawPath:String(intent.storage_path),ownerId:me,prefix:'story',expectedMimeType:String(intent.mime_type),watermarkText:story.watermark_enabled?String(profile.display_name):null});
