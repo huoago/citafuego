@@ -29,7 +29,7 @@ revoke all on function public.admin_upsert_ad_network(text,text,text,boolean,jso
 grant execute on function public.admin_upsert_ad_network(text,text,text,boolean,jsonb,text) to authenticated;
 
 create or replace function public.admin_configure_ad_placement(p_slug text,p_enabled boolean,p_external_slot_key text default null,p_max_per_session integer default 3) returns jsonb
-language plpgsql security definer set search_path=public as $$;
+language plpgsql security definer set search_path=public as $$
 begin
   if not public.admin_has_any_role(array['super_admin','finance']) then raise exception 'forbidden'; end if;
   if p_max_per_session<0 or p_max_per_session>20 then raise exception 'invalid_frequency'; end if;
@@ -63,7 +63,7 @@ revoke all on function public.admin_create_ad_campaign(text,text,text,bigint,big
 grant execute on function public.admin_create_ad_campaign(text,text,text,bigint,bigint,bigint,text[],text,text,text,text,timestamptz,timestamptz) to authenticated;
 
 create or replace function public.admin_set_ad_campaign_status(p_campaign bigint,p_status text) returns jsonb
-language plpgsql security definer set search_path=public as $$;
+language plpgsql security definer set search_path=public as $$
 begin
   if not public.admin_has_any_role(array['super_admin','finance']) then raise exception 'forbidden'; end if;
   if p_status not in ('draft','active','paused','completed') then raise exception 'invalid_status'; end if;
