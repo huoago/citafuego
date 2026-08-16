@@ -4,20 +4,19 @@ import { getBlogPost, type BlogPostView } from '@/lib/blog/server';
 
 export type SocialPrompt={slot:number;promptKey:string;answer:string};
 export type SocialPhoto={id:string;url:string|null;position:number;primary:boolean};
-export type SocialProfileView={
-  id:string;displayName:string;bio:string;genderIdentity:string;city:string;district:string|null;countryCode:string;
-  languages:string[];intent:string;occupation:string|null;heightCm:number|null;verified:boolean;lastActiveAt:string|null;
-};
+export type SocialProfileView={id:string;displayName:string;bio:string;genderIdentity:string;city:string;district:string|null;countryCode:string;languages:string[];intent:string;occupation:string|null;heightCm:number|null;verified:boolean;lastActiveAt:string|null;};
 export type SocialProfileBundle={profile:SocialProfileView;handle:string;followers:number;following:number;viewerFollows:boolean;followsViewer:boolean;isMatch:boolean;prompts:SocialPrompt[];photos:SocialPhoto[];activeStories:number};
+export type PublicIdentityDetails={pronouns:string|null;sexualOrientations:string[];relationshipStyles:string[];desires:string[];languages:string[]};
 export type StoryView={storyId:string;authorId:string;authorName:string;authorVerified:boolean;handle:string;body:string;visibility:string;watermarkEnabled:boolean;downloadProtection:boolean;publishedAt:string;expiresAt:string;mediaId:string|null;mediaUrl:string|null;mediaKind:'image'|'video'|null;mimeType:string|null;mediaStatus:string|null;viewerSeen:boolean;viewCount:number};
 export type SocialListRow={userId:string;displayName:string;verified:boolean;handle:string;photoUrl:string|null;isMatch:boolean};
-
 const asObj=(value:unknown)=>value&&typeof value==='object'?value as Record<string,unknown>:{};
 
 export async function getSocialProfile(targetId:string):Promise<SocialProfileBundle|null>{
   const s=await createClient();const{data,error}=await s.rpc('get_social_profile_bundle',{p_target:targetId});if(error||!data)return null;const root=asObj(data);const p=asObj(root.profile);const rawPhotos=Array.isArray(root.photos)?root.photos as Record<string,unknown>[]:[];const paths=rawPhotos.map(x=>String(x.path??'')).filter(Boolean);const signed=new Map<string,string>();if(paths.length){const{data:urls}=await s.storage.from('profile-photos').createSignedUrls(paths,300);urls?.forEach(x=>{if(x.path&&x.signedUrl)signed.set(x.path,x.signedUrl)})}
   return {profile:{id:String(p.id??targetId),displayName:String(p.displayName??''),bio:String(p.bio??''),genderIdentity:String(p.genderIdentity??''),city:String(p.city??''),district:p.district?String(p.district):null,countryCode:String(p.countryCode??''),languages:Array.isArray(p.languages)?p.languages.map(String):[],intent:String(p.intent??''),occupation:p.occupation?String(p.occupation):null,heightCm:p.heightCm==null?null:Number(p.heightCm),verified:Boolean(p.verified),lastActiveAt:p.lastActiveAt?String(p.lastActiveAt):null},handle:String(root.handle??''),followers:Number(root.followers??0),following:Number(root.following??0),viewerFollows:Boolean(root.viewerFollows),followsViewer:Boolean(root.followsViewer),isMatch:Boolean(root.isMatch),prompts:(Array.isArray(root.prompts)?root.prompts:[]).map(x=>{const r=asObj(x);return{slot:Number(r.slot??0),promptKey:String(r.promptKey??''),answer:String(r.answer??'')}}),photos:rawPhotos.map(x=>{const path=String(x.path??'');return{id:String(x.id??path),url:signed.get(path)??null,position:Number(x.position??0),primary:Boolean(x.primary)}}),activeStories:Number(root.activeStories??0)};
 }
+
+export async function getPublicIdentityDetails(targetId:string):Promise<PublicIdentityDetails|null>{const s=await createClient();const{data,error}=await s.rpc('get_public_identity_details',{p_user:targetId});if(error)return null;const row=(data as Record<string,unknown>[]|null)?.[0];if(!row)return null;return{pronouns:row.pronouns?String(row.pronouns):null,sexualOrientations:Array.isArray(row.sexual_orientations)?row.sexual_orientations.map(String):[],relationshipStyles:Array.isArray(row.relationship_styles)?row.relationship_styles.map(String):[],desires:Array.isArray(row.desires)?row.desires.map(String):[],languages:Array.isArray(row.languages)?row.languages.map(String):[]};}
 
 export async function getStories(authorId?:string|null):Promise<StoryView[]>{
  const s=await createClient();const{data,error}=await s.rpc('get_story_feed',{p_author:authorId??null,p_limit:100});if(error)return[];const rows=(data??[]) as Record<string,unknown>[];const paths=rows.map(r=>String(r.storage_path??'')).filter(Boolean);const signed=new Map<string,string>();if(paths.length){const{data:urls}=await s.storage.from('story-media').createSignedUrls(paths,120);urls?.forEach(x=>{if(x.path&&x.signedUrl)signed.set(x.path,x.signedUrl)})}
