@@ -2,6 +2,14 @@ name: Production deploy
 
 on:
   workflow_dispatch:
+  push:
+    branches: [main]
+    paths-ignore:
+      - 'docs/**'
+      - '**/*.md'
+      - '.github/domain-bind-trigger'
+      - '.github/workflows/bind-production-domain.yml'
+      - '.github/workflows/daily-health.yml'
 
 permissions:
   contents: read
@@ -25,11 +33,16 @@ jobs:
         with:
           node-version: 22
           cache: npm
-      - run: npm ci
-      - run: node scripts/check-no-secrets.mjs
-      - run: npm run lint
-      - run: npm run typecheck
-      - run: npm test
+      - name: Clean install
+        run: npm ci
+      - name: Secret scan
+        run: node scripts/check-no-secrets.mjs
+      - name: Lint
+        run: npm run lint
+      - name: Typecheck
+        run: npm run typecheck
+      - name: Unit and security contracts
+        run: npm test
       - name: Next.js production build gate
         run: npm run build
         env:
@@ -58,23 +71,50 @@ jobs:
           DEPLOYMENT_URL=$(grep -Eo 'https://[^ ]+\.vercel\.app' deployment-url.txt | tail -n 1)
           test -n "$DEPLOYMENT_URL"
           echo "url=$DEPLOYMENT_URL" >> "$GITHUB_OUTPUT"
+      - name: Verify new deployment before custom-domain confirmation
+        shell: bash
+        run: |
+          set -euo pipefail
+          url="${{ steps.deploy.outputs.url }}/api/health"
+          for attempt in 1 2 3 4 5 6; do
+            body_file=$(mktemp)
+            code=$(curl --silent --show-error --location --max-time 30 --output "$body_file" --write-out '%{http_code}' "$url" || true)
+            if [ "$code" = "200" ] && grep -Eq '"ok"[[:space:]]*:[[:space:]]*true' "$body_file" && grep -Eq '"service"[[:space:]]*:[[:space:]]*"citafuego"' "$body_file"; then
+              rm -f "$body_file"
+              echo 'New deployment health identity is valid.'
+              exit 0
+            fi
+            rm -f "$body_file"
+            echo "Attempt $attempt: deployment health returned $code"
+            sleep 5
+          done
+          echo 'New deployment failed health validation.'
+          exit 1
       - name: Bind production domains
         shell: bash
         run: |
           set -euo pipefail
           vercel alias "${{ steps.deploy.outputs.url }}" citafuego.com --scope="$VERCEL_SCOPE" --token="$VERCEL_TOKEN"
           vercel alias "${{ steps.deploy.outputs.url }}" www.citafuego.com --scope="$VERCEL_SCOPE" --token="$VERCEL_TOKEN"
-      - name: Verify production health
+      - name: Verify production health and identity
         shell: bash
         run: |
           set -euo pipefail
           for attempt in 1 2 3 4 5 6 7 8 9 10 11 12; do
-            code=$(curl --silent --show-error --location --max-time 30 --output /dev/null --write-out '%{http_code}' https://citafuego.com/api/health || true)
-            if [ "$code" = "200" ]; then
-              echo "Production health is 200."
+            healthy=1
+            for host in citafuego.com www.citafuego.com; do
+              body_file=$(mktemp)
+              code=$(curl --silent --show-error --location --max-time 30 --output "$body_file" --write-out '%{http_code}' "https://${host}/api/health" || true)
+              if [ "$code" != "200" ] || ! grep -Eq '"ok"[[:space:]]*:[[:space:]]*true' "$body_file" || ! grep -Eq '"service"[[:space:]]*:[[:space:]]*"citafuego"' "$body_file"; then
+                healthy=0
+              fi
+              rm -f "$body_file"
+            done
+            if [ "$healthy" = "1" ]; then
+              echo 'Production health checks passed for apex and www.'
               exit 0
             fi
-            echo "Attempt $attempt: health returned $code"
+            echo "Attempt $attempt: production domains are not healthy yet."
             sleep 10
           done
           exit 1
