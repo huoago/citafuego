@@ -49,9 +49,7 @@ export function DeviceOnlyChat({
     void loadDeviceThread(scope).then((rows) => {
       if (active) setMessages(rows);
     });
-    return () => {
-      active = false;
-    };
+    return () => { active = false; };
   }, [scope]);
 
   useEffect(() => {
@@ -81,13 +79,7 @@ export function DeviceOnlyChat({
     async function transmit(message: DeviceChatMessage) {
       const channel = channelRef.current;
       if (!channel || channel.readyState !== 'open') return;
-      const envelope: Envelope = {
-        kind: 'chat',
-        id: message.id,
-        senderId: userId,
-        body: message.body,
-        createdAt: message.createdAt,
-      };
+      const envelope: Envelope = { kind: 'chat', id: message.id, senderId: userId, body: message.body, createdAt: message.createdAt };
       channel.send(JSON.stringify(envelope));
       await markSent(message);
     }
@@ -98,9 +90,7 @@ export function DeviceOnlyChat({
         setConnected(true);
         setNotice('Conexión privada directa activa.');
         void loadDeviceThread(scope).then(async (rows) => {
-          for (const row of rows) {
-            if (row.senderId === userId && row.delivery === 'queued') await transmit(row);
-          }
+          for (const row of rows) if (row.senderId === userId && row.delivery === 'queued') await transmit(row);
         });
       };
       channel.onclose = () => setConnected(false);
@@ -111,26 +101,11 @@ export function DeviceOnlyChat({
       channel.onmessage = (event) => {
         try {
           const envelope = JSON.parse(String(event.data)) as Envelope;
-          if (
-            envelope.kind !== 'chat' ||
-            envelope.senderId !== peerId ||
-            typeof envelope.body !== 'string' ||
-            envelope.body.length > 2000
-          ) return;
+          if (envelope.kind !== 'chat' || envelope.senderId !== peerId || typeof envelope.body !== 'string' || envelope.body.length > 2000) return;
           const moderation = preModerateText(envelope.body);
-          const body = moderation.action === 'hold' || moderation.action === 'block'
-            ? '[Contenido oculto por seguridad local]'
-            : envelope.body;
-          const incoming: DeviceChatMessage = {
-            id: envelope.id,
-            senderId: peerId,
-            body,
-            createdAt: envelope.createdAt,
-            delivery: 'received',
-          };
-          void appendDeviceMessage(scope, incoming).then((rows) => {
-            if (!stopped) setMessages(rows);
-          });
+          const body = moderation.action === 'hold' || moderation.action === 'block' ? '[Contenido oculto por seguridad local]' : envelope.body;
+          const incoming: DeviceChatMessage = { id: envelope.id, senderId: peerId, body, createdAt: envelope.createdAt, delivery: 'received' };
+          void appendDeviceMessage(scope, incoming).then((rows) => { if (!stopped) setMessages(rows); });
         } catch {
           // Ignore malformed peer payloads.
         }
@@ -147,9 +122,7 @@ export function DeviceOnlyChat({
 
     async function poll() {
       if (stopped) return;
-      const response = await fetch(
-        `/api/chat/signals?conversationId=${encodeURIComponent(conversationId)}&after=${lastSignal}`,
-      ).catch(() => null);
+      const response = await fetch(`/api/chat/signals?conversationId=${encodeURIComponent(conversationId)}&after=${lastSignal}`).catch(() => null);
       if (response?.ok) {
         const data = await response.json().catch(() => ({ signals: [] }));
         for (const signal of (data.signals ?? []) as Signal[]) {
@@ -162,18 +135,18 @@ export function DeviceOnlyChat({
             continue;
           }
           if (signal.signal_type === 'offer' && !caller) {
-            await setRemote(pc, signal.payload as RTCSessionDescriptionInit);
+            await setRemote(pc, signal.payload as unknown as RTCSessionDescriptionInit);
             const answer = await pc.createAnswer();
             await pc.setLocalDescription(answer);
             await postSignal('answer', { type: answer.type, sdp: answer.sdp ?? '' });
             continue;
           }
           if (signal.signal_type === 'answer' && caller && !pc.remoteDescription) {
-            await setRemote(pc, signal.payload as RTCSessionDescriptionInit);
+            await setRemote(pc, signal.payload as unknown as RTCSessionDescriptionInit);
             continue;
           }
           if (signal.signal_type === 'ice') {
-            const candidate = signal.payload as RTCIceCandidateInit;
+            const candidate = signal.payload as unknown as RTCIceCandidateInit;
             if (pc.remoteDescription) await pc.addIceCandidate(candidate).catch(() => undefined);
             else pendingIce.push(candidate);
           }
@@ -191,14 +164,10 @@ export function DeviceOnlyChat({
         pc.onconnectionstatechange = () => {
           const ready = pc.connectionState === 'connected' && channelRef.current?.readyState === 'open';
           setConnected(ready);
-          if (['failed', 'disconnected'].includes(pc.connectionState)) {
-            setNotice('Conexión P2P interrumpida. El historial permanece únicamente en este dispositivo.');
-          }
+          if (['failed', 'disconnected'].includes(pc.connectionState)) setNotice('Conexión P2P interrumpida. El historial permanece únicamente en este dispositivo.');
         };
         pc.onicecandidate = (event) => {
-          if (event.candidate) {
-            void postSignal('ice', event.candidate.toJSON() as unknown as Record<string, unknown>);
-          }
+          if (event.candidate) void postSignal('ice', event.candidate.toJSON() as unknown as Record<string, unknown>);
         };
         pc.ondatachannel = (event) => bindChannel(event.channel);
         if (caller) {
@@ -219,9 +188,7 @@ export function DeviceOnlyChat({
       if (timer) window.clearTimeout(timer);
       channelRef.current?.close();
       pcRef.current?.close();
-      void fetch(`/api/chat/signals?conversationId=${encodeURIComponent(conversationId)}`, {
-        method: 'DELETE',
-      }).catch(() => undefined);
+      void fetch(`/api/chat/signals?conversationId=${encodeURIComponent(conversationId)}`, { method: 'DELETE' }).catch(() => undefined);
     };
   }, [caller, conversationId, peerId, peerName, scope, userId]);
 
@@ -235,35 +202,17 @@ export function DeviceOnlyChat({
       return;
     }
     setText('');
-    const message: DeviceChatMessage = {
-      id: crypto.randomUUID(),
-      senderId: userId,
-      body: value,
-      createdAt: new Date().toISOString(),
-      delivery: 'queued',
-    };
+    const message: DeviceChatMessage = { id: crypto.randomUUID(), senderId: userId, body: value, createdAt: new Date().toISOString(), delivery: 'queued' };
     let rows = await appendDeviceMessage(scope, message);
     setMessages(rows);
     const channel = channelRef.current;
     if (channel?.readyState === 'open') {
-      const envelope: Envelope = {
-        kind: 'chat',
-        id: message.id,
-        senderId: userId,
-        body: value,
-        createdAt: message.createdAt,
-      };
+      const envelope: Envelope = { kind: 'chat', id: message.id, senderId: userId, body: value, createdAt: message.createdAt };
       channel.send(JSON.stringify(envelope));
       rows = await updateDeviceMessage(scope, message.id, { delivery: 'sent' });
       setMessages(rows);
-      void fetch('/api/chat/notify', {
-        method: 'POST',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ conversationId }),
-      }).catch(() => undefined);
-      if (moderation.action === 'warn') {
-        setNotice('Mensaje enviado. El filtro local detectó una señal de riesgo.');
-      }
+      void fetch('/api/chat/notify', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ conversationId }) }).catch(() => undefined);
+      if (moderation.action === 'warn') setNotice('Mensaje enviado. El filtro local detectó una señal de riesgo.');
     } else {
       setNotice('Guardado solo en este dispositivo. Se entregará cuando ambos tengan el chat abierto y la conexión P2P esté activa.');
     }
@@ -276,35 +225,5 @@ export function DeviceOnlyChat({
     setNotice('Historial local borrado.');
   }
 
-  return (
-    <>
-      <div className="softPanel">
-        <strong>🔒 Chat solo en tus dispositivos</strong>
-        <p>CitaFuego no guarda el contenido. El historial se cifra en este navegador y los mensajes viajan directamente mediante WebRTC. No se sincronizan a otro dispositivo.</p>
-        <div className="privacyActions">
-          <span className={connected ? 'connectionState online' : 'connectionState'}>
-            {connected ? '● P2P conectado' : '○ Esperando conexión P2P'}
-          </span>
-          <button type="button" className="ghostButton" onClick={() => void clearHistory()}>Borrar historial local</button>
-        </div>
-      </div>
-      <div className="messageList">
-        {messages.map((message) => (
-          <div key={message.id} className={message.senderId === userId ? 'messageBubble mine' : 'messageBubble'}>
-            <p>{message.body}</p>
-            {message.senderId === userId ? (
-              <small>{message.delivery === 'queued' ? 'Pendiente · solo en este dispositivo' : 'Entregado por conexión directa'}</small>
-            ) : null}
-          </div>
-        ))}
-      </div>
-      <form className="chatComposer" onSubmit={send}>
-        <div className="composerRow">
-          <input value={text} onChange={(event) => setText(event.target.value)} maxLength={2000} placeholder="Mensaje privado P2P…" />
-          <button className="sendButton" disabled={!text.trim()}>Enviar</button>
-        </div>
-        {notice ? <small role="status">{notice}</small> : null}
-      </form>
-    </>
-  );
+  return <><div className="softPanel"><strong>🔒 Chat solo en tus dispositivos</strong><p>CitaFuego no guarda el contenido. El historial se cifra en este navegador y los mensajes viajan directamente mediante WebRTC. No se sincronizan a otro dispositivo.</p><div className="privacyActions"><span className={connected ? 'connectionState online' : 'connectionState'}>{connected ? '● P2P conectado' : '○ Esperando conexión P2P'}</span><button type="button" className="ghostButton" onClick={() => void clearHistory()}>Borrar historial local</button></div></div><div className="messageList">{messages.map((message) => <div key={message.id} className={message.senderId === userId ? 'messageBubble mine' : 'messageBubble'}><p>{message.body}</p>{message.senderId === userId ? <small>{message.delivery === 'queued' ? 'Pendiente · solo en este dispositivo' : 'Entregado por conexión directa'}</small> : null}</div>)}</div><form className="chatComposer" onSubmit={send}><div className="composerRow"><input value={text} onChange={(event) => setText(event.target.value)} maxLength={2000} placeholder="Mensaje privado P2P…"/><button className="sendButton" disabled={!text.trim()}>Enviar</button></div>{notice ? <small role="status">{notice}</small> : null}</form></>;
 }

@@ -3,7 +3,7 @@ import { getAgeOnDate,isAdultBirthDate,parseIsoDate } from '../src/lib/auth/age.
 import { preModerateText } from '../src/lib/domain/moderation.ts';
 import { scoreCandidate } from '../src/lib/domain/matching.ts';
 import { activationEligible } from '../src/lib/domain/activation.ts';
-const profile={id:'00000000-0000-0000-0000-000000000001',name:'Ana',age:29,district:'Barranco',distanceBucket:'1–3 km',bio:'Me gusta el café y caminar.',intent:'serious' as const,verified:true,interests:['Café'],imageUrl:'https://example.test/p.webp',chemistryScore:88,sharedInterestCount:2};
+const profile={id:'00000000-0000-0000-0000-000000000001',name:'Ana',age:29,district:'Barranco',distanceBucket:'1–3 km',bio:'Me gusta el café y caminar.',intent:'serious' as const,verified:true,interests:['Café'],imageUrl:'https://example.test/p.webp',chemistryScore:88,sharedInterestCount:2,isOnline:true,isBoosted:false,prompts:[],learningReason:'Intereses y actividad compatibles'};
 test('17-year-old registration is rejected',()=>assert.equal(isAdultBirthDate('2009-08-15',new Date('2026-08-15T12:00:00Z')),false));
 test('exact 18th birthday is accepted',()=>{const now=new Date('2026-08-15T12:00:00Z');assert.equal(isAdultBirthDate('2008-08-15',now),true);assert.equal(getAgeOnDate(parseIsoDate('2008-08-15')!,now),18)});
 test('invalid calendar date is rejected',()=>assert.equal(parseIsoDate('2008-02-30'),null));
