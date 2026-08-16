@@ -43,7 +43,9 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          node --input-type=commonjs <<'NODE'
+          node --input-type=module <<'NODE'
+          import { createRequire } from 'node:module';
+          const require = createRequire(import.meta.url);
           const Core = require('@alicloud/pop-core');
 
           const apex = 'citafuego.com';
