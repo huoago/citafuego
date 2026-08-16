@@ -8,7 +8,7 @@ export default function LandingPage() {
         <nav className="landingNavLinks" aria-label="Navegación pública">
           <Link href="/explorar">Explorar</Link>
           <Link href="/como-funciona">Cómo funciona</Link>
-          <Link href="/seguridad">Seguridad</Link>
+          <Link href="/safety">Seguridad</Link>
           <Link className="ghostButton" href="/iniciar-sesion">Entrar</Link>
         </nav>
       </header>
@@ -53,7 +53,7 @@ export default function LandingPage() {
           <h3>Del perfil al chat</h3>
           <p>Cada acción importante abre una experiencia clara: descubrir, match, chat, perfil y seguridad.</p>
         </Link>
-        <Link className="featureLinkCard" href="/seguridad">
+        <Link className="featureLinkCard" href="/safety">
           <span>✓</span>
           <h3>Control primero</h3>
           <p>Privacidad, verificación, bloqueo y reportes forman parte del producto, no de la letra pequeña.</p>
