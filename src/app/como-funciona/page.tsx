@@ -7,7 +7,7 @@ export default function ComoFuncionaPage() {
         <Link href="/" className="brandLockup"><span>🔥</span> CitaFuego</Link>
         <div className="landingNavLinks">
           <Link href="/explorar">Explorar</Link>
-          <Link href="/seguridad">Seguridad</Link>
+          <Link href="/safety">Seguridad</Link>
           <Link className="ghostButton" href="/registro">Crear perfil</Link>
         </div>
       </header>
