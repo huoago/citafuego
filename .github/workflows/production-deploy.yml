@@ -63,7 +63,6 @@ jobs:
           set -euo pipefail
           node --input-type=module <<'NODE'
           import fs from 'node:fs';
-
           const token = process.env.VERCEL_TOKEN;
           const teamId = process.env.VERCEL_TEAM_ID;
           const projectId = process.env.VERCEL_PROJECT_ID;
@@ -74,22 +73,9 @@ jobs:
             name,
             project: projectId,
             target: 'production',
-            gitSource: {
-              type: 'github',
-              org: 'huoago',
-              repo: 'citafuego',
-              ref: 'main',
-              sha,
-            },
-            gitMetadata: {
-              remoteUrl: 'https://github.com/huoago/citafuego',
-              commitRef: 'main',
-              commitSha: sha,
-              ci: true,
-              ciType: 'github-actions',
-            },
+            gitSource: { type: 'github', org: 'huoago', repo: 'citafuego', ref: 'main', sha },
+            gitMetadata: { remoteUrl: 'https://github.com/huoago/citafuego', commitRef: 'main', commitSha: sha, ci: true, ciType: 'github-actions' },
           };
-
           const res = await fetch(endpoint, {
             method: 'POST',
             headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
@@ -98,14 +84,8 @@ jobs:
           const text = await res.text();
           let body;
           try { body = text ? JSON.parse(text) : {}; } catch { body = { raw: text }; }
-          if (!res.ok) {
-            console.error(`Vercel deployment creation failed (${res.status})`, body);
-            process.exit(1);
-          }
-          if (!body.id || !body.url) {
-            console.error('Vercel deployment response is missing id/url', body);
-            process.exit(1);
-          }
+          if (!res.ok) { console.error(`Vercel deployment creation failed (${res.status})`, body); process.exit(1); }
+          if (!body.id || !body.url) { console.error('Deployment response missing id/url', body); process.exit(1); }
           fs.appendFileSync(process.env.GITHUB_OUTPUT, `id=${body.id}\nurl=https://${body.url}\n`);
           console.log(`Created Vercel production deployment ${body.id}: https://${body.url}`);
           NODE
@@ -128,30 +108,31 @@ jobs:
             if (['ERROR', 'CANCELED'].includes(state)) { console.error('Deployment did not become READY', body.errorMessage || body.errorCode || body); process.exit(1); }
             await new Promise((resolve) => setTimeout(resolve, 5000));
           }
-          console.error('Timed out waiting for Vercel deployment to become READY.');
           process.exit(1);
           NODE
 
-      - name: Verify new deployment health identity
+      - name: Confirm production aliases were assigned to this deployment
         shell: bash
         run: |
           set -euo pipefail
-          url="${{ steps.deploy.outputs.url }}/api/health"
-          for attempt in 1 2 3 4 5 6; do
-            body_file=$(mktemp)
-            code=$(curl --silent --show-error --location --max-time 30 --output "$body_file" --write-out '%{http_code}' "$url" || true)
-            if [ "$code" = "200" ] && grep -Eq '"ok"[[:space:]]*:[[:space:]]*true' "$body_file" && grep -Eq '"service"[[:space:]]*:[[:space:]]*"citafuego"' "$body_file"; then
-              rm -f "$body_file"
-              echo 'New deployment health identity is valid.'
-              exit 0
-            fi
-            rm -f "$body_file"
-            echo "Attempt $attempt: deployment health returned $code"
-            sleep 5
-          done
-          exit 1
+          node --input-type=module <<'NODE'
+          const token = process.env.VERCEL_TOKEN;
+          const teamId = process.env.VERCEL_TEAM_ID;
+          const id = '${{ steps.deploy.outputs.id }}';
+          for (let attempt = 1; attempt <= 12; attempt++) {
+            const res = await fetch(`https://api.vercel.com/v2/deployments/${encodeURIComponent(id)}/aliases?teamId=${encodeURIComponent(teamId)}`, { headers: { Authorization: `Bearer ${token}` } });
+            const body = await res.json().catch(() => ({}));
+            if (!res.ok) { console.error(`Unable to list deployment aliases (${res.status})`, body); process.exit(1); }
+            const aliases = (body.aliases || []).map((item) => item.alias || item).filter(Boolean);
+            console.log(`Alias attempt ${attempt}: ${aliases.join(', ') || '<none>'}`);
+            if (aliases.includes('citafuego.com') && aliases.includes('www.citafuego.com')) process.exit(0);
+            await new Promise((resolve) => setTimeout(resolve, 5000));
+          }
+          console.error('Production custom domains were not assigned to the new deployment.');
+          process.exit(1);
+          NODE
 
-      - name: Verify production custom domains and identity
+      - name: Verify production custom domains and CitaFuego identity
         shell: bash
         run: |
           set -euo pipefail
@@ -163,7 +144,7 @@ jobs:
               if [ "$code" != "200" ] || ! grep -Eq '"ok"[[:space:]]*:[[:space:]]*true' "$body_file" || ! grep -Eq '"service"[[:space:]]*:[[:space:]]*"citafuego"' "$body_file"; then healthy=0; fi
               rm -f "$body_file"
             done
-            if [ "$healthy" = "1" ]; then echo 'Production health checks passed for apex and www.'; exit 0; fi
+            if [ "$healthy" = "1" ]; then echo 'Production health and identity checks passed for apex and www.'; exit 0; fi
             echo "Attempt $attempt: production domains are not healthy yet."
             sleep 10
           done
