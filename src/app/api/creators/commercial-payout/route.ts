@@ -1,0 +1,3 @@
+import { NextResponse } from 'next/server';import { z } from 'zod';import { createClient } from '@/lib/supabase/server';
+const schema=z.object({amountUsd:z.number().positive()});
+export async function POST(request:Request){const parsed=schema.safeParse(await request.json().catch(()=>null));if(!parsed.success)return NextResponse.json({error:'invalid_request'},{status:400});const s=await createClient();const{data,error}=await s.rpc('request_commercial_creator_payout',{p_amount_usd_micros:Math.round(parsed.data.amountUsd*1_000_000)});if(error)return NextResponse.json({error:error.message},{status:400});return NextResponse.json(data)}

@@ -1,0 +1,3 @@
+import { NextResponse } from 'next/server';import { z } from 'zod';import { createClient } from '@/lib/supabase/server';
+const schema=z.object({opportunityId:z.number().int().positive(),creatorId:z.string().uuid(),grossUsd:z.number().min(1).max(1000000)});
+export async function POST(request:Request){const parsed=schema.safeParse(await request.json().catch(()=>null));if(!parsed.success)return NextResponse.json({error:'invalid_request'},{status:400});const s=await createClient();const{data,error}=await s.rpc('accept_brand_creator',{p_opportunity:parsed.data.opportunityId,p_creator:parsed.data.creatorId,p_gross_usd_micros:Math.round(parsed.data.grossUsd*1_000_000)});if(error)return NextResponse.json({error:error.message},{status:400});return NextResponse.json(data)}
