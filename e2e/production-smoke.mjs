@@ -12,7 +12,7 @@ for(const path of publicChecks){
   if(r.status!==200)throw new Error(`${path} returned ${r.status}; expected 200`);
   if(path==='/api/health'){
     const body=await r.json();
-    if(body?.ok!==true||body?.service!=='citafuego')throw new Error('/api/health identity mismatch');
+    if(body?.ok!==true||body?.service!=='citafuego'||body?.version!=='2026.08.17-ios-social')throw new Error('/api/health release identity mismatch');
   }
   if(path==='/manifest.webmanifest'){
     const body=await r.json();
