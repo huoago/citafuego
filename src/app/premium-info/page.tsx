@@ -1,6 +1,3 @@
-import { PublicFeaturePage } from '@/components/public/PublicFeaturePage';
-import { getPublicFeature } from '@/lib/public-features';
+import { redirect } from 'next/navigation';
 
-export default function PremiumInfoPage() {
-  return <PublicFeaturePage feature={getPublicFeature('/premium-info')!} />;
-}
+export default function PremiumInfoPage(){redirect('/')}
