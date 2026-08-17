@@ -1,12 +1,45 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { existsSync,readFileSync } from 'node:fs';
+import { readFileSync } from 'node:fs';
 const read=(p:string)=>readFileSync(p,'utf8');
-const privacy=()=>read('supabase/migrations/034_device_only_chat.sql');
-test('device history is encrypted in IndexedDB with a non-exportable AES key',()=>{const s=read('src/lib/chat/device-store.ts');assert.match(s,/indexedDB/);assert.match(s,/AES-GCM/);assert.match(s,/generateKey\(\{name:'AES-GCM',length:256\},false/);assert.match(s,/crypto\.subtle\.encrypt/);assert.match(s,/crypto\.subtle\.decrypt/)});
-test('matched chat content goes through WebRTC DataChannel only',()=>{const s=read('src/components/chat/device-only-chat.tsx');assert.match(s,/RTCPeerConnection/);assert.match(s,/createDataChannel/);assert.match(s,/appendDeviceMessage/);assert.doesNotMatch(s,/\/api\/messages/);assert.doesNotMatch(s,/from\('messages'\)/)});
-test('legacy message API is a non-persisting tombstone',()=>{const s=read('src/app/api/messages/route.ts');assert.match(s,/device_only_chat/);assert.doesNotMatch(s,/request\.json|submit_message|from\('messages'\)/)});
-test('random text content has no backend endpoint',()=>assert.equal(existsSync('src/app/api/random/messages/route.ts'),false));
-test('migration revokes backend chat writes and removes random text storage',()=>{const s=privacy();assert.match(s,/revoke all on function public\.submit_message/);assert.match(s,/revoke select,insert,update,delete on public\.messages/);assert.match(s,/drop table if exists public\.random_chat_messages/);assert.match(s,/drop trigger if exists message_notification_trigger/);assert.match(s,/conversation_signals/);assert.match(s,/Ephemeral WebRTC signaling metadata only/)});
-test('message notification is metadata-only and never accepts a body',()=>{const api=read('src/app/api/chat/notify/route.ts');assert.match(api,/conversationId/);assert.doesNotMatch(api,/text|body/);const s=privacy();assert.match(s,/Nuevo mensaje privado/);assert.doesNotMatch(s,/left\(coalesce\(new\.body/)});
-test('chat list reads previews from encrypted device storage',()=>{const s=read('src/components/chat/local-chat-list.tsx');assert.match(s,/loadDeviceThread/);assert.match(s,/Historial privado solo en este dispositivo/)});
+
+test('primary matched chat uses durable synced messaging',()=>{
+ const page=read('src/app/(app)/chats/[conversationId]/page.tsx');
+ assert.match(page,/ServerChat/);
+ assert.match(page,/from\('messages'\)/);
+ assert.doesNotMatch(page,/DeviceOnlyChat/);
+});
+
+test('message API requires auth, validates conversations and persists through trusted RPC',()=>{
+ const api=read('src/app/api/messages/route.ts');
+ assert.match(api,/getAuthenticatedUserId/);
+ assert.match(api,/get_conversation_header/);
+ assert.match(api,/submit_message/);
+ assert.match(api,/preModerateText/);
+ assert.match(api,/message_rate_limited/);
+ assert.match(api,/conversation_unavailable/);
+});
+
+test('synced client supports optimistic send, offline delivery refresh and failure recovery',()=>{
+ const chat=read('src/components/chat/server-chat.tsx');
+ assert.match(chat,/clientMessageId=crypto\.randomUUID/);
+ assert.match(chat,/setInterval/);
+ assert.match(chat,/\/api\/messages/);
+ assert.match(chat,/setText\(value\)/);
+ assert.match(chat,/Retenido/);
+});
+
+test('chat inbox uses server message previews rather than device-only IndexedDB previews',()=>{
+ const inbox=read('src/app/(app)/chats/page.tsx');
+ assert.match(inbox,/last_message_preview/);
+ assert.match(inbox,/last_message_at/);
+ assert.doesNotMatch(inbox,/LocalChatList/);
+});
+
+test('legacy private P2P implementation may remain isolated but is not the primary conversation UI',()=>{
+ const legacy=read('src/components/chat/device-only-chat.tsx');
+ assert.match(legacy,/RTCPeerConnection/);
+ assert.match(legacy,/AES|DeviceOnlyChat/);
+ const page=read('src/app/(app)/chats/[conversationId]/page.tsx');
+ assert.doesNotMatch(page,/device-only-chat/);
+});

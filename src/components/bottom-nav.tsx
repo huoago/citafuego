@@ -4,18 +4,18 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
 const items = [
-  { href: '/para-ti', icon: '⌂', label: 'Inicio' },
   { href: '/descubrir', icon: '✦', label: 'Descubrir' },
+  { href: '/comunidad', icon: '◉', label: 'Comunidad' },
   { href: '/matches', icon: '♡', label: 'Matches' },
-  { href: '/chats', icon: '◌', label: 'Chats' },
+  { href: '/chats', icon: '◌', label: 'Chat' },
   { href: '/perfil', icon: '◎', label: 'Perfil' },
-];
+] as const;
 
 export function BottomNav() {
   const pathname = usePathname();
 
   return (
-    <nav className="bottomNav" aria-label="Navegación principal">
+    <nav className="bottomNav iosTabBar" aria-label="Navegación principal">
       {items.map((item) => {
         const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
         return (
@@ -26,7 +26,7 @@ export function BottomNav() {
             aria-current={active ? 'page' : undefined}
           >
             <span className="navIcon" aria-hidden="true">{item.icon}</span>
-            <span>{item.label}</span>
+            <span className="navLabel">{item.label}</span>
           </Link>
         );
       })}
