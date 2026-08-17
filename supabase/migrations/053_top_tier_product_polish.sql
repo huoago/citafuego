@@ -1,7 +1,7 @@
 -- CitaFuego top-tier product polish: safe multi-photo discovery and privacy-aware push foundation.
 
 create or replace function public.get_visible_profile_photo_paths(p_profiles uuid[])
-returns table(profile_id uuid,storage_path text,position integer,is_primary boolean)
+returns table(profile_id uuid,storage_path text,photo_position integer,is_primary boolean)
 language plpgsql security definer set search_path=public as $$
 declare u uuid:=auth.uid();
 begin
