@@ -9,6 +9,7 @@ import './monetization.css';
 import './top-tier.css';
 import './ios-social.css';
 import './ios-v2.css';
+import './auth-safety-v3.css';
 import { PwaRegistrar } from '@/components/pwa-registrar';
 
 export const metadata: Metadata = {
