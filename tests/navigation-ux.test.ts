@@ -21,11 +21,19 @@ test('public product routes have their own screens',()=>{
   }
 });
 
-test('authenticated navigation has dedicated destinations and active state',()=>{
+test('authenticated tab bar keeps five stable top-level destinations and active state',()=>{
   const source=read('src/components/bottom-nav.tsx');
-  for(const route of ['/descubrir','/matches','/likes','/chats','/perfil']) assert.equal(source.includes(`href: '${route}'`),true,`missing ${route}`);
+  for(const route of ['/para-ti','/descubrir','/matches','/chats','/perfil']) assert.equal(source.includes(`href: '${route}'`),true,`missing ${route}`);
+  assert.equal(source.includes("href: '/likes'"),false,'Likes belongs to the Matches secondary view, not a sixth top-level tab');
   assert.equal(source.includes('aria-current'),true);
   assert.equal(source.includes('usePathname'),true);
+});
+
+test('likes remain one tap from matches even after tab-bar simplification',()=>{
+  const matches=read('src/app/(app)/matches/page.tsx');
+  const likes=read('src/app/(app)/likes/page.tsx');
+  assert.match(matches,/href="\/likes"/);
+  assert.match(likes,/href="\/matches"/);
 });
 
 test('premium cards do not expose dead disabled purchase buttons',()=>{

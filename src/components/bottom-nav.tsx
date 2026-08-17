@@ -4,9 +4,9 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
 const items = [
+  { href: '/para-ti', icon: '⌂', label: 'Inicio' },
   { href: '/descubrir', icon: '✦', label: 'Descubrir' },
   { href: '/matches', icon: '♡', label: 'Matches' },
-  { href: '/likes', icon: '♥', label: 'Likes' },
   { href: '/chats', icon: '◌', label: 'Chats' },
   { href: '/perfil', icon: '◎', label: 'Perfil' },
 ];
