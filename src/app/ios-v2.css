@@ -1,0 +1,54 @@
+:root{color-scheme:dark;--ios-bg:#08080b;--ios-surface:rgba(28,28,30,.82);--ios-surface-2:rgba(44,44,46,.72);--ios-border:rgba(255,255,255,.10);--ios-label:#fff;--ios-secondary:rgba(235,235,245,.62);--ios-red:#ff453a;--ios-pink:#ff375f;--ios-blue:#0a84ff;--ios-radius:22px;--ios-shadow:0 18px 50px rgba(0,0,0,.28)}
+*{-webkit-tap-highlight-color:transparent}
+html{background:var(--ios-bg)}
+body{overscroll-behavior-y:none}
+button,a,input,summary{touch-action:manipulation}
+button:focus-visible,a:focus-visible,input:focus-visible,summary:focus-visible{outline:3px solid rgba(10,132,255,.75);outline-offset:2px}
+.iosAppShell{background:radial-gradient(circle at 50% -15%,rgba(255,55,95,.14),transparent 38%),var(--ios-bg)}
+.iosAppHeader{position:sticky;top:0;z-index:80;min-height:56px;padding-top:max(8px,env(safe-area-inset-top));background:rgba(8,8,11,.76);backdrop-filter:saturate(180%) blur(24px);-webkit-backdrop-filter:saturate(180%) blur(24px);border-bottom:1px solid var(--ios-border)}
+.iosAppHeader .headerIconButton,.iosAppHeader summary{min-width:44px;min-height:44px;border-radius:22px}
+.iosSheetMenu{background:rgba(28,28,30,.94)!important;backdrop-filter:blur(28px);-webkit-backdrop-filter:blur(28px);border:1px solid var(--ios-border)!important;border-radius:20px!important;box-shadow:var(--ios-shadow)}
+.iosSheetMenu a{min-height:44px;display:flex;align-items:center}
+.iosTabBar{position:sticky;bottom:0;z-index:90;padding-bottom:max(8px,env(safe-area-inset-bottom));background:rgba(18,18,20,.76)!important;backdrop-filter:saturate(180%) blur(26px);-webkit-backdrop-filter:saturate(180%) blur(26px);border-top:1px solid var(--ios-border)!important}
+.iosTabBar .navItem{min-height:52px;min-width:44px;gap:3px;transition:transform .22s cubic-bezier(.2,.8,.2,1),color .2s ease,opacity .2s ease}
+.iosTabBar .navItem:active{transform:scale(.92)}
+.iosTabBar .navIcon{font-size:21px;line-height:1}
+.iosTabBar .navLabel{font-size:10px;font-weight:650;letter-spacing:-.01em}
+.iosTabBar .navItem.active{color:var(--ios-pink)}
+.iosLargeHeader{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;padding:12px 2px 16px}
+.iosLargeHeader h1{font-size:clamp(34px,8vw,42px);line-height:.98;letter-spacing:-.045em;margin:3px 0 0}
+.iosLargeHeader .muted{max-width:560px;margin-top:10px;color:var(--ios-secondary)}
+.iosCreateButton{display:grid;place-items:center;flex:0 0 44px;width:44px;height:44px;border-radius:50%;font-size:27px;font-weight:300;color:#fff;background:linear-gradient(145deg,var(--ios-pink),#ff6b35);box-shadow:0 10px 26px rgba(255,55,95,.24);transition:transform .22s cubic-bezier(.2,.8,.2,1)}
+.iosCreateButton:active{transform:scale(.88)}
+.communityCreateRail{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(138px,1fr);gap:10px;overflow-x:auto;padding:2px 1px 14px;scroll-snap-type:x proximity;scrollbar-width:none}
+.communityCreateRail::-webkit-scrollbar,.interestScroll::-webkit-scrollbar{display:none}
+.communityCreateCard{scroll-snap-align:start;min-height:118px;padding:15px;border-radius:20px;border:1px solid var(--ios-border);background:linear-gradient(160deg,rgba(44,44,46,.82),rgba(28,28,30,.64));display:flex;flex-direction:column;justify-content:flex-end;box-shadow:0 10px 30px rgba(0,0,0,.12);transition:transform .22s cubic-bezier(.2,.8,.2,1),border-color .2s ease}
+.communityCreateCard:active{transform:scale(.97)}
+.communityCreateCard>span{font-size:24px;margin-bottom:auto}.communityCreateCard strong{font-size:15px}.communityCreateCard small{color:var(--ios-secondary);margin-top:2px}
+.communitySegments{position:sticky;top:calc(57px + env(safe-area-inset-top));z-index:45;background:rgba(8,8,11,.78);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);padding:5px;border-radius:12px}
+.interestShelf{padding:20px 0 8px}.interestScroll{display:flex;gap:8px;overflow-x:auto;padding-bottom:6px;scrollbar-width:none}.interestPill{flex:none;min-height:38px;display:inline-flex;align-items:center;padding:0 14px;border-radius:999px;background:var(--ios-surface-2);border:1px solid var(--ios-border);font-size:13px;font-weight:650}
+.communityFeedSection{padding-top:10px}
+.immersiveDiscover{max-width:720px;margin:0 auto;padding-bottom:4px}
+.immersiveProfileCard{border-radius:26px!important;overflow:hidden;box-shadow:var(--ios-shadow);transition:transform .18s cubic-bezier(.2,.8,.2,1),opacity .18s ease;will-change:transform;touch-action:none}
+.immersiveProfileMedia{height:min(65svh,690px)!important;min-height:480px;touch-action:none}
+.immersiveProfileBody{background:linear-gradient(180deg,rgba(28,28,30,.94),rgba(18,18,20,.98));padding-bottom:18px!important}
+.viewProfileLink{min-height:44px;margin-top:12px;border-top:1px solid var(--ios-border);display:flex;align-items:center;justify-content:space-between;color:#fff;font-weight:650}
+.iosDecisionBar{position:sticky;bottom:calc(66px + env(safe-area-inset-bottom));z-index:40;margin:10px auto 0;padding:7px 11px;width:max-content;max-width:calc(100% - 20px);border:1px solid var(--ios-border);border-radius:999px;background:rgba(28,28,30,.78);backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px);box-shadow:0 12px 38px rgba(0,0,0,.28)}
+.iosDecisionBar .roundAction{min-width:48px;min-height:48px;transition:transform .2s cubic-bezier(.2,.8,.2,1)}
+.iosDecisionBar .roundAction:active{transform:scale(.84)}
+.iosToast{position:fixed!important;left:50%;bottom:calc(145px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:120;width:max-content;max-width:calc(100vw - 32px);background:rgba(44,44,46,.94)!important;backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border:1px solid var(--ios-border);border-radius:999px!important;box-shadow:var(--ios-shadow)}
+.iosChatList{overflow:hidden;border-radius:22px;border:1px solid var(--ios-border);background:var(--ios-surface)}
+.iosChatList .chatRow{min-height:76px;padding:10px 12px;transition:background .16s ease,transform .16s ease}.iosChatList .chatRow:active{background:rgba(255,255,255,.06);transform:scale(.99)}
+.iosChatList .chatMeta{display:flex;align-items:center;gap:7px;color:var(--ios-secondary)}.iosChatList .chatMeta b{font-size:23px;font-weight:300}
+.iosConversationHeader{position:sticky;top:calc(56px + env(safe-area-inset-top));z-index:55;background:rgba(8,8,11,.82);backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px);border-bottom:1px solid var(--ios-border)}
+.syncedChat{min-height:calc(100svh - 210px);display:flex;flex-direction:column}
+.chatPrivacyNote{display:flex;gap:11px;align-items:flex-start;margin:10px 0;padding:12px 14px;border-radius:17px;background:rgba(10,132,255,.10);border:1px solid rgba(10,132,255,.20)}
+.chatPrivacyNote>span{font-size:22px}.chatPrivacyNote strong{font-size:14px}.chatPrivacyNote p{margin:2px 0 0;color:var(--ios-secondary);font-size:12px;line-height:1.4}
+.syncedMessageList{flex:1;min-height:300px;padding:14px 4px 18px;overflow-y:auto;scroll-behavior:smooth}
+.messageBubble{max-width:78%;border-radius:20px 20px 20px 6px!important}.messageBubble.mine{margin-left:auto;border-radius:20px 20px 6px 20px!important}
+.chatIcebreaker{margin:auto;max-width:270px;text-align:center;color:var(--ios-secondary);padding:36px 18px}.chatIcebreaker span{font-size:38px;display:block}.chatIcebreaker strong{display:block;color:#fff;font-size:20px;margin:8px}.chatIcebreaker p{font-size:13px;line-height:1.45}
+.iosChatComposer{position:sticky;bottom:calc(65px + env(safe-area-inset-bottom));z-index:45;padding:8px 0;background:linear-gradient(180deg,transparent,var(--ios-bg) 26%)}
+.iosChatComposer .composerRow{min-height:50px;border:1px solid var(--ios-border);border-radius:25px;background:rgba(44,44,46,.86);padding:4px 5px 4px 15px}.iosChatComposer input{min-height:42px;background:transparent!important}.iosChatComposer .sendButton{min-width:42px;min-height:42px;border-radius:21px;font-size:22px}
+@media(max-width:640px){.appMain{padding-left:12px!important;padding-right:12px!important}.brandMini>span:last-child{display:none}.immersiveDiscover .discoverTopline{padding-left:4px;padding-right:4px}.immersiveProfileMedia{height:61svh!important;min-height:430px}.swipeHint{font-size:10px}.communityCreateRail{margin-right:-12px;padding-right:12px}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;transition-duration:.01ms!important;animation-duration:.01ms!important;animation-iteration-count:1!important}}
+@media(prefers-color-scheme:light){:root{color-scheme:light;--ios-bg:#f2f2f7;--ios-surface:rgba(255,255,255,.86);--ios-surface-2:rgba(229,229,234,.76);--ios-border:rgba(60,60,67,.14);--ios-label:#111;--ios-secondary:rgba(60,60,67,.68)}.iosAppShell{background:radial-gradient(circle at 50% -15%,rgba(255,55,95,.08),transparent 38%),var(--ios-bg)}.iosAppHeader,.communitySegments,.iosConversationHeader{background:rgba(242,242,247,.78)}.iosTabBar{background:rgba(249,249,249,.80)!important}.communityCreateCard,.immersiveProfileBody{background:rgba(255,255,255,.9)}.viewProfileLink,.chatIcebreaker strong{color:#111}.iosChatComposer{background:linear-gradient(180deg,transparent,var(--ios-bg) 26%)}}
