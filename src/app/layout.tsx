@@ -6,10 +6,16 @@ import './growth.css';
 import './blog.css';
 import './recommendations.css';
 import './monetization.css';
+import './top-tier.css';
+import { PwaRegistrar } from '@/components/pwa-registrar';
 
 export const metadata: Metadata = {
   title: { default: 'CitaFuego — Personas reales. Citas reales.', template: '%s · CitaFuego' },
   description: 'Conoce personas reales cerca de ti y convierte una conexión en una cita real.',
+  applicationName:'CitaFuego',
+  manifest:'/manifest.webmanifest',
+  icons:{icon:'/icon.svg'},
+  appleWebApp:{capable:true,title:'CitaFuego',statusBarStyle:'black-translucent'},
 };
-export const viewport: Viewport = { width: 'device-width', initialScale: 1, themeColor: '#0b0710' };
-export default function RootLayout({children}:Readonly<{children:React.ReactNode}>){return <html lang="es"><body>{children}</body></html>}
+export const viewport: Viewport = { width: 'device-width', initialScale: 1, viewportFit:'cover', themeColor: '#0b0710' };
+export default function RootLayout({children}:Readonly<{children:React.ReactNode}>){return <html lang="es"><body><PwaRegistrar/>{children}</body></html>}

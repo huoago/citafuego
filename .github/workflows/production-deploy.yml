@@ -29,8 +29,8 @@ jobs:
       VERCEL_PROJECT_ID: prj_QJxwaFzzxgPX2ZWy26gkA3WLWJKj
       VERCEL_PROJECT: citafuego-prod
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v6
         with:
           node-version: 22
           cache: npm
@@ -149,3 +149,8 @@ jobs:
             sleep 10
           done
           exit 1
+
+      - name: Public production smoke
+        env:
+          E2E_BASE_URL: https://citafuego.com
+        run: npm run e2e:smoke

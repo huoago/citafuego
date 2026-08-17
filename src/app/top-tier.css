@@ -1,0 +1,19 @@
+.turnstileHost{min-height:66px;width:100%;overflow:hidden;border-radius:16px}.turnstileHost iframe{max-width:100%}
+
+/* Top-tier discovery media */
+.profileMedia{touch-action:pan-y;user-select:none}.profileMedia.dragging{transition:none}.profileMedia .photoProgress{position:absolute;z-index:5;top:12px;left:14px;right:14px;display:flex;gap:5px}.profileMedia .photoProgress button{height:4px;flex:1;border:0;border-radius:999px;padding:0;background:rgba(255,255,255,.28);box-shadow:0 1px 5px rgba(0,0,0,.25);cursor:pointer}.profileMedia .photoProgress button.active{background:#fff}.profileMedia .photoCounter{position:absolute;z-index:6;right:14px;top:25px;padding:5px 8px;border:1px solid rgba(255,255,255,.14);border-radius:999px;background:rgba(8,5,12,.56);backdrop-filter:blur(10px);font-size:.72rem;font-weight:800}.profileCard{transition:transform .18s ease,opacity .18s ease}.swipeHint{margin:10px auto 0;text-align:center;color:var(--cf-muted);font-size:.76rem}.identityBadge{display:inline-grid;place-items:center;min-width:30px;height:21px;padding:0 6px;border-radius:999px;background:linear-gradient(110deg,#65e6bd,#8ec8ff);color:#06120f;font-size:.68rem;font-weight:950;letter-spacing:-.08em;box-shadow:0 6px 18px rgba(77,225,173,.22)}
+
+/* Keep the primary shell calm while secondary features remain reachable. */
+.appHeaderActions{position:relative}.headerMore{position:relative}.headerMore>summary{list-style:none;cursor:pointer;min-width:42px;min-height:42px;display:grid;place-items:center;border-radius:14px;border:1px solid rgba(255,255,255,.09);background:rgba(255,255,255,.045);font-weight:900}.headerMore>summary::-webkit-details-marker{display:none}.headerMoreMenu{position:absolute;z-index:80;right:0;top:48px;width:220px;padding:8px;border:1px solid rgba(255,255,255,.12);border-radius:18px;background:rgba(18,10,23,.96);backdrop-filter:blur(22px);box-shadow:0 24px 60px rgba(0,0,0,.45);display:grid;gap:4px}.headerMoreMenu a{text-decoration:none;padding:11px 12px;border-radius:12px;color:#f7eff8}.headerMoreMenu a:hover{background:rgba(255,255,255,.07)}
+
+/* Random-call consent and reveal */
+.callPreflight{display:grid;gap:16px;place-items:center;text-align:center;padding:34px 24px;border:1px solid rgba(255,255,255,.1);border-radius:26px;background:linear-gradient(145deg,rgba(255,63,113,.08),rgba(156,92,255,.06))}.callPreflightIcon{width:82px;height:82px;border-radius:50%;display:grid;place-items:center;font-size:2rem;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.11)}.callPreflight p{max-width:560px;color:var(--cf-muted);line-height:1.6;margin:0}.remoteVideo.hiddenUntilReveal{filter:blur(24px) brightness(.55);transform:scale(1.04)}.revealOverlay{position:absolute;z-index:10;inset:0;display:grid;place-items:center;background:linear-gradient(rgba(10,6,13,.15),rgba(10,6,13,.5));pointer-events:none}.revealOverlay button{pointer-events:auto}.callStage{position:relative;overflow:hidden}
+
+/* Private Match albums */
+.privateAlbumGrid{display:grid;gap:14px;margin-top:18px}.privateAlbumItem{display:grid;gap:14px}.privateMediaReveal{position:relative;overflow:hidden;border-radius:20px;background:#08060a;min-height:220px;display:grid;place-items:center;user-select:none}.privateMediaReveal img,.privateMediaReveal video{display:block;width:100%;max-height:72vh;object-fit:contain;-webkit-user-drag:none}.privateMediaWatermark{position:absolute;right:12px;bottom:12px;padding:6px 9px;border-radius:999px;background:rgba(0,0,0,.58);border:1px solid rgba(255,255,255,.15);font-size:.7rem;font-weight:800;pointer-events:none}
+
+/* PWA safe-area polish */
+.bottomNav{padding-bottom:max(10px,env(safe-area-inset-bottom))}.appHeader{padding-top:max(10px,env(safe-area-inset-top))}
+
+@media(max-width:640px){.appHeaderActions .forYouNavBadge span{display:none}.headerMoreMenu{right:-4px}.swipeHint{padding-bottom:2px}}
+@media(prefers-reduced-motion:reduce){.profileCard{transition:none}}

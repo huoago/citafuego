@@ -1,0 +1,5 @@
+import { z } from 'zod';
+import { getAuthenticatedUserId } from '@/lib/auth/server';
+import { createClient } from '@/lib/supabase/server';
+const schema=z.object({pronouns:z.string().max(40).default(''),sexualOrientations:z.array(z.string()).max(5),relationshipStyles:z.array(z.string()).max(4),desires:z.array(z.string()).max(8),languages:z.array(z.string().min(2).max(30)).max(6),showOnProfile:z.boolean()});
+export async function POST(request:Request){const u=await getAuthenticatedUserId();if(!u)return Response.json({error:'unauthorized'},{status:401});const p=schema.safeParse(await request.json().catch(()=>null));if(!p.success)return Response.json({error:'invalid_payload'},{status:400});const s=await createClient();const{data,error}=await s.rpc('save_my_identity_details',{p_pronouns:p.data.pronouns,p_orientations:p.data.sexualOrientations,p_styles:p.data.relationshipStyles,p_desires:p.data.desires,p_languages:p.data.languages,p_show:p.data.showOnProfile});if(error)return Response.json({error:'save_failed'},{status:409});return Response.json(data??{ok:true});}

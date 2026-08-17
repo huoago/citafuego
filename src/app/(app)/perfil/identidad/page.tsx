@@ -1,0 +1,7 @@
+import Link from 'next/link';
+import { redirect } from 'next/navigation';
+import { getAuthenticatedUserId } from '@/lib/auth/server';
+import { createClient } from '@/lib/supabase/server';
+import { IdentityDetailsForm } from '@/components/profile/identity-details-form';
+export const dynamic='force-dynamic';
+export default async function Page(){const userId=await getAuthenticatedUserId();if(!userId)redirect('/login');const s=await createClient();const{data}=await s.from('profile_identity_details').select('pronouns,sexual_orientations,relationship_styles,desires,languages,show_on_profile').eq('user_id',userId).maybeSingle();const initial={pronouns:String(data?.pronouns??''),sexualOrientations:(data?.sexual_orientations??[]) as string[],relationshipStyles:(data?.relationship_styles??[]) as string[],desires:(data?.desires??[]) as string[],languages:(data?.languages??[]) as string[],showOnProfile:Boolean(data?.show_on_profile)};return <section><div className="pageHeader"><p className="eyebrow">Tu identidad, bajo tu control</p><h1>Identidad y deseos</h1><p className="muted">CitaFuego permite describirte con más precisión sin obligarte a hacer públicos datos sensibles.</p></div><IdentityDetailsForm initial={initial}/><div className="heroActions"><Link className="ghostButton" href="/perfil">Volver al perfil</Link><Link className="ghostButton" href="/privacidad">Ver privacidad</Link></div></section>}
