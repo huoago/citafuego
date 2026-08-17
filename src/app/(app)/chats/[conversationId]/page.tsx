@@ -28,6 +28,6 @@ export default async function Page({params}:{params:Promise<{conversationId:stri
       <div><h1>{header.display_name} {header.verified?'✓':''}</h1><span>{header.district??'Lima'} · Match activo</span></div>
       <SafetyActions userId={header.other_profile_id} conversationId={conversationId}/>
     </header>
-    <ServerChat conversationId={conversationId} userId={userId} peerId={header.other_profile_id} peerName={header.display_name} initialMessages={(messages??[]) as StoredMessage[]}/>
+    <ServerChat conversationId={conversationId} userId={userId} peerName={header.display_name} initialMessages={(messages??[]) as StoredMessage[]}/>
   </section>;
 }
