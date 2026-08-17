@@ -39,16 +39,24 @@ test('likes remain one tap from matches even after tab-bar simplification',()=>{
   assert.match(likes,/href="\/matches"/);
 });
 
-test('premium cards do not expose dead disabled purchase buttons',()=>{
-  const source=read('src/app/(app)/premium/page.tsx');
-  assert.equal(source.includes('disabled'),false);
-  assert.equal(source.includes('/premium/beneficios?plan='),true);
-  assert.equal(existsSync(new URL('../src/app/(app)/premium/beneficios/page.tsx',import.meta.url)),true);
+test('subscription membership is hidden while its backend stays feature-flagged',()=>{
+  const shell=read('src/components/mobile-shell.tsx');
+  const profile=read('src/app/(app)/perfil/page.tsx');
+  const discover=read('src/components/discover-deck.tsx');
+  const premiumLayout=read('src/app/(app)/premium/layout.tsx');
+  const checkout=read('src/app/api/premium/checkout/route.ts');
+  assert.doesNotMatch(shell,/href="\/premium"/);
+  assert.doesNotMatch(profile,/href="\/premium"/);
+  assert.doesNotMatch(discover,/\/premium\/filtros/);
+  assert.match(premiumLayout,/isPremiumEnabled/);
+  assert.match(checkout,/feature_unavailable/);
 });
 
-test('profile decision buttons execute real interaction handlers',()=>{
+test('profile decision buttons keep Rewind Pass and Like without membership upsell',()=>{
   const source=read('src/components/discover-deck.tsx');
-  for(const action of ["rewind()","decide('pass')","decide('superfuego')","decide('like')"]) assert.equal(source.includes(action),true,`missing interaction ${action}`);
+  for(const action of ["rewind()","decide('pass')","decide('like')"]) assert.equal(source.includes(action),true,`missing interaction ${action}`);
+  assert.doesNotMatch(source,/decide\('superfuego'\)/);
+  assert.doesNotMatch(source,/Fuego Plus|Fuego Gold/);
   assert.match(source,/dy<=-76/);
   assert.match(source,/Ver perfil completo/);
 });
