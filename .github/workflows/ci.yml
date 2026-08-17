@@ -38,6 +38,7 @@ jobs:
           NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: sb_publishable_ci_placeholder
       - name: Publish quality-gate commit status
         if: always()
+        continue-on-error: true
         env:
           GH_TOKEN: ${{ github.token }}
           JOB_STATUS: ${{ job.status }}
@@ -46,7 +47,7 @@ jobs:
           target_sha="${PR_HEAD_SHA:-$GITHUB_SHA}"
           if [ "$JOB_STATUS" = "success" ]; then state=success; else state=failure; fi
           payload=$(STATE="$state" node -e 'process.stdout.write(JSON.stringify({state:process.env.STATE,context:"citafuego/quality-gate",description:`CitaFuego CI ${process.env.STATE}`}))')
-          curl -fsSL -X POST \
+          curl --retry 4 --retry-all-errors --retry-delay 2 --connect-timeout 10 --max-time 30 -fsSL -X POST \
             -H "Authorization: Bearer ${GH_TOKEN}" \
             -H "Accept: application/vnd.github+json" \
             -H "X-GitHub-Api-Version: 2022-11-28" \
