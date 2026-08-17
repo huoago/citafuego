@@ -2,43 +2,26 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
-
-const root=process.cwd();
-const read=(path:string)=>readFileSync(join(root,path),'utf8');
-const exists=(path:string)=>existsSync(join(root,path));
-type Check={name:string;weight:number;pass:boolean};
-function contains(path:string,...parts:string[]){const source=read(path);return parts.every(part=>source.includes(part));}
-function routesExist(routes:string[]){return routes.every(route=>exists(`src/app/${route}/page.tsx`)||exists(`src/app/(app)/${route}/page.tsx`)||exists(`src/app/(auth)/${route}/page.tsx`));}
-
-test('release quality score is at least 95/100',()=>{
- const checks:Check[]=[
-  {name:'public feature pages remain independent without membership marketing',weight:5,pass:routesExist(['swipe','verificacion','chat-privado','random-connect','para-ti-info','stories-info','blog-info','album-privado','match-intelligence','seguridad-privacidad'])&&!read('src/lib/public-features.ts').includes("slug: '/premium-info'")},
-  {name:'email phone Google and completion auth paths exist',weight:5,pass:routesExist(['registro','registro/completar','iniciar-sesion'])&&exists('src/app/api/auth/register/route.ts')&&exists('src/app/api/auth/login/route.ts')&&exists('src/app/api/auth/phone/request/route.ts')&&exists('src/app/api/auth/phone/verify/route.ts')&&exists('src/app/auth/google/route.ts')&&exists('src/app/api/auth/complete-registration/route.ts')},
-  {name:'real social product surfaces exist',weight:5,pass:routesExist(['comunidad','para-ti','descubrir','matches','likes','chats','perfil','stories','blog','guardados','albumes'])},
-  {name:'dating interactions are wired to server APIs',weight:5,pass:contains('src/components/discover-deck.tsx','/api/interactions','/api/rewind',"decide('like')","decide('pass')")&&contains('src/components/likes-grid.tsx','/api/interactions')},
-  {name:'matched chat is durable moderated and synchronized',weight:5,pass:contains('src/app/(app)/chats/[conversationId]/page.tsx','ServerChat',"from('messages')")&&contains('src/app/api/messages/route.ts','submit_message','preModerateText','message_rate_limited')&&exists('src/components/chat/server-chat.tsx')},
-  {name:'production smoke spans public and protected journeys',weight:5,pass:contains('e2e/production-smoke.mjs','publicChecks','protectedChecks','/para-ti-info','/seguridad-privacidad','/matches','auth redirect')},
-
-  {name:'community combines stories creation interests and conversation feed',weight:5,pass:contains('src/app/(app)/comunidad/page.tsx','/stories','/blog/nuevo','Intereses que conectan','BlogCard')},
-  {name:'blog interactions expose like bookmark share comments and reports',weight:5,pass:contains('src/components/blog/blog-card.tsx','/like','/api/social/bookmark','navigator.share','#comentarios','ReportContentButton')},
-  {name:'stories record views and expose safety reporting',weight:5,pass:contains('src/components/stories/story-card.tsx','/view','ReportContentButton','24h')},
-  {name:'one-way follows and Match-only areas remain distinct',weight:5,pass:contains('src/app/(app)/para-ti/page.tsx','FollowButton','Matches potenciales')&&contains('src/components/blog/blog-card.tsx',"friends:'Solo Matches'")},
-
-  {name:'email registration keeps antibot adult and legal enforcement',weight:5,pass:contains('src/app/api/auth/register/route.ts','isAdultBirthDate','verifyTurnstile','legal_document_versions','acceptedSensitive')},
-  {name:'social auth cannot bypass adult and legal completion',weight:5,pass:contains('supabase/migrations/066_auth_safety_membership_controls.sql','complete_pending_registration','adult_only','legal_consent_required','social_auth_completion')&&contains('src/app/(app)/layout.tsx',"redirect('/registro/completar')")},
-  {name:'private media migrations keep storage non-public',weight:5,pass:contains('supabase/migrations/035_personal_blog_social_privacy.sql',"'blog-media'",'false')&&contains('supabase/migrations/037_social_profiles_follows_mentions_stories.sql',"'story-media'",'false')&&contains('supabase/migrations/058_private_match_albums.sql',"'private-albums'",'false')},
-  {name:'automatic safety triage never auto-bans and requires human review',weight:5,pass:contains('supabase/migrations/066_auth_safety_membership_controls.sql','auto_review_user_safety','v_severe_reporters>=2','v_reporters>=4',"status='restricted'",'human_review')&&!read('supabase/migrations/066_auth_safety_membership_controls.sql').includes("status='banned'")},
-
-  {name:'subscription membership is hidden and checkout feature-gated',weight:5,pass:contains('src/app/(app)/premium/layout.tsx','isPremiumEnabled',"redirect('/perfil')")&&contains('src/app/api/premium/checkout/route.ts','isPremiumEnabled','feature_unavailable')&&!read('src/components/mobile-shell.tsx').includes('href="/premium"')&&!read('src/app/(app)/perfil/page.tsx').includes('href="/premium"')},
-  {name:'iOS-style tab bar has five stable destinations',weight:5,pass:contains('src/components/bottom-nav.tsx',"'/descubrir'","'/comunidad'","'/matches'","'/chats'","'/perfil'",'aria-current')},
-  {name:'iOS layers cover safe areas blur touch targets themes and auth sheets',weight:5,pass:contains('src/app/ios-v2.css','env(safe-area-inset-bottom)','backdrop-filter','min-height:44px','prefers-reduced-motion','prefers-color-scheme:light')&&contains('src/app/auth-safety-v3.css','min-height:48px','safetySheet','authDivider')},
-  {name:'auth UX visibly offers Google phone and email with accessible feedback',weight:5,pass:contains('src/app/(auth)/registro/page.tsx','SocialAuthButtons','PhoneAuthForm','RegisterForm')&&contains('src/components/auth/phone-auth-form.tsx','role="status"','role="alert"')},
-  {name:'CI runs lint typecheck unit contracts and production build',weight:5,pass:contains('.github/workflows/ci.yml','npm run lint','npm run typecheck','npm test','npm run build')},
-  {name:'production workflow validates READY aliases identity and smoke',weight:5,pass:contains('.github/workflows/production-deploy.yml','READY','aliases','CitaFuego','Public production smoke')},
- ];
- const total=checks.reduce((sum,check)=>sum+(check.pass?check.weight:0),0);
- const failed=checks.filter(check=>!check.pass);
- console.log(`CitaFuego internal release quality score: ${total}/100`);
- for(const check of failed)console.log(`- missing ${check.weight} pts: ${check.name}`);
- assert.ok(total>=95,`release quality score ${total}/100 is below 95; failed: ${failed.map(x=>x.name).join('; ')}`);
-});
+const root=process.cwd();const read=(path:string)=>readFileSync(join(root,path),'utf8');const exists=(path:string)=>existsSync(join(root,path));type Check={name:string;weight:number;pass:boolean};function contains(path:string,...parts:string[]){const source=read(path);return parts.every(part=>source.includes(part));}function routesExist(routes:string[]){return routes.every(route=>exists(`src/app/${route}/page.tsx`)||exists(`src/app/(app)/${route}/page.tsx`)||exists(`src/app/(auth)/${route}/page.tsx`));}
+test('release quality score is at least 95/100',()=>{const checks:Check[]=[
+{name:'public feature pages remain independent without membership marketing',weight:5,pass:routesExist(['swipe','verificacion','chat-privado','random-connect','para-ti-info','stories-info','blog-info','album-privado','match-intelligence','seguridad-privacidad'])&&!read('src/lib/public-features.ts').includes("slug: '/premium-info'")},
+{name:'email phone Google and completion auth paths exist',weight:5,pass:routesExist(['registro','registro/completar','iniciar-sesion'])&&exists('src/app/api/auth/register/route.ts')&&exists('src/app/api/auth/login/route.ts')&&exists('src/app/api/auth/phone/request/route.ts')&&exists('src/app/api/auth/phone/verify/route.ts')&&exists('src/app/auth/google/route.ts')&&exists('src/app/api/auth/complete-registration/route.ts')},
+{name:'real social product surfaces exist',weight:5,pass:routesExist(['comunidad','para-ti','descubrir','matches','likes','chats','perfil','stories','blog','guardados','albumes'])},
+{name:'dating interactions are wired to server APIs',weight:5,pass:contains('src/components/discover-deck.tsx','/api/interactions','/api/rewind',"decide('like')","decide('pass')")&&contains('src/components/likes-grid.tsx','/api/interactions')},
+{name:'matched chat is durable moderated and synchronized',weight:5,pass:contains('src/app/(app)/chats/[conversationId]/page.tsx','ServerChat',"from('messages')")&&contains('src/app/api/messages/route.ts','submit_message','preModerateText','message_rate_limited')&&exists('src/components/chat/server-chat.tsx')},
+{name:'production smoke spans public and protected journeys',weight:5,pass:contains('e2e/production-smoke.mjs','publicChecks','protectedChecks','/para-ti-info','/seguridad-privacidad','/matches','auth redirect')},
+{name:'community combines stories creation interests and conversation feed',weight:5,pass:contains('src/app/(app)/comunidad/page.tsx','/stories','/blog/nuevo','Intereses que conectan','BlogCard')},
+{name:'blog interactions expose like bookmark share comments and reports',weight:5,pass:contains('src/components/blog/blog-card.tsx','/like','/api/social/bookmark','navigator.share','#comentarios','ReportContentButton')},
+{name:'stories record views and expose safety reporting',weight:5,pass:contains('src/components/stories/story-card.tsx','/view','ReportContentButton','24h')},
+{name:'one-way follows and Match-only areas remain distinct',weight:5,pass:contains('src/app/(app)/para-ti/page.tsx','FollowButton','Matches potenciales')&&contains('src/components/blog/blog-card.tsx',"friends:'Solo Matches'")},
+{name:'email registration keeps antibot adult and legal enforcement',weight:5,pass:contains('src/app/api/auth/register/route.ts','isAdultBirthDate','verifyTurnstile','legal_document_versions','acceptedSensitive')},
+{name:'social auth cannot bypass adult and legal completion',weight:5,pass:contains('supabase/migrations/066_auth_safety_membership_controls.sql','complete_pending_registration','adult_only','legal_consent_required','social_auth_completion')&&contains('src/app/(app)/layout.tsx',"redirect('/registro/completar')")},
+{name:'private media migrations keep storage non-public',weight:5,pass:contains('supabase/migrations/035_personal_blog_social_privacy.sql',"'blog-media'",'false')&&contains('supabase/migrations/037_social_profiles_follows_mentions_stories.sql',"'story-media'",'false')&&contains('supabase/migrations/058_private_match_albums.sql',"'private-albums'",'false')},
+{name:'automatic safety is weighted explainable anti-retaliation and never auto-bans',weight:5,pass:contains('supabase/migrations/070_explainable_safety_anti_abuse.sql','reporter_safety_credibility','v_velocity>=8','v_score:=v_score*0.50',"status='restricted'",'admin_get_user_risk_timeline','human_review')&&!read('supabase/migrations/070_explainable_safety_anti_abuse.sql').includes("status='banned'")},
+{name:'subscription membership is hidden and checkout feature-gated',weight:5,pass:contains('src/app/(app)/premium/layout.tsx','isPremiumEnabled',"redirect('/perfil')")&&contains('src/app/api/premium/checkout/route.ts','isPremiumEnabled','feature_unavailable')&&!read('src/components/mobile-shell.tsx').includes('href="/premium"')&&!read('src/app/(app)/perfil/page.tsx').includes('href="/premium"')},
+{name:'iOS-style tab bar has five stable destinations',weight:5,pass:contains('src/components/bottom-nav.tsx',"'/descubrir'","'/comunidad'","'/matches'","'/chats'","'/perfil'",'aria-current')},
+{name:'subtractive iOS UX uses segmented auth and grouped profile settings',weight:5,pass:contains('src/components/auth/auth-method-switcher.tsx','role="tablist"','role="tabpanel"','Email','Teléfono','Google')&&contains('src/app/(app)/perfil/page.tsx','Mi perfil','Contenido y social','Seguridad y privacidad','Herramientas')&&contains('src/app/auth-safety-v3.css','authSegmented','profileSettingsGroups')},
+{name:'Trust and Safety admin has explainable timeline and human actions',weight:5,pass:exists('src/app/admin/risk/[userId]/page.tsx')&&contains('src/app/admin/risk/[userId]/page.tsx','weighted_reports_7d','Risk Timeline','release','warning','suspend','ban')&&contains('supabase/migrations/071_admin_release_safety_hold.sql','admin_release_safety_hold','admin_audit_log')},
+{name:'CI runs lint typecheck unit contracts and production build',weight:5,pass:contains('.github/workflows/ci.yml','npm run lint','npm run typecheck','npm test','npm run build')},
+{name:'production workflow validates READY aliases identity and smoke',weight:5,pass:contains('.github/workflows/production-deploy.yml','READY','aliases','CitaFuego','Public production smoke')},
+];const total=checks.reduce((sum,check)=>sum+(check.pass?check.weight:0),0);const failed=checks.filter(check=>!check.pass);console.log(`CitaFuego internal release quality score: ${total}/100`);for(const check of failed)console.log(`- missing ${check.weight} pts: ${check.name}`);assert.ok(total>=95,`release quality score ${total}/100 is below 95; failed: ${failed.map(x=>x.name).join('; ')}`);});
