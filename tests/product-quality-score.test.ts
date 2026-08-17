@@ -23,7 +23,7 @@ test('release quality score is at least 95/100',()=>{
   {name:'social home combines discovery content and conversation entry points',weight:5,pass:contains('src/app/(app)/para-ti/page.tsx','/stories','/blog','/descubrir','/guardados','/likes','A quién seguir','Matches potenciales')},
   {name:'blog interactions expose like bookmark share comments and reports',weight:5,pass:contains('src/components/blog/blog-card.tsx','/like','/api/social/bookmark','navigator.share','#comentarios','ReportContentButton')},
   {name:'stories record views and expose safety reporting',weight:5,pass:contains('src/components/stories/story-card.tsx','/view','ReportContentButton','24h')},
-  {name:'one-way follows and Match-only areas remain distinct in product code',weight:5,pass:contains('src/app/(app)/para-ti/page.tsx','FollowButton','Matches potenciales')&&contains('src/lib/blog/server.ts',"friends:'Solo Matches'")},
+  {name:'one-way follows and Match-only areas remain distinct in product code',weight:5,pass:contains('src/app/(app)/para-ti/page.tsx','FollowButton','Matches potenciales')&&contains('src/components/blog/blog-card.tsx',"friends:'Solo Matches'")},
 
   {name:'registration enforces adult gate antibot and legal configuration',weight:5,pass:contains('src/app/api/auth/register/route.ts','isAdultBirthDate','verifyTurnstile','legal_document_versions','acceptedSensitive')},
   {name:'private media migrations explicitly keep buckets non-public',weight:5,pass:contains('supabase/migrations/035_personal_blog_social_privacy.sql',"'blog-media'",'false')&&contains('supabase/migrations/037_social_profiles_follows_mentions_stories.sql',"'story-media'",'false')&&contains('supabase/migrations/058_private_match_albums.sql',"'private-albums'",'false')},
