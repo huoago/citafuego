@@ -32,9 +32,9 @@ export default function LandingPage() {
           <span>CitaFuego</span>
         </Link>
         <nav className={styles.navLinks} aria-label="Navegación pública">
-          <a href="#producto">Producto</a>
-          <a href="#seguridad">Seguridad</a>
-          <a href="#premium">Premium</a>
+          <Link href="/explorar">Producto</Link>
+          <Link href="/safety">Seguridad</Link>
+          <Link href="/premium">Premium</Link>
           <Link href="/como-funciona">Cómo funciona</Link>
         </nav>
         <div className={styles.navActions}>
