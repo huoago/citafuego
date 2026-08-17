@@ -2,13 +2,14 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { AppIcon, type AppIconName } from '@/components/ui/app-icon';
 
-const items = [
-  { href: '/descubrir', icon: '✦', label: 'Descubrir' },
-  { href: '/matches', icon: '♡', label: 'Matches' },
-  { href: '/likes', icon: '♥', label: 'Likes' },
-  { href: '/chats', icon: '◌', label: 'Chats' },
-  { href: '/perfil', icon: '◎', label: 'Perfil' },
+const items:{href:string;icon:AppIconName;label:string}[] = [
+  { href: '/descubrir', icon: 'sparkles', label: 'Descubrir' },
+  { href: '/matches', icon: 'heart', label: 'Matches' },
+  { href: '/likes', icon: 'search', label: 'Likes' },
+  { href: '/chats', icon: 'chat', label: 'Chats' },
+  { href: '/perfil', icon: 'person', label: 'Perfil' },
 ];
 
 export function BottomNav() {
@@ -25,7 +26,7 @@ export function BottomNav() {
             href={item.href}
             aria-current={active ? 'page' : undefined}
           >
-            <span className="navIcon" aria-hidden="true">{item.icon}</span>
+            <span className="navIcon"><AppIcon name={item.icon} size={22}/></span>
             <span>{item.label}</span>
           </Link>
         );
