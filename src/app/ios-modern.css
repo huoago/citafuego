@@ -1,0 +1,49 @@
+/* CitaFuego iOS-inspired interaction layer. Loaded last so it upgrades legacy surfaces without changing business logic. */
+:root{
+  --ios-bg:#08070a;
+  --ios-surface:rgba(27,24,31,.78);
+  --ios-surface-strong:#1a171e;
+  --ios-surface-soft:rgba(255,255,255,.055);
+  --ios-line:rgba(255,255,255,.10);
+  --ios-text:#fff;
+  --ios-secondary:rgba(235,229,238,.66);
+  --ios-accent:#ff375f;
+  --ios-accent-2:#ff7043;
+  --ios-blue:#0a84ff;
+  --ios-green:#30d158;
+  --ios-radius:22px;
+  --ios-shadow:0 18px 60px rgba(0,0,0,.34);
+}
+html{color-scheme:dark;scroll-behavior:smooth}
+body{-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;background:var(--ios-bg)}
+button,a,input,select,textarea{-webkit-tap-highlight-color:transparent}
+button,a{touch-action:manipulation}
+button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid rgba(10,132,255,.42);outline-offset:2px}
+button:disabled{opacity:.48;cursor:not-allowed}
+
+/* Native-feeling authenticated shell */
+.appCanvas{background:radial-gradient(circle at 50% -10%,rgba(255,55,95,.14),transparent 36%),#060507;padding:0}
+.mobileShell{width:min(100%,680px);background:linear-gradient(180deg,rgba(18,15,21,.98),#09080b 54%,#070609);border-inline:1px solid rgba(255,255,255,.055);box-shadow:0 0 90px rgba(0,0,0,.42);padding-bottom:104px}
+.appHeader{height:72px;padding:calc(8px + env(safe-area-inset-top)) 18px 8px;box-sizing:content-box;background:rgba(12,10,14,.74);border-bottom:1px solid rgba(255,255,255,.065);backdrop-filter:saturate(180%) blur(24px);-webkit-backdrop-filter:saturate(180%) blur(24px)}
+.brandMini{font-size:20px;letter-spacing:-.035em}.brandMark{filter:drop-shadow(0 0 14px rgba(255,55,95,.42))}
+.appHeaderActions{display:flex;align-items:center;gap:8px}.headerIconButton,.headerMore summary{min-width:44px;height:44px;border-radius:16px;display:inline-flex;align-items:center;justify-content:center;background:rgba(255,255,255,.055);border:1px solid rgba(255,255,255,.08);color:#f8f4fa;transition:transform .18s ease,background .18s ease,border-color .18s ease}.headerIconButton:hover,.headerMore summary:hover{background:rgba(255,255,255,.09);border-color:rgba(255,255,255,.14)}.headerIconButton:active,.headerMore summary:active{transform:scale(.94)}
+.forYouNavBadge{padding:0 14px;font-size:13px;font-weight:800;min-width:auto}.notificationButton{position:relative}.notificationButton b{position:absolute;top:-4px;right:-4px;display:grid;place-items:center;min-width:18px;height:18px;padding:0 4px;border-radius:99px;background:var(--ios-accent);font-size:10px;color:#fff;border:2px solid #100d13}
+.headerMore{position:relative}.headerMore summary{list-style:none;cursor:pointer}.headerMore summary::-webkit-details-marker{display:none}.headerMoreMenu{position:absolute;right:0;top:52px;width:250px;padding:8px;border-radius:22px;background:rgba(28,25,32,.96);border:1px solid rgba(255,255,255,.11);box-shadow:0 24px 80px rgba(0,0,0,.48);backdrop-filter:blur(26px);display:grid;z-index:80;transform-origin:top right;animation:iosMenuIn .18s ease-out}.headerMoreMenu a{min-height:44px;padding:0 12px;border-radius:14px;display:flex;align-items:center;gap:11px;color:#f5eff7;font-size:14px;font-weight:680}.headerMoreMenu a:hover{background:rgba(255,255,255,.07)}
+.appMain{padding:18px 18px 28px}
+.bottomNav{left:50%;transform:translateX(-50%);bottom:max(10px,env(safe-area-inset-bottom));width:min(calc(100% - 20px),650px);height:72px;padding:5px 8px;border:1px solid rgba(255,255,255,.11);border-radius:24px;background:rgba(26,23,30,.80);backdrop-filter:saturate(180%) blur(28px);-webkit-backdrop-filter:saturate(180%) blur(28px);box-shadow:0 18px 55px rgba(0,0,0,.4);overflow:hidden}.navItem{border-radius:18px;color:rgba(235,229,238,.55);font-size:10px;font-weight:650;transition:background .18s ease,color .18s ease,transform .18s ease}.navItem:active{transform:scale(.95)}.navItem.active{color:#fff;background:linear-gradient(180deg,rgba(255,55,95,.19),rgba(255,55,95,.07))}.navItem.active .navIcon{color:#ff6682}.navIcon{height:25px;display:grid;place-items:center;color:#d8d0dd}
+
+/* Feed cards: Instagram polish + TikTok immediacy, while preserving dating safety */
+.profileCard{border-radius:28px;border:1px solid rgba(255,255,255,.085);background:rgba(26,23,30,.86);box-shadow:0 24px 70px rgba(0,0,0,.33);transition:transform .18s ease,opacity .18s ease}.profileMedia{height:min(64vh,570px)}.mediaShade{background:linear-gradient(transparent 32%,rgba(5,4,6,.93))}.profileOverlay{left:18px;right:18px;bottom:18px}.profileBody{padding:18px}.decisionBar{position:sticky;bottom:92px;z-index:10;gap:12px;padding:14px 0 4px}.roundAction{width:58px;height:58px;border-radius:20px;background:rgba(29,25,32,.92);border:1px solid rgba(255,255,255,.11);box-shadow:0 12px 32px rgba(0,0,0,.24);transition:transform .16s ease,filter .16s ease}.roundAction:active{transform:scale(.91)}.primaryAction{background:linear-gradient(145deg,#ff375f,#ff5f50)}.superfuegoAction{background:linear-gradient(145deg,#2d1d0f,#4d2b15);color:#ffd27a}.secondaryAction{background:rgba(30,27,34,.94)}.swipeHint{color:rgba(235,229,238,.52);font-size:12px;text-align:center;line-height:1.45}
+
+/* Reddit-inspired conversation/list legibility */
+.listCard,.settingsList,.softPanel,.dangerPanel,.profileSummary{border-color:rgba(255,255,255,.085);background:rgba(26,23,30,.78);border-radius:22px}.chatRow{min-height:70px;border-color:rgba(255,255,255,.07)}.chatRow:hover{background:rgba(255,255,255,.035)}
+
+/* iOS form controls and progressive onboarding */
+.authPage{background:radial-gradient(circle at 50% 0,rgba(255,55,95,.18),transparent 35%),linear-gradient(180deg,#100c13,#070609);padding:24px}.authCard{width:min(500px,100%);background:rgba(26,23,30,.78);border:1px solid rgba(255,255,255,.10);backdrop-filter:blur(24px);border-radius:30px;box-shadow:0 28px 100px rgba(0,0,0,.4);padding:30px}.authCard h1{font-size:38px}.formStack{gap:15px}.formStack label{font-size:13px;font-weight:650;color:rgba(245,239,247,.82)}.formStack input[type="email"],.formStack input[type="date"]{min-height:52px;border-radius:16px;border:1px solid rgba(255,255,255,.095);background:rgba(4,3,5,.48);padding:0 15px;transition:border-color .18s ease,box-shadow .18s ease,background .18s ease}.formStack input:focus{border-color:rgba(10,132,255,.75);box-shadow:0 0 0 4px rgba(10,132,255,.13);background:rgba(7,6,9,.7)}.checkboxRow{min-height:44px;padding:10px 12px;border-radius:14px;background:rgba(255,255,255,.035)}.checkboxRow input{width:19px;height:19px;accent-color:var(--ios-accent)}.ctaButton{min-height:50px;border-radius:16px;background:linear-gradient(135deg,#ff375f,#ff6b45);box-shadow:0 14px 34px rgba(255,55,95,.22);transition:transform .16s ease,filter .16s ease}.ctaButton:active{transform:scale(.98)}.ghostButton{min-height:44px;border-radius:16px}.formSuccess,.formError{padding:12px 14px;border-radius:14px}.formSuccess{background:rgba(48,209,88,.10);color:#8ff0a7}.formError{background:rgba(255,69,58,.10);color:#ff9b94}.authProgress{display:flex;gap:7px;margin:10px 0 20px}.authProgress span{height:5px;flex:1;border-radius:99px;background:rgba(255,255,255,.10)}.authProgress span.active{background:linear-gradient(90deg,#ff375f,#ff7043)}.authStepMeta{display:flex;align-items:center;justify-content:space-between;color:rgba(235,229,238,.55);font-size:12px;margin-bottom:8px}.authBackButton{appearance:none;border:0;background:transparent;color:#8dc7ff;min-height:44px;padding:0;font-weight:700;cursor:pointer}.authSecurityNote{display:flex;gap:9px;align-items:flex-start;padding:12px;border-radius:15px;background:rgba(10,132,255,.075);color:rgba(235,241,255,.74);font-size:12px;line-height:1.5}
+
+/* Universal touch and reduced motion quality */
+.filterButton,.textButton,.settingsList a,.settingsList button{min-height:44px}.toast{bottom:104px;border-radius:16px;box-shadow:0 18px 50px rgba(0,0,0,.35)}
+@keyframes iosMenuIn{from{opacity:0;transform:scale(.96) translateY(-6px)}to{opacity:1;transform:none}}
+@media(min-width:760px){.appCanvas{padding:26px}.mobileShell{min-height:calc(100vh - 52px);border-radius:34px;overflow:clip}.appHeader{top:26px}.bottomNav{bottom:26px}}
+@media(max-width:560px){.appHeader{height:58px;padding-left:14px;padding-right:14px}.brandMini span:last-child{display:none}.forYouNavBadge{padding:0 11px}.appMain{padding:14px}.profileMedia{height:61vh}.roundAction{width:54px;height:54px}.authPage{padding:14px}.authCard{padding:24px 18px;border-radius:26px}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important}}
