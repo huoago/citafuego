@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 
-export function PhoneAuthForm({mode}:{mode:'register'|'login'}){
+export function PhoneAuthForm({mode,embedded=false}:{mode:'register'|'login';embedded?:boolean}){
   const[phone,setPhone]=useState('+51');
   const[token,setToken]=useState('');
   const[step,setStep]=useState<'phone'|'code'>('phone');
@@ -27,17 +27,17 @@ export function PhoneAuthForm({mode}:{mode:'register'|'login'}){
   }
 
   return <div className="phoneAuthBlock">
-    <div className="authDivider"><span>o con teléfono</span></div>
+    {!embedded?<div className="authDivider"><span>o con teléfono</span></div>:null}
     {step==='phone'?<form className="authForm compactAuthForm" onSubmit={requestCode}>
-      <label>Número de celular<input inputMode="tel" autoComplete="tel" value={phone} onChange={e=>setPhone(e.target.value)} placeholder="+51 999 999 999" aria-describedby="phone-help"/></label>
+      <label>Número de celular<input inputMode="tel" autoComplete="tel" value={phone} onChange={e=>setPhone(e.target.value)} placeholder="+51 999 999 999" aria-describedby="phone-help" required/></label>
       <small id="phone-help">Incluye el código de país. Para Perú usa +51.</small>
       <button className="secondaryButton authMethodButton" disabled={busy} type="submit">{busy?'Enviando…':mode==='register'?'Registrarme con teléfono':'Entrar con teléfono'}</button>
     </form>:<form className="authForm compactAuthForm" onSubmit={verifyCode}>
-      <label>Código SMS<input inputMode="numeric" autoComplete="one-time-code" value={token} onChange={e=>setToken(e.target.value.replace(/\D/g,'').slice(0,8))} placeholder="123456"/></label>
+      <label>Código SMS<input inputMode="numeric" autoComplete="one-time-code" value={token} onChange={e=>setToken(e.target.value.replace(/\D/g,'').slice(0,8))} placeholder="123456" required/></label>
       <button className="ctaButton authMethodButton" disabled={busy||token.length<4} type="submit">{busy?'Verificando…':'Verificar código'}</button>
       <button className="textButton" type="button" onClick={()=>{setStep('phone');setToken('');setMessage('');setError('')}}>Cambiar número</button>
     </form>}
-    {message?<p className="formStatus" role="status">{message}</p>:null}
+    {message?<p className="formStatus" role="status" aria-live="polite">{message}</p>:null}
     {error?<p className="formError" role="alert">{error}</p>:null}
   </div>;
 }
