@@ -13,13 +13,13 @@ export default function LandingPage() {
           <div className={styles.heroCopy}>
             <p className={styles.kicker}>Dating + social privado para adultos en Latinoamérica</p>
             <h1>Conoce personas.<br />Siente la química.<br /><span>Conserva el control.</span></h1>
-            <p className={styles.lead}>CitaFuego reúne Swipe, verificación, chat privado, Random, contenido social, álbum privado y recomendaciones en una sola experiencia.</p>
+            <p className={styles.lead}>CitaFuego reúne Swipe, verificación, chat sincronizado para Matches, Random, contenido social, álbum privado y recomendaciones en una sola experiencia.</p>
             <div className={styles.actions}>
               <Link className={styles.primary} href="/registro">🔥 Crear mi perfil</Link>
               <Link className={styles.secondary} href="/swipe">Ver cómo funciona</Link>
             </div>
             <div className={styles.trustRow}>
-              <span>18+</span><span>Ubicación aproximada</span><span>Chat P2P</span><span>Controles de privacidad</span>
+              <span>18+</span><span>Ubicación aproximada</span><span>Chat sincronizado</span><span>Controles de privacidad</span>
             </div>
           </div>
 
@@ -36,7 +36,7 @@ export default function LandingPage() {
                 <div className={styles.compatibility}>🔥 91% compatibilidad</div>
               </div>
             </article>
-            <div className={styles.swipeButtons} aria-hidden="true"><span>×</span><span>★</span><span>♥</span></div>
+            <div className={styles.swipeButtons} aria-hidden="true"><span>×</span><span>↶</span><span>♥</span></div>
           </div>
         </section>
 
