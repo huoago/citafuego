@@ -8,21 +8,7 @@ function MatchTabs(){return <div className="iosSegmented" aria-label="Matches y 
 
 export default async function Page() {
   const supabase = await createClient();
-  const { data, error } = await supabase.rpc('get_who_likes_me', { p_offset: 0, p_limit: 24 });
-
-  if (error?.message.includes('gold_required')) {
-    return (
-      <section>
-        <div className="pageHeader"><p className="eyebrow">Fuego Gold</p><h1>Likes</h1><p className="muted">Separa el interés entrante de tus Matches para mantener cada decisión clara.</p></div>
-        <MatchTabs/><div style={{height:14}} aria-hidden="true"/>
-        <div className="softPanel">
-          <h2>Ve quién ya está interesado en ti</h2>
-          <p>Esta vista está incluida en Fuego Gold y utiliza permisos reales del servidor.</p>
-          <Link className="ctaButton" href="/premium">Comparar planes</Link>
-        </div>
-      </section>
-    );
-  }
+  const { data } = await supabase.rpc('get_who_likes_me', { p_offset: 0, p_limit: 24 });
 
   const rows = (data ?? []) as Array<{
     profile_id: string;
@@ -57,7 +43,7 @@ export default async function Page() {
       <div className="pageHeader">
         <p className="eyebrow">Interés real</p>
         <h1>Likes</h1>
-        <p className="muted">Decide desde aquí. Si el interés es mutuo, abrimos el chat inmediatamente.</p>
+        <p className="muted">Ve quién ya mostró interés y decide desde aquí. Si el Like es mutuo, abrimos el chat inmediatamente.</p>
       </div>
       <MatchTabs/><div style={{height:14}} aria-hidden="true"/>
       <LikesGrid initialRows={likers} />
