@@ -1,0 +1,9 @@
+- [x] Creator program remains closed
+- [x] Device-only chat contract preserved
+- [x] Random text/voice/video preserved
+- [x] Provider activation gates documented
+- [ ] Harden headers
+- [ ] Simplify mobile navigation
+- [ ] Add swipe interaction
+- [ ] Expand production E2E smoke
+- [ ] Merge after CI passes
