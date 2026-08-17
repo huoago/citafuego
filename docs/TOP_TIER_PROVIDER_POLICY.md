@@ -1,0 +1,1 @@
+Do not expose unconfigured provider functionality. Do not claim success for payments, ID verification, phone verification, visual moderation or push notifications until provider-backed production verification succeeds.
