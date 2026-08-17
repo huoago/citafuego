@@ -1,8 +1,8 @@
-import type { SVGProps } from 'react';
+import type { ReactNode, SVGProps } from 'react';
 
 export type AppIconName='sparkles'|'heart'|'chat'|'person'|'bolt'|'bell'|'plus'|'stories'|'blog'|'album'|'shield'|'bookmark'|'bag'|'crown'|'calendar'|'search'|'home';
 
-const paths:Record<AppIconName,React.ReactNode>={
+const paths:Record<AppIconName,ReactNode>={
  sparkles:<><path d="M12 2l1.2 4.1L17 8l-3.8 1.9L12 14l-1.2-4.1L7 8l3.8-1.9L12 2Z"/><path d="M5 13l.8 2.7L8.5 17l-2.7 1.3L5 21l-.8-2.7L1.5 17l2.7-1.3L5 13Z"/><path d="M19 13l.7 2.3L22 16.5l-2.3 1.2L19 20l-.7-2.3L16 16.5l2.3-1.2L19 13Z"/></>,
  heart:<path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8l1.1 1.1L12 21l7.8-7.5 1.1-1.1a5.5 5.5 0 0 0-.1-7.8Z"/>,
  chat:<><path d="M21 15a4 4 0 0 1-4 4H8l-5 3 1.5-4A7.5 7.5 0 0 1 3 13V8a5 5 0 0 1 5-5h9a4 4 0 0 1 4 4v8Z"/><path d="M8 10h.01M12 10h.01M16 10h.01"/></>,
