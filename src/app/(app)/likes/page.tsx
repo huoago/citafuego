@@ -4,6 +4,8 @@ import { LikesGrid } from '@/components/likes-grid';
 
 export const dynamic = 'force-dynamic';
 
+function MatchTabs(){return <div className="iosSegmented" aria-label="Matches y Likes"><Link href="/matches">Matches</Link><Link className="active" href="/likes">Likes</Link></div>}
+
 export default async function Page() {
   const supabase = await createClient();
   const { data, error } = await supabase.rpc('get_who_likes_me', { p_offset: 0, p_limit: 24 });
@@ -11,7 +13,8 @@ export default async function Page() {
   if (error?.message.includes('gold_required')) {
     return (
       <section>
-        <div className="pageHeader"><p className="eyebrow">Fuego Gold</p><h1>Quién te dio Like</h1></div>
+        <div className="pageHeader"><p className="eyebrow">Fuego Gold</p><h1>Likes</h1><p className="muted">Separa el interés entrante de tus Matches para mantener cada decisión clara.</p></div>
+        <MatchTabs/><div style={{height:14}} aria-hidden="true"/>
         <div className="softPanel">
           <h2>Ve quién ya está interesado en ti</h2>
           <p>Esta vista está incluida en Fuego Gold y utiliza permisos reales del servidor.</p>
@@ -53,9 +56,10 @@ export default async function Page() {
     <section>
       <div className="pageHeader">
         <p className="eyebrow">Interés real</p>
-        <h1>Te dieron Like</h1>
+        <h1>Likes</h1>
         <p className="muted">Decide desde aquí. Si el interés es mutuo, abrimos el chat inmediatamente.</p>
       </div>
+      <MatchTabs/><div style={{height:14}} aria-hidden="true"/>
       <LikesGrid initialRows={likers} />
     </section>
   );
