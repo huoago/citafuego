@@ -4,8 +4,10 @@ import { getAuthenticatedUserId } from '@/lib/auth/server';
 import { createClient } from '@/lib/supabase/server';
 import { loadPeruCatalog } from '@/lib/billing/catalog';
 import { createSegpayDynamicCheckout } from '@/lib/providers/segpay';
+import { isPremiumEnabled } from '@/lib/features/premium';
 const schema=z.object({productId:z.string().min(1).max(100)});
 export async function POST(request:Request){
+ if(!isPremiumEnabled())return NextResponse.json({error:'feature_unavailable'},{status:404});
  const userId=await getAuthenticatedUserId();if(!userId)return NextResponse.json({error:'not_authenticated'},{status:401});
  const parsed=schema.safeParse(await request.json().catch(()=>null));if(!parsed.success)return NextResponse.json({error:'invalid_request'},{status:400});
  const offer=(await loadPeruCatalog()).find(item=>item.id===parsed.data.productId&&item.kind==='subscription'&&item.tier!=='free');
