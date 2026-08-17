@@ -5,9 +5,9 @@ import { usePathname } from 'next/navigation';
 import { AppIcon, type AppIconName } from '@/components/ui/app-icon';
 
 const items:{href:string;icon:AppIconName;label:string}[] = [
+  { href: '/para-ti', icon: 'home', label: 'Para ti' },
   { href: '/descubrir', icon: 'sparkles', label: 'Descubrir' },
   { href: '/matches', icon: 'heart', label: 'Matches' },
-  { href: '/likes', icon: 'search', label: 'Likes' },
   { href: '/chats', icon: 'chat', label: 'Chats' },
   { href: '/perfil', icon: 'person', label: 'Perfil' },
 ];
@@ -18,7 +18,7 @@ export function BottomNav() {
   return (
     <nav className="bottomNav" aria-label="Navegación principal">
       {items.map((item) => {
-        const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
+        const active = pathname === item.href || pathname.startsWith(`${item.href}/`) || (item.href==='/matches'&&pathname.startsWith('/likes'));
         return (
           <Link
             key={item.href}
