@@ -7,6 +7,7 @@ import './blog.css';
 import './recommendations.css';
 import './monetization.css';
 import './top-tier.css';
+import './ios-social.css';
 import { PwaRegistrar } from '@/components/pwa-registrar';
 
 export const metadata: Metadata = {
@@ -17,5 +18,5 @@ export const metadata: Metadata = {
   icons:{icon:'/icon.svg'},
   appleWebApp:{capable:true,title:'CitaFuego',statusBarStyle:'black-translucent'},
 };
-export const viewport: Viewport = { width: 'device-width', initialScale: 1, viewportFit:'cover', themeColor: '#0b0710' };
+export const viewport: Viewport = { width: 'device-width', initialScale: 1, viewportFit:'cover', themeColor: '#08080b' };
 export default function RootLayout({children}:Readonly<{children:React.ReactNode}>){return <html lang="es"><body><PwaRegistrar/>{children}</body></html>}
