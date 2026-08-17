@@ -2,6 +2,11 @@
 -- Keep the trusted messaging RPC available to authenticated users only.
 grant execute on function public.submit_message(uuid,text,text,text,jsonb) to authenticated;
 
+-- Message history is readable only through the existing authenticated RLS policies:
+-- conversation_members_self_read and messages_members_read.
+grant select on table public.conversation_members to authenticated;
+grant select on table public.messages to authenticated;
+
 -- Internal trigger/maintenance SECURITY DEFINER functions are not client APIs.
 revoke execute on function public.enforce_interaction_trust() from public;
 revoke execute on function public.refresh_blog_topic_vector(uuid) from public;
