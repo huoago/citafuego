@@ -9,15 +9,16 @@ import type {AuthProviderReadiness} from '@/lib/auth/provider-readiness';
 
 type Method='email'|'phone'|'google';
 const methodOrder:Method[]=['email','phone','google'];
+const labels:Record<Method,string>={email:'Correo',phone:'Teléfono',google:'Google'};
 
 export function AuthMethodSwitcher({mode,turnstileSiteKey='',readiness}:{mode:'register'|'login';turnstileSiteKey?:string;readiness:AuthProviderReadiness}){
   const defaultMethod:Method=mode==='login'&&readiness.phone?'phone':'email';
   const[method,setMethod]=useState<Method>(defaultMethod);
   const base=useId().replace(/:/g,'');
-  const labels:Record<Method,string>={email:'Correo',phone:mode==='login'?'SMS':'Teléfono',google:'Google'};
   const available:Record<Method,boolean>={email:mode==='login'||readiness.emailRegistration,phone:readiness.phone,google:readiness.google};
   const methods=methodOrder.filter(item=>available[item]);
   const activeMethod=available[method]?method:methods[0];
+  const methodLabel=(item:Method)=>item==='phone'&&mode==='login'?'SMS':labels[item];
 
   function moveTab(event:React.KeyboardEvent<HTMLButtonElement>,index:number){
     let targetIndex:number|null=null;
@@ -37,7 +38,7 @@ export function AuthMethodSwitcher({mode,turnstileSiteKey='',readiness}:{mode:'r
 
   return <div className="authMethodSwitcher">
     {methods.length>1?<div className={`authSegmented authSegmented${methods.length}`} role="tablist" aria-orientation="horizontal" aria-label={mode==='register'?'Cómo quieres registrarte':'Método de acceso'}>
-      {methods.map((item,index)=><button key={item} type="button" role="tab" id={`${base}-${item}-tab`} aria-selected={activeMethod===item} aria-controls={`${base}-${item}-panel`} tabIndex={activeMethod===item?0:-1} className={activeMethod===item?'authSegment active':'authSegment'} onClick={()=>setMethod(item)} onKeyDown={event=>moveTab(event,index)}>{labels[item]}</button>)}
+      {methods.map((item,index)=><button key={item} type="button" role="tab" id={`${base}-${item}-tab`} aria-selected={activeMethod===item} aria-controls={`${base}-${item}-panel`} tabIndex={activeMethod===item?0:-1} className={activeMethod===item?'authSegment active':'authSegment'} onClick={()=>setMethod(item)} onKeyDown={event=>moveTab(event,index)}>{methodLabel(item)}</button>)}
     </div>:null}
     <div className="authMethodPanel" role={methods.length>1?'tabpanel':undefined} id={`${base}-${activeMethod}-panel`} aria-labelledby={methods.length>1?`${base}-${activeMethod}-tab`:undefined}>
       {mode==='register'&&activeMethod==='phone'?<p className="authStepIndicator">Registro con teléfono · paso 1 de 2</p>:null}
