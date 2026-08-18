@@ -18,8 +18,12 @@ export function accountClientFingerprint(request:Request){
   return createHash('sha256').update(`${ip}|${userAgent}`).digest('hex');
 }
 
+export function getVercelRequestOidcToken(request:Request){
+  return request.headers.get('x-vercel-oidc-token')?.trim()||process.env.VERCEL_OIDC_TOKEN?.trim()||'';
+}
+
 export async function callAccountEdge(request:Request,action:AccountAction,username:string,password:string){
-  const oidcToken=process.env.VERCEL_OIDC_TOKEN?.trim()??'';
+  const oidcToken=getVercelRequestOidcToken(request);
   if(!oidcToken)return{status:503,data:{error:'account_backend_unavailable'} as AccountEdgeResponse};
   const baseUrl=getSupabaseUrl().trim().replace(/\/$/,'');
   const publishableKey=getSupabasePublishableKey().trim();
@@ -36,6 +40,7 @@ export async function callAccountEdge(request:Request,action:AccountAction,usern
       },
       body:JSON.stringify({action,username,password}),
       cache:'no-store',
+      redirect:'error',
     });
     const data=await response.json().catch(()=>({error:'account_backend_unavailable'})) as AccountEdgeResponse;
     return{status:response.status,data};
