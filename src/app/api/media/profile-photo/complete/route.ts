@@ -1,8 +1,9 @@
 import { z } from 'zod';
 import { createClient } from '@/lib/supabase/server';
 import { getAuthenticatedUserId } from '@/lib/auth/server';
+import { getVercelRequestOidcToken } from '@/lib/auth/account-edge';
 import { sanitizePrivateStorageImage,InvalidUploadedImageError } from '@/lib/media/sanitize-image';
-import { getModerationProvider } from '@/lib/adapters/moderation';
+import { getProfilePhotoModerationProvider } from '@/lib/adapters/moderation';
 const schema=z.object({intentId:z.string().uuid()});
 export async function POST(request:Request){
  const userId=await getAuthenticatedUserId();if(!userId)return Response.json({error:'unauthorized'},{status:401});
@@ -13,12 +14,13 @@ export async function POST(request:Request){
  try{
   const sanitized=await sanitizePrivateStorageImage({client:s,bucket:'profile-photos',rawPath:intent.storage_path,ownerId:userId,prefix:'profile',expectedMimeType:String(intent.mime_type)});
   const{data:moderationBlob}=await s.storage.from('profile-photos').download(sanitized.storagePath);
-  const moderation=await getModerationProvider().moderateImage({surface:'profile_photo',userId,mimeType:'image/webp',bytes:moderationBlob?await moderationBlob.arrayBuffer():undefined});
+  const oidcToken=getVercelRequestOidcToken(request);
+  const moderation=await getProfilePhotoModerationProvider(oidcToken).moderateImage({surface:'profile_photo',userId,mimeType:'image/webp',bytes:moderationBlob?await moderationBlob.arrayBuffer():undefined});
   const status=moderation.action==='block'?'rejected':moderation.action==='allow'?'approved':'pending';
   const{data,error}=await s.rpc('finalize_profile_photo_upload',{p_user:userId,p_intent:intent.id,p_final_path:sanitized.storagePath,p_status:status});
   if(error){await s.storage.from('profile-photos').remove([sanitized.storagePath]);return Response.json({error:'photo_finalize_failed'},{status:500});}
-  if(status==='rejected'){await s.storage.from('profile-photos').remove([sanitized.storagePath]);return Response.json({photo:data,status,reviewRequired:false,rejected:true,moderationProvider:moderation.provider},{status:201});}
+  if(status==='rejected'){await s.storage.from('profile-photos').remove([sanitized.storagePath]);return Response.json({photo:data,status,reviewRequired:false,rejected:true,reviewMode:'automated',moderationProvider:moderation.provider,moderationModel:moderation.modelVersion,moderationReasons:moderation.reasons},{status:201});}
   const{data:signed}=await s.storage.from('profile-photos').createSignedUrl(sanitized.storagePath,900);
-  return Response.json({photo:data,signedUrl:signed?.signedUrl??null,status,reviewRequired:status==='pending',reviewMode:status==='pending'?'human':'automated',moderationProvider:moderation.provider},{status:201});
+  return Response.json({photo:data,signedUrl:signed?.signedUrl??null,status,reviewRequired:status==='pending',reviewMode:status==='pending'?'human_fallback':'automated',moderationProvider:moderation.provider,moderationModel:moderation.modelVersion,moderationReasons:moderation.reasons},{status:201});
  }catch(e){if(e instanceof InvalidUploadedImageError)return Response.json({error:e.message},{status:415});return Response.json({error:'photo_processing_failed'},{status:500});}
 }
