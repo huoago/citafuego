@@ -26,10 +26,19 @@ export function isPhoneAuthProductionReady(){
 }
 
 async function getAccountEdgeReadiness(baseUrl:string,publishableKey:string){
+  const oidcToken=process.env.VERCEL_OIDC_TOKEN?.trim()??'';
+  if(!oidcToken)return false;
   try{
     const response=await fetch(`${baseUrl}/functions/v1/account-auth-v12`,{
-      headers:{apikey:publishableKey},
-      next:{revalidate:60},
+      method:'POST',
+      headers:{
+        'content-type':'application/json',
+        apikey:publishableKey,
+        authorization:`Bearer ${oidcToken}`,
+        'x-citafuego-account-edge':'v12',
+      },
+      body:JSON.stringify({action:'health'}),
+      cache:'no-store',
     });
     if(!response.ok)return false;
     const body=await response.json() as AccountEdgeReadiness;
