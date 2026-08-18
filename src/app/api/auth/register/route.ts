@@ -29,7 +29,8 @@ export async function POST(request:Request){
  });
  if(error){
    if(error.status===429)return Response.json({error:'registration_rate_limited'},{status:429});
+   if(error.code==='email_address_not_authorized')return Response.json({error:'email_delivery_unavailable'},{status:503});
    return Response.json({error:'registration_unavailable'},{status:503});
  }
- return Response.json({ok:true,message:'Revisa tu correo. Te enviamos un enlace de verificación.',antiBot:challenge.configured});
+ return Response.json({ok:true,delivery:'otp_code',message:'Te enviamos un código de 6 dígitos por correo.',antiBot:challenge.configured});
 }
