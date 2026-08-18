@@ -34,7 +34,8 @@ export function RegisterForm({turnstileSiteKey=''}:{turnstileSiteKey?:string}) {
         setChallengeToken('');setChallengeKey(key=>key+1);
         if(data.error==='adult_only')setError('CitaFuego es solo para mayores de 18 años.');
         else if(String(data.error??'').startsWith('challenge_'))setError('No pudimos validar que eres una persona real. Inténtalo de nuevo.');
-        else if(data.error==='legal_config_unavailable')setError('El registro está temporalmente no disponible. Inténtalo de nuevo en unos minutos.');
+        else if(data.error==='registration_rate_limited')setError('Has solicitado varios enlaces. Espera un momento antes de intentarlo de nuevo.');
+        else if(data.error==='legal_config_unavailable'||data.error==='registration_unavailable')setError('El registro está temporalmente no disponible. Inténtalo de nuevo en unos minutos.');
         else setError('No pudimos enviar el enlace. Revisa el correo e inténtalo de nuevo.');
         return;
       }

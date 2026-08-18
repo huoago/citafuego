@@ -1,7 +1,8 @@
 import { z } from 'zod';
 import { createClient } from '@/lib/supabase/server';
 
-const schema=z.object({phone:z.string().trim().regex(/^\+[1-9]\d{7,14}$/),token:z.string().trim().regex(/^\d{4,8}$/),mode:z.enum(['register','login'])});
+const phoneSchema=z.string().trim().transform(value=>value.replace(/[\s().-]/g,'')).refine(value=>/^\+[1-9]\d{7,14}$/.test(value));
+const schema=z.object({phone:phoneSchema,token:z.string().trim().regex(/^\d{4,8}$/),mode:z.enum(['register','login'])});
 
 export async function POST(request:Request){
   const parsed=schema.safeParse(await request.json().catch(()=>null));

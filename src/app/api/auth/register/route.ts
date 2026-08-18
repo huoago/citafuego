@@ -7,7 +7,7 @@ import { verifyTurnstile } from '@/lib/security/turnstile';
 const schema=z.object({email:z.string().trim().email().max(254),birthDate:z.string(),acceptedTerms:z.literal(true),acceptedPrivacy:z.literal(true),acceptedSensitive:z.literal(true),turnstileToken:z.string().max(2048).optional()});
 
 export async function POST(request:Request){
- const parsed=schema.safeParse(await request.json());
+ const parsed=schema.safeParse(await request.json().catch(()=>null));
  if(!parsed.success||!parseIsoDate(parsed.data.birthDate))return Response.json({error:'invalid_payload'},{status:400});
  if(!isAdultBirthDate(parsed.data.birthDate))return Response.json({error:'adult_only'},{status:403});
  const challenge=await verifyTurnstile(request,parsed.data.turnstileToken,'register');
@@ -25,6 +25,9 @@ export async function POST(request:Request){
      data:{birth_date:parsed.data.birthDate,terms_version:versions.terms,privacy_version:versions.privacy,sensitive_data_version:versions.sensitive_data}
    }
  });
- if(error)return Response.json({error:'registration_unavailable'},{status:429});
+ if(error){
+   if(error.status===429)return Response.json({error:'registration_rate_limited'},{status:429});
+   return Response.json({error:'registration_unavailable'},{status:503});
+ }
  return Response.json({ok:true,message:'Revisa tu correo. Te enviamos un enlace de verificación.',antiBot:challenge.configured});
 }

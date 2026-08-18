@@ -1,11 +1,13 @@
 import { z } from 'zod';
 import { createClient } from '@/lib/supabase/server';
+import { isAdultBirthDate, parseIsoDate } from '@/lib/auth/age';
 
-const schema=z.object({birthDate:z.string().regex(/^\d{4}-\d{2}-\d{2}$/),acceptTerms:z.literal(true),acceptPrivacy:z.literal(true),acceptSensitive:z.literal(true)});
+const schema=z.object({birthDate:z.string(),acceptTerms:z.literal(true),acceptPrivacy:z.literal(true),acceptSensitive:z.literal(true)});
 
 export async function POST(request:Request){
   const parsed=schema.safeParse(await request.json().catch(()=>null));
-  if(!parsed.success)return Response.json({error:'invalid_payload'},{status:400});
+  if(!parsed.success||!parseIsoDate(parsed.data.birthDate))return Response.json({error:'invalid_payload'},{status:400});
+  if(!isAdultBirthDate(parsed.data.birthDate))return Response.json({error:'adult_only'},{status:422});
   const s=await createClient();
   const{data:{user}}=await s.auth.getUser();
   if(!user)return Response.json({error:'unauthorized'},{status:401});
