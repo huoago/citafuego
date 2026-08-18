@@ -56,7 +56,6 @@ export function CompleteRegistrationForm({readiness,initialEmail=null,initialPho
     if(!/^\d{4,8}$/.test(phoneCode)){setPhoneMessage('Introduce el código recibido por SMS.');return}
     setPhoneState('busy');setPhoneMessage('');
     const response=await fetch('/api/auth/bind/phone/verify',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({phone:normalized,token:phoneCode})}).catch(()=>null);
-    const data=await response?.json().catch(()=>({}))??{};
     if(!response?.ok){setPhoneState('code');setPhoneMessage('El código no es válido o ha caducado.');return}
     setPhoneState('verified');setPhoneMessage('Celular vinculado y verificado.');
   }
