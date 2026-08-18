@@ -44,7 +44,7 @@ test('V12.1 account privilege stays inside Supabase Edge instead of copying admi
   assert.match(edge,/accounts\.citafuego\.invalid/);
 });
 
-test('V12.1 account edge accepts only signed CitaFuego production Vercel identity',()=>{
+test('V12.2 account bridge reads Vercel signed identity from request context before env fallback',()=>{
   const edge=read('supabase/functions/account-auth-v12/index.ts');
   const bridge=read('src/lib/auth/account-edge.ts');
   assert.match(edge,/createRemoteJWKSet/);
@@ -54,9 +54,12 @@ test('V12.1 account edge accepts only signed CitaFuego production Vercel identit
   assert.match(edge,/projectName='citafuego-prod'/);
   assert.match(edge,/environment:production/);
   assert.match(edge,/unauthorized_backend/);
-  assert.match(bridge,/VERCEL_OIDC_TOKEN/);
+  assert.match(bridge,/getVercelRequestOidcToken/);
+  assert.match(bridge,/request\.headers\.get\('x-vercel-oidc-token'\)/);
+  assert.match(bridge,/process\.env\.VERCEL_OIDC_TOKEN/);
+  assert.ok(bridge.indexOf("request.headers.get('x-vercel-oidc-token')")<bridge.indexOf('process.env.VERCEL_OIDC_TOKEN'));
   assert.match(bridge,/authorization:`Bearer \$\{oidcToken\}`/);
-  assert.match(bridge,/x-citafuego-account-edge/);
+  assert.match(bridge,/redirect:'error'/);
 });
 
 test('V12.1 account edge trusts client fingerprint only after backend identity and rate-limits atomically',()=>{
@@ -73,12 +76,15 @@ test('V12.1 account edge trusts client fingerprint only after backend identity a
   assert.match(migration,/revoke all on function public\.consume_account_auth_rate_limit/);
 });
 
-test('V12.1 account readiness proves the OIDC Edge bridge rather than checking a local secret',()=>{
+test('V12.2 account readiness probes Edge using Next request-context OIDC',()=>{
   const readiness=read('src/lib/auth/provider-readiness.ts');
-  assert.match(readiness,/VERCEL_OIDC_TOKEN/);
+  assert.match(readiness,/import \{headers\} from 'next\/headers'/);
+  assert.match(readiness,/requestHeaders\.get\('x-vercel-oidc-token'\)/);
+  assert.match(readiness,/process\.env\.VERCEL_OIDC_TOKEN/);
   assert.match(readiness,/functions\/v1\/account-auth-v12/);
   assert.match(readiness,/JSON\.stringify\(\{action:'health'\}\)/);
   assert.match(readiness,/authorization:`Bearer \$\{oidcToken\}`/);
+  assert.match(readiness,/redirect:'error'/);
   assert.match(readiness,/account:boolean/);
   assert.doesNotMatch(readiness,/getSupabaseServerSecret|isAccountAuthProductionReady|SUPABASE_SECRET_KEY/);
 });
