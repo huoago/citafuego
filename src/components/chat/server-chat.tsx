@@ -10,6 +10,7 @@ export function ServerChat({conversationId,userId,peerName,initialMessages}:{con
   const[busy,setBusy]=useState(false);
   const[notice,setNotice]=useState('');
   const endRef=useRef<HTMLDivElement|null>(null);
+  const readAttemptRef=useRef('');
 
   useEffect(()=>{endRef.current?.scrollIntoView({block:'end'})},[messages.length]);
   useEffect(()=>{
@@ -23,6 +24,23 @@ export function ServerChat({conversationId,userId,peerName,initialMessages}:{con
     const timer=window.setInterval(()=>{if(document.visibilityState==='visible')void refresh()},2200);
     return()=>{active=false;window.clearInterval(timer)};
   },[conversationId]);
+
+  useEffect(()=>{
+    if(document.visibilityState!=='visible')return;
+    const latestPeer=[...messages].reverse().find(message=>message.sender_id!==userId&&message.status==='sent');
+    if(!latestPeer||readAttemptRef.current===latestPeer.id)return;
+    readAttemptRef.current=latestPeer.id;
+    let active=true;
+    async function markRead(){
+      const response=await fetch('/api/chat-read',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({conversationId,messageId:latestPeer.id})}).catch(()=>null);
+      if(!response?.ok){if(active)readAttemptRef.current='';return}
+      const data=await response.json().catch(()=>null) as {unreadCount?:number}|null;
+      const count=Number(data?.unreadCount);
+      if(active&&Number.isFinite(count))window.dispatchEvent(new CustomEvent('citafuego:chat-unread',{detail:count}));
+    }
+    void markRead();
+    return()=>{active=false};
+  },[conversationId,messages,userId]);
 
   async function send(event:React.FormEvent){
     event.preventDefault();
