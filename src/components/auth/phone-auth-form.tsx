@@ -14,7 +14,7 @@ export function PhoneAuthForm({mode,embedded=false}:{mode:'register'|'login';emb
     event.preventDefault();setBusy(true);setError('');setMessage('');
     const response=await fetch('/api/auth/phone/request',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({phone,mode})}).catch(()=>null);
     const data=await response?.json().catch(()=>({}))??{};setBusy(false);
-    if(!response?.ok){setError(data.error==='phone_provider_unavailable'?'El acceso por teléfono aún no está disponible. Usa email o Google.':'Revisa el número e inténtalo de nuevo.');return}
+    if(!response?.ok){setError(data.error==='phone_provider_unavailable'?'El acceso por teléfono no está disponible en este momento. Usa correo.':'Revisa el número e inténtalo de nuevo.');return}
     setStep('code');setMessage(mode==='login'?'Si el número está registrado, recibirás un código por SMS.':'Te enviamos un código por SMS.');
   }
 
@@ -31,8 +31,9 @@ export function PhoneAuthForm({mode,embedded=false}:{mode:'register'|'login';emb
     {step==='phone'?<form className="authForm compactAuthForm" onSubmit={requestCode}>
       <label>Número de celular<input inputMode="tel" autoComplete="tel" value={phone} onChange={e=>setPhone(e.target.value)} placeholder="+51 999 999 999" aria-describedby="phone-help" required/></label>
       <small id="phone-help">Incluye el código de país. Para Perú usa +51.</small>
-      <button className="secondaryButton authMethodButton" disabled={busy} type="submit">{busy?'Enviando…':mode==='register'?'Registrarme con teléfono':'Entrar con teléfono'}</button>
+      <button className="secondaryButton authMethodButton" disabled={busy} type="submit">{busy?'Enviando…':mode==='register'?'Continuar con teléfono':'Entrar con teléfono'}</button>
     </form>:<form className="authForm compactAuthForm" onSubmit={verifyCode}>
+      <p className="authCodeDestination">Código enviado a <strong>{phone}</strong></p>
       <label>Código SMS<input inputMode="numeric" autoComplete="one-time-code" value={token} onChange={e=>setToken(e.target.value.replace(/\D/g,'').slice(0,8))} placeholder="123456" required/></label>
       <button className="ctaButton authMethodButton" disabled={busy||token.length<4} type="submit">{busy?'Verificando…':'Verificar código'}</button>
       <button className="textButton" type="button" onClick={()=>{setStep('phone');setToken('');setMessage('');setError('')}}>Cambiar número</button>

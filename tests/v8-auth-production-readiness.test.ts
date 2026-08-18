@@ -19,7 +19,7 @@ test('V8 derives Google and phone availability from Supabase Auth settings using
   assert.match(readiness,/google:false,phone:false/);
 });
 
-test('V8 registration and login gate unavailable providers before interaction',()=>{
+test('V9 registration and login hide unavailable providers instead of showing disabled technical states',()=>{
   const register=read('src/app/(auth)/registro/page.tsx');
   const login=read('src/app/(auth)/iniciar-sesion/page.tsx');
   const switcher=read('src/components/auth/auth-method-switcher.tsx');
@@ -27,11 +27,12 @@ test('V8 registration and login gate unavailable providers before interaction',(
   assert.match(login,/getAuthProviderReadiness/);
   assert.match(switcher,/readiness\.phone/);
   assert.match(switcher,/readiness\.google/);
-  assert.match(switcher,/disabled=\{!enabled\}/);
-  assert.match(switcher,/No disponible/);
+  assert.match(switcher,/filter\(item=>available\[item\]\)/);
+  assert.doesNotMatch(switcher,/No disponible/);
+  assert.doesNotMatch(switcher,/authAvailabilityNote/);
 });
 
-test('V8 routes enforce readiness even if a disabled UI is bypassed',()=>{
+test('V8 routes enforce readiness even if a hidden provider UI is bypassed',()=>{
   const google=read('src/app/auth/google/route.ts');
   const phone=read('src/app/api/auth/phone/request/route.ts');
   assert.match(google,/getAuthProviderReadiness/);

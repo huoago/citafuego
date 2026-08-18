@@ -10,9 +10,9 @@ test('Google and phone identities must complete the adult legal gate before app 
   assert.match(migration,/v_provider in \('google','phone'\)/);assert.match(migration,/complete_pending_registration/);assert.match(migration,/adult_only/);assert.match(migration,/social_auth_completion/);assert.match(layout,/redirect\('\/registro\/completar'\)/);assert.match(confirm,/exchangeCodeForSession/);
 });
 
-test('registration uses one segmented Email phone Google surface while preserving all providers',()=>{
+test('registration keeps one Email phone Google auth surface but renders only ready methods',()=>{
   const register=read('src/app/(auth)/registro/page.tsx');const login=read('src/app/(auth)/iniciar-sesion/page.tsx');const switcher=read('src/components/auth/auth-method-switcher.tsx');const google=read('src/app/auth/google/route.ts');const phone=read('src/app/api/auth/phone/request/route.ts');
-  assert.match(register,/AuthMethodSwitcher/);assert.match(login,/AuthMethodSwitcher/);assert.match(switcher,/role="tablist"/);assert.match(switcher,/email:'Email'/);assert.match(switcher,/phone:'Teléfono'/);assert.match(switcher,/google:'Google'/);assert.match(switcher,/RegisterForm/);assert.match(switcher,/LoginForm/);assert.match(google,/provider:'google'/);assert.match(phone,/signInWithOtp/);
+  assert.match(register,/AuthMethodSwitcher/);assert.match(login,/AuthMethodSwitcher/);assert.match(switcher,/role="tablist"/);assert.match(switcher,/email:'Correo'/);assert.match(switcher,/phone:'Teléfono'/);assert.match(switcher,/google:'Google'/);assert.match(switcher,/filter\(item=>available\[item\]\)/);assert.match(switcher,/RegisterForm/);assert.match(switcher,/LoginForm/);assert.match(google,/provider:'google'/);assert.match(phone,/signInWithOtp/);
 });
 
 test('weighted automated safety triage resists new account velocity and reciprocal abuse and never auto-bans',()=>{
