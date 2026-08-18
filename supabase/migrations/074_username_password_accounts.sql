@@ -5,11 +5,9 @@ create table if not exists public.account_usernames (
   user_id uuid primary key references auth.users(id) on delete cascade,
   username text not null,
   normalized_username text not null unique,
-  login_email text not null unique,
   created_at timestamptz not null default now(),
   constraint account_username_format check (username ~ '^[A-Za-z0-9][A-Za-z0-9._-]{3,23}$'),
-  constraint account_username_normalized check (normalized_username=lower(username)),
-  constraint account_login_email_internal check (login_email like '%@accounts.citafuego.invalid')
+  constraint account_username_normalized check (normalized_username=lower(username))
 );
 
 alter table public.account_usernames enable row level security;
@@ -17,8 +15,8 @@ revoke all on table public.account_usernames from public,anon,authenticated;
 grant select,insert,update,delete on table public.account_usernames to service_role;
 
 -- Username/password identities use an internal non-deliverable email only as the
--- Supabase Auth credential carrier. They must still complete the existing 18+
--- legal gate before entering onboarding.
+-- initial Supabase Auth credential carrier. The username maps to user_id, not to
+-- that email, so later email binding/replacement never breaks username login.
 create or replace function public.handle_citafuego_new_user()
 returns trigger
 language plpgsql
