@@ -5,19 +5,19 @@ import {join} from 'node:path';
 
 const read=(path:string)=>readFileSync(join(process.cwd(),path),'utf8');
 
-test('V10 login page removes mixed method instructions and keeps a single hierarchy',()=>{
+test('V12 login page keeps one clear account-first hierarchy',()=>{
   const page=read('src/app/(auth)/iniciar-sesion/page.tsx');
   assert.match(page,/Bienvenido de nuevo/);
-  assert.match(page,/Elige cómo quieres entrar/);
+  assert.match(page,/Entra con tu cuenta y contraseña o usa otro método disponible/);
   assert.match(page,/Acceso privado/);
   assert.doesNotMatch(page,/authLinkTip/);
   assert.doesNotMatch(page,/Entra con el mismo método/);
   assert.match(page,/login\.module\.css/);
 });
 
-test('V10 login prefers configured SMS while preserving email as an alternative',()=>{
+test('V12 login prefers account auth then preserves configured SMS and email alternatives',()=>{
   const switcher=read('src/components/auth/auth-method-switcher.tsx');
-  assert.match(switcher,/mode==='login'&&readiness\.phone\?'phone':'email'/);
+  assert.match(switcher,/readiness\.account\?'account':mode==='login'&&readiness\.phone\?'phone':'email'/);
   assert.match(switcher,/phone:'Teléfono'/);
   assert.match(switcher,/item==='phone'&&mode==='login'\?'SMS':labels\[item\]/);
   assert.match(switcher,/email:mode==='login'\|\|readiness\.emailRegistration/);
@@ -50,12 +50,14 @@ test('V10 login page is mobile-safe and motion-aware',()=>{
   assert.match(css,/@media \(prefers-reduced-motion: reduce\)/);
 });
 
-test('V10 production smoke validates only auth methods enabled by live readiness',()=>{
+test('V12 production smoke validates only auth methods enabled by live readiness',()=>{
   const smoke=read('e2e/production-smoke.mjs');
   assert.match(smoke,/\/api\/auth\/readiness/);
+  assert.match(smoke,/authReadiness\.account/);
   assert.match(smoke,/authReadiness\.phone/);
   assert.match(smoke,/authReadiness\.google/);
   assert.match(smoke,/authReadiness\.emailRegistration/);
+  assert.match(smoke,/requireText\(body,path,'Cuenta'\)/);
   assert.match(smoke,/requireText\(body,path,'SMS'\)/);
   assert.doesNotMatch(smoke,/\['Google','teléfono','email'\]/);
 });

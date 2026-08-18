@@ -1,5 +1,5 @@
 const base=process.env.E2E_BASE_URL||'https://citafuego.com';
-const userAgent={'user-agent':'CitaFuego-Production-Smoke/4.1'};
+const userAgent={'user-agent':'CitaFuego-Production-Smoke/4.2'};
 
 const readinessResponse=await fetch(new URL('/api/auth/readiness',base),{headers:userAgent});
 if(readinessResponse.status!==200)throw new Error(`/api/auth/readiness returned ${readinessResponse.status}; expected 200`);
@@ -34,14 +34,16 @@ for(const path of publicChecks){
   }else if(path==='/iniciar-sesion'){
     const body=await r.text();
     requireText(body,path,'Correo');
+    if(authReadiness.account)requireText(body,path,'Cuenta');
     if(authReadiness.phone)requireText(body,path,'SMS');
     if(authReadiness.google)requireText(body,path,'Google');
   }else if(path==='/registro'){
     const body=await r.text();
+    if(authReadiness.account)requireText(body,path,'Cuenta');
     if(authReadiness.emailRegistration)requireText(body,path,'Correo');
-    if(authReadiness.phone)requireText(body,path,'teléfono');
+    if(authReadiness.phone)requireText(body,path,'Teléfono');
     if(authReadiness.google)requireText(body,path,'Google');
-    if(!authReadiness.emailRegistration&&!authReadiness.phone&&!authReadiness.google)requireMarker(body,path,'data-auth-unavailable="register"');
+    if(!authReadiness.account&&!authReadiness.emailRegistration&&!authReadiness.phone&&!authReadiness.google)requireMarker(body,path,'data-auth-unavailable="register"');
   }
   console.log('public',path,r.status);
 }
@@ -58,4 +60,4 @@ for(const path of protectedChecks){
   console.log('protected',path,r.status,location);
 }
 
-console.log('CitaFuego production auth-readiness + membership + protected journey smoke passed');
+console.log('CitaFuego production account auth + auth-readiness + membership + protected journey smoke passed');

@@ -5,22 +5,24 @@ import {LoginForm} from '@/components/auth/login-form';
 import {RegisterForm} from '@/components/auth/register-form';
 import {PhoneAuthForm} from '@/components/auth/phone-auth-form';
 import {SocialAuthButtons} from '@/components/auth/social-auth-buttons';
+import {AccountAuthForm} from '@/components/auth/account-auth-form';
 import type {AuthProviderReadiness} from '@/lib/auth/provider-readiness';
 
-type Method='email'|'phone'|'google';
-const methodOrder:Method[]=['email','phone','google'];
-const labels:Record<Method,string>={email:'Correo',phone:'Teléfono',google:'Google'};
+type Method='account'|'email'|'phone'|'google';
+const methodOrder:Method[]=['account','email','phone','google'];
+const labels:Record<Method,string>={account:'Cuenta',email:'Correo',phone:'Teléfono',google:'Google'};
 
 export function AuthMethodSwitcher({mode,turnstileSiteKey='',readiness}:{mode:'register'|'login';turnstileSiteKey?:string;readiness:AuthProviderReadiness}){
-  const defaultMethod:Method=mode==='login'&&readiness.phone?'phone':'email';
+  const defaultMethod:Method=readiness.account?'account':mode==='login'&&readiness.phone?'phone':'email';
   const[method,setMethod]=useState<Method>(defaultMethod);
   const base=useId().replace(/:/g,'');
-  const available:Record<Method,boolean>={email:mode==='login'||readiness.emailRegistration,phone:readiness.phone,google:readiness.google};
+  const available:Record<Method,boolean>={account:readiness.account,email:mode==='login'||readiness.emailRegistration,phone:readiness.phone,google:readiness.google};
   const methods=methodOrder.filter(item=>available[item]);
   const activeMethod=available[method]?method:methods[0];
   const methodLabel=(item:Method)=>item==='phone'&&mode==='login'?'SMS':labels[item];
 
   function moveTab(event:React.KeyboardEvent<HTMLButtonElement>,index:number){
+    if(!methods.length)return;
     let targetIndex:number|null=null;
     if(event.key==='ArrowRight'||event.key==='ArrowDown')targetIndex=(index+1)%methods.length;
     else if(event.key==='ArrowLeft'||event.key==='ArrowUp')targetIndex=(index-1+methods.length)%methods.length;
@@ -41,6 +43,7 @@ export function AuthMethodSwitcher({mode,turnstileSiteKey='',readiness}:{mode:'r
       {methods.map((item,index)=><button key={item} type="button" role="tab" id={`${base}-${item}-tab`} aria-selected={activeMethod===item} aria-controls={`${base}-${item}-panel`} tabIndex={activeMethod===item?0:-1} className={activeMethod===item?'authSegment active':'authSegment'} onClick={()=>setMethod(item)} onKeyDown={event=>moveTab(event,index)}>{methodLabel(item)}</button>)}
     </div>:null}
     <div className="authMethodPanel" role={methods.length>1?'tabpanel':undefined} id={`${base}-${activeMethod}-panel`} aria-labelledby={methods.length>1?`${base}-${activeMethod}-tab`:undefined}>
+      {activeMethod==='account'?<AccountAuthForm mode={mode} turnstileSiteKey={turnstileSiteKey}/>:null}
       {mode==='register'&&activeMethod==='phone'?<p className="authStepIndicator">Registro con teléfono · paso 1 de 2</p>:null}
       {activeMethod==='email'?(mode==='register'?<RegisterForm turnstileSiteKey={turnstileSiteKey}/>:<LoginForm/>):null}
       {activeMethod==='phone'?<PhoneAuthForm mode={mode} embedded/>:null}

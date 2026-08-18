@@ -11,11 +11,12 @@ function registrationError(value:string|undefined){
 }
 
 function registrationIntro(readiness:Awaited<ReturnType<typeof getAuthProviderReadiness>>){
+ if(readiness.account)return 'Crea una cuenta con nombre y contraseña. Después confirmarás que tienes 18+ y podrás vincular correo o celular de forma opcional.';
  if(readiness.phone&&readiness.emailRegistration)return 'Elige correo o teléfono. Por correo recibirás un código de 6 dígitos.';
  if(readiness.phone)return 'Regístrate con tu número de celular. Te enviaremos un código por SMS.';
  if(readiness.emailRegistration)return 'Regístrate con tu correo. Recibirás un código de 6 dígitos para verificar tu cuenta.';
  if(readiness.google)return 'Continúa con Google para crear tu cuenta.';
- return 'El registro por correo está en preparación. Vuelve a intentarlo más tarde.';
+ return 'El registro está temporalmente en preparación. Vuelve a intentarlo más tarde.';
 }
 
 export default async function Page({searchParams}:PageProps){
@@ -27,7 +28,7 @@ export default async function Page({searchParams}:PageProps){
  return <main className="authPage authRegistrationPage"><div className="authCard authCardRegistration">
   <Link href="/" className="brandLockup"><span>🔥</span> CitaFuego</Link>
   <div className="registrationHeading">
-   <p className="eyebrow">Registro · Solo mayores de 18</p>
+   <p className="eyebrow">Registro · Cuenta privada · 18+</p>
    <h1>Crea tu cuenta</h1>
    <p className="muted authIntro">{registrationIntro(readiness)}</p>
   </div>
