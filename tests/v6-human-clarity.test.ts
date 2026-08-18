@@ -16,13 +16,13 @@ test('V6 public navigation reduces choices without deleting feature routes',()=>
   assert.match(home,/Lo esencial para conectar/);
 });
 
-test('V6 registration explains the different email and social auth paths honestly',()=>{
+test('V9 registration explains available paths without provider implementation jargon',()=>{
   const register=read('src/app/(auth)/registro/page.tsx');
   const complete=read('src/app/(auth)/registro/completar/page.tsx');
   const switcher=read('src/components/auth/auth-method-switcher.tsx');
-  assert.match(register,/Con Email confirmas edad y consentimientos aquí/);
-  assert.match(register,/segundo y último paso/);
-  assert.match(switcher,/Paso 1 de 2/);
+  assert.match(register,/Solo mostramos las opciones que están disponibles ahora/);
+  assert.doesNotMatch(register,/Supabase/);
+  assert.match(switcher,/Registro con teléfono · paso 1 de 2/);
   assert.match(complete,/Paso 2 de 2/);
 });
 
@@ -30,7 +30,7 @@ test('V6 segmented auth follows keyboard tab interaction conventions',()=>{
   const switcher=read('src/components/auth/auth-method-switcher.tsx');
   for(const key of ['ArrowRight','ArrowLeft','ArrowDown','ArrowUp','Home','End'])assert.match(switcher,new RegExp(key));
   assert.match(switcher,/aria-orientation="horizontal"/);
-  assert.match(switcher,/tabIndex=\{method===item\?0:-1\}/);
+  assert.match(switcher,/tabIndex=\{activeMethod===item\?0:-1\}/);
 });
 
 test('V6 chat list uses human recency and distinguishes a fresh Match',()=>{
