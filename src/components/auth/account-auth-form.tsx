@@ -37,7 +37,7 @@ export function AccountAuthForm({mode,turnstileSiteKey=''}:{mode:'register'|'log
     <label>Nombre de cuenta<input name="username" autoComplete="username" inputMode="text" minLength={4} maxLength={24} pattern="[A-Za-z0-9][A-Za-z0-9._-]{3,23}" placeholder="ej. fuego_lima" required/><small className="fieldHelp">4–24 caracteres: letras, números, punto, guion o guion bajo.</small></label>
     <label>Contraseña<input type="password" name="password" autoComplete={mode==='register'?'new-password':'current-password'} minLength={mode==='register'?10:1} maxLength={72} required/><small className="fieldHelp">{mode==='register'?'Mínimo 10 caracteres e incluye al menos una letra y un número.':'Tu contraseña nunca se muestra ni se envía por mensaje.'}</small></label>
     {mode==='register'?<label>Repite la contraseña<input type="password" name="confirmPassword" autoComplete="new-password" minLength={10} maxLength={72} required/></label>:null}
-    {turnstileSiteKey?<TurnstileField key={challengeKey} siteKey={turnstileSiteKey} onToken={setChallengeToken}/>:null}
+    {turnstileSiteKey?<TurnstileField key={challengeKey} siteKey={turnstileSiteKey} onToken={setChallengeToken} action={mode}/>:null}
     <button className="ctaButton fullWidth" disabled={busy||(Boolean(turnstileSiteKey)&&!challengeToken)}>{busy?(mode==='register'?'Creando…':'Entrando…'):(mode==='register'?'Crear cuenta':'Iniciar sesión')}</button>
     {mode==='register'?<p className="authPrivacyHint">Después confirmarás que tienes 18+ y podrás vincular correo o celular de forma opcional.</p>:null}
     {error?<p className="formError" role="alert">{error}</p>:null}
