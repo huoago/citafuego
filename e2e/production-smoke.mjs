@@ -1,10 +1,15 @@
 const base=process.env.E2E_BASE_URL||'https://citafuego.com';
-const userAgent={'user-agent':'CitaFuego-Production-Smoke/4.2'};
+const userAgent={'user-agent':'CitaFuego-Production-Smoke/4.3'};
 
 const readinessResponse=await fetch(new URL('/api/auth/readiness',base),{headers:userAgent});
 if(readinessResponse.status!==200)throw new Error(`/api/auth/readiness returned ${readinessResponse.status}; expected 200`);
 const authReadiness=await readinessResponse.json();
 if(authReadiness?.checked!==true)throw new Error('/api/auth/readiness did not confirm provider readiness');
+
+const moderationReadinessResponse=await fetch(new URL('/api/media/moderation/readiness',base),{headers:userAgent});
+if(moderationReadinessResponse.status!==200)throw new Error(`/api/media/moderation/readiness returned ${moderationReadinessResponse.status}; expected 200`);
+const moderationReadiness=await moderationReadinessResponse.json();
+if(moderationReadiness?.checked!==true||moderationReadiness?.profilePhotoAutoReview!==true)throw new Error(`/api/media/moderation/readiness is not ready: ${JSON.stringify(moderationReadiness)}`);
 
 const publicChecks=[
   '/',
@@ -60,4 +65,4 @@ for(const path of protectedChecks){
   console.log('protected',path,r.status,location);
 }
 
-console.log('CitaFuego production account auth + auth-readiness + membership + protected journey smoke passed');
+console.log(`CitaFuego production account auth + visual moderation (${moderationReadiness.provider}/${moderationReadiness.model}) + membership + protected journey smoke passed`);
