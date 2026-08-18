@@ -16,7 +16,7 @@ test('V8 derives Google and phone availability from Supabase Auth settings using
   assert.match(readiness,/external\?\.google===true/);
   assert.match(readiness,/sms_provider/);
   assert.match(readiness,/revalidate:60/);
-  assert.match(readiness,/google:false,phone:false/);
+  assert.match(readiness,/emailRegistration:false,google:false,phone:false/);
 });
 
 test('V9 registration and login hide unavailable providers instead of showing disabled technical states',()=>{
@@ -25,6 +25,7 @@ test('V9 registration and login hide unavailable providers instead of showing di
   const switcher=read('src/components/auth/auth-method-switcher.tsx');
   assert.match(register,/getAuthProviderReadiness/);
   assert.match(login,/getAuthProviderReadiness/);
+  assert.match(switcher,/readiness\.emailRegistration/);
   assert.match(switcher,/readiness\.phone/);
   assert.match(switcher,/readiness\.google/);
   assert.match(switcher,/filter\(item=>available\[item\]\)/);
@@ -35,11 +36,14 @@ test('V9 registration and login hide unavailable providers instead of showing di
 test('V8 routes enforce readiness even if a hidden provider UI is bypassed',()=>{
   const google=read('src/app/auth/google/route.ts');
   const phone=read('src/app/api/auth/phone/request/route.ts');
+  const emailRegister=read('src/app/api/auth/register/route.ts');
   assert.match(google,/getAuthProviderReadiness/);
   assert.match(google,/if\(!readiness\.google\)/);
   assert.match(phone,/getAuthProviderReadiness/);
   assert.match(phone,/if\(!readiness\.phone\)/);
   assert.match(phone,/phone_provider_unavailable/);
+  assert.match(emailRegister,/isEmailRegistrationProductionReady/);
+  assert.match(emailRegister,/email_registration_unavailable/);
 });
 
 test('V8 auth callback accepts recovery token exchange without weakening safe-next',()=>{
@@ -60,6 +64,7 @@ test('V8 exposes only safe provider readiness and production verifies it',()=>{
   assert.doesNotMatch(audit,/console\.log\([^\n]*smtp_pass/);
   assert.match(workflow,/Audit production auth readiness/);
   assert.match(workflow,/Verify deployed auth readiness endpoint/);
+  assert.match(workflow,/Email registration:/);
   assert.match(workflow,/Google Auth:/);
   assert.match(workflow,/Custom SMTP:/);
 });
