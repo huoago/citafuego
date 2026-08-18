@@ -13,7 +13,7 @@ export function PublicFeaturePage({ feature }: { feature: PublicFeature }) {
     <div className={styles.shell}>
       <PublicFeatureNav />
       <main className={styles.main}>
-        <section className={styles.hero}>
+        <section className={`${styles.hero} v15PublicFeatureHero`}>
           <div>
             <p className={styles.eyebrow}>{feature.eyebrow}</p>
             <h1>{feature.title}</h1>
