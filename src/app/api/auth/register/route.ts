@@ -1,12 +1,14 @@
 import { z } from 'zod';
 import { createClient } from '@/lib/supabase/server';
 import { isAdultBirthDate, parseIsoDate } from '@/lib/auth/age';
+import { isEmailRegistrationProductionReady } from '@/lib/auth/provider-readiness';
 import { getAuthRequestOrigin } from '@/lib/auth/request-origin';
 import { verifyTurnstile } from '@/lib/security/turnstile';
 
 const schema=z.object({email:z.string().trim().email().max(254),birthDate:z.string(),acceptedTerms:z.literal(true),acceptedPrivacy:z.literal(true),acceptedSensitive:z.literal(true),turnstileToken:z.string().max(2048).optional()});
 
 export async function POST(request:Request){
+ if(!isEmailRegistrationProductionReady())return Response.json({error:'email_registration_unavailable'},{status:503});
  const parsed=schema.safeParse(await request.json().catch(()=>null));
  if(!parsed.success||!parseIsoDate(parsed.data.birthDate))return Response.json({error:'invalid_payload'},{status:400});
  if(!isAdultBirthDate(parsed.data.birthDate))return Response.json({error:'adult_only'},{status:403});
