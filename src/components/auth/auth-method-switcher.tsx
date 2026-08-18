@@ -13,9 +13,9 @@ const labels:Record<Method,string>={email:'Correo',phone:'Teléfono',google:'Goo
 export function AuthMethodSwitcher({mode,turnstileSiteKey='',readiness}:{mode:'register'|'login';turnstileSiteKey?:string;readiness:AuthProviderReadiness}){
   const[method,setMethod]=useState<Method>('email');
   const base=useId().replace(/:/g,'');
-  const available:Record<Method,boolean>={email:true,phone:readiness.phone,google:readiness.google};
+  const available:Record<Method,boolean>={email:mode==='login'||readiness.emailRegistration,phone:readiness.phone,google:readiness.google};
   const methods=(Object.keys(labels) as Method[]).filter(item=>available[item]);
-  const activeMethod=available[method]?method:(methods[0]??'email');
+  const activeMethod=available[method]?method:methods[0];
 
   function moveTab(event:React.KeyboardEvent<HTMLButtonElement>,index:number){
     let targetIndex:number|null=null;
@@ -30,6 +30,8 @@ export function AuthMethodSwitcher({mode,turnstileSiteKey='',readiness}:{mode:'r
     setMethod(nextMethod);
     document.getElementById(`${base}-${nextMethod}-tab`)?.focus();
   }
+
+  if(!activeMethod)return <div className="authInlineAlert" role="status"><strong>Registro temporalmente no disponible.</strong><span>Inténtalo de nuevo más tarde.</span></div>;
 
   return <div className="authMethodSwitcher">
     {methods.length>1?<div className={`authSegmented authSegmented${methods.length}`} role="tablist" aria-orientation="horizontal" aria-label={mode==='register'?'Cómo quieres registrarte':'Cómo quieres entrar'}>
