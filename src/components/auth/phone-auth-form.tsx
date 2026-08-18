@@ -2,6 +2,8 @@
 
 import { useState } from 'react';
 
+const normalizePhone=(value:string)=>value.replace(/[\s().-]/g,'');
+
 export function PhoneAuthForm({mode,embedded=false}:{mode:'register'|'login';embedded?:boolean}){
   const[phone,setPhone]=useState('+51');
   const[token,setToken]=useState('');
@@ -12,15 +14,23 @@ export function PhoneAuthForm({mode,embedded=false}:{mode:'register'|'login';emb
 
   async function requestCode(event:React.FormEvent){
     event.preventDefault();setBusy(true);setError('');setMessage('');
-    const response=await fetch('/api/auth/phone/request',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({phone,mode})}).catch(()=>null);
+    const normalizedPhone=normalizePhone(phone);
+    const response=await fetch('/api/auth/phone/request',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({phone:normalizedPhone,mode})}).catch(()=>null);
     const data=await response?.json().catch(()=>({}))??{};setBusy(false);
-    if(!response?.ok){setError(data.error==='phone_provider_unavailable'?'El acceso por teléfono no está disponible en este momento. Usa correo.':'Revisa el número e inténtalo de nuevo.');return}
+    if(!response?.ok){
+      if(data.error==='phone_provider_unavailable')setError('El acceso por teléfono no está disponible en este momento. Usa correo.');
+      else if(response?.status===429)setError('Has solicitado varios códigos. Espera un momento antes de intentarlo de nuevo.');
+      else setError('Revisa el número e inténtalo de nuevo.');
+      return;
+    }
+    setPhone(normalizedPhone);
     setStep('code');setMessage(mode==='login'?'Si el número está registrado, recibirás un código por SMS.':'Te enviamos un código por SMS.');
   }
 
   async function verifyCode(event:React.FormEvent){
     event.preventDefault();setBusy(true);setError('');
-    const response=await fetch('/api/auth/phone/verify',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({phone,token,mode})}).catch(()=>null);
+    const normalizedPhone=normalizePhone(phone);
+    const response=await fetch('/api/auth/phone/verify',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({phone:normalizedPhone,token,mode})}).catch(()=>null);
     const data=await response?.json().catch(()=>({}))??{};setBusy(false);
     if(!response?.ok){setError(data.error==='expired_code'?'El código venció o no es válido. Solicita uno nuevo.':'No pudimos verificar el código.');return}
     window.location.assign(data.next??(mode==='register'?'/registro/completar':'/descubrir'));
@@ -30,7 +40,7 @@ export function PhoneAuthForm({mode,embedded=false}:{mode:'register'|'login';emb
     {!embedded?<div className="authDivider"><span>o con teléfono</span></div>:null}
     {step==='phone'?<form className="authForm compactAuthForm" onSubmit={requestCode}>
       <label>Número de celular<input inputMode="tel" autoComplete="tel" value={phone} onChange={e=>setPhone(e.target.value)} placeholder="+51 999 999 999" aria-describedby="phone-help" required/></label>
-      <small id="phone-help">Incluye el código de país. Para Perú usa +51.</small>
+      <small id="phone-help">Puedes escribirlo con espacios. Incluye el código de país; para Perú usa +51.</small>
       <button className="secondaryButton authMethodButton" disabled={busy} type="submit">{busy?'Enviando…':mode==='register'?'Continuar con teléfono':'Entrar con teléfono'}</button>
     </form>:<form className="authForm compactAuthForm" onSubmit={verifyCode}>
       <p className="authCodeDestination">Código enviado a <strong>{phone}</strong></p>
