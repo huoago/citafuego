@@ -35,7 +35,6 @@ export async function POST(request:Request){
     user_id:created.user.id,
     username:parsed.data.username.trim(),
     normalized_username:normalized,
-    login_email:loginEmail,
   });
   if(mappingError){
     await service.auth.admin.deleteUser(created.user.id).catch(()=>undefined);
