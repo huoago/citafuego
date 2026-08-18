@@ -18,7 +18,8 @@ test('V10 login page removes mixed method instructions and keeps a single hierar
 test('V10 login prefers configured SMS while preserving email as an alternative',()=>{
   const switcher=read('src/components/auth/auth-method-switcher.tsx');
   assert.match(switcher,/mode==='login'&&readiness\.phone\?'phone':'email'/);
-  assert.match(switcher,/phone:mode==='login'\?'SMS':'Teléfono'/);
+  assert.match(switcher,/phone:'Teléfono'/);
+  assert.match(switcher,/item==='phone'&&mode==='login'\?'SMS':labels\[item\]/);
   assert.match(switcher,/email:mode==='login'\|\|readiness\.emailRegistration/);
   assert.match(switcher,/Método de acceso/);
 });
