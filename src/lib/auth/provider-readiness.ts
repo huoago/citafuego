@@ -1,3 +1,4 @@
+import {headers} from 'next/headers';
 import {getSupabasePublishableKey,getSupabaseUrl} from '@/lib/supabase/public-config';
 
 type SupabaseAuthSettings={
@@ -25,8 +26,17 @@ export function isPhoneAuthProductionReady(){
   return process.env.PHONE_AUTH_PRODUCTION_READY==='true';
 }
 
+async function getRequestOidcToken(){
+  try{
+    const requestHeaders=await headers();
+    return requestHeaders.get('x-vercel-oidc-token')?.trim()||process.env.VERCEL_OIDC_TOKEN?.trim()||'';
+  }catch{
+    return process.env.VERCEL_OIDC_TOKEN?.trim()||'';
+  }
+}
+
 async function getAccountEdgeReadiness(baseUrl:string,publishableKey:string){
-  const oidcToken=process.env.VERCEL_OIDC_TOKEN?.trim()??'';
+  const oidcToken=await getRequestOidcToken();
   if(!oidcToken)return false;
   try{
     const response=await fetch(`${baseUrl}/functions/v1/account-auth-v12`,{
@@ -39,6 +49,7 @@ async function getAccountEdgeReadiness(baseUrl:string,publishableKey:string){
       },
       body:JSON.stringify({action:'health'}),
       cache:'no-store',
+      redirect:'error',
     });
     if(!response.ok)return false;
     const body=await response.json() as AccountEdgeReadiness;
