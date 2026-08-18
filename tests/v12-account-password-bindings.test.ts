@@ -98,7 +98,7 @@ test('V12 account login keeps generic credential errors and correct Turnstile ac
   assert.match(route,/invalid_credentials/);
   assert.match(route,/verifyTurnstile\(request,parsed\.data\.turnstileToken,'login'\)/);
   assert.match(route,/callAccountEdge/);
-  assert.doesNotMatch(route,/select\('user_id'\)|auth\.admin/);
+  assert.doesNotMatch(route,/account_usernames|auth\.admin/);
 });
 
 test('V12 account auth is the first registration method',()=>{
