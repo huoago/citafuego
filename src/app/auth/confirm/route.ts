@@ -2,7 +2,7 @@ import { NextResponse,type NextRequest } from 'next/server';
 import type { EmailOtpType } from '@supabase/supabase-js';
 import { createClient } from '@/lib/supabase/server';
 
-const allowed=new Set<EmailOtpType>(['email','magiclink','signup']);
+const allowed=new Set<EmailOtpType>(['email','magiclink','signup','recovery']);
 function safeNext(value:string|null){return value&&value.startsWith('/')&&!value.startsWith('//')?value:'/descubrir'}
 
 export async function GET(request:NextRequest){
@@ -25,6 +25,10 @@ export async function GET(request:NextRequest){
 
   const{data:{user}}=await s.auth.getUser();
   if(!user){url.pathname='/iniciar-sesion';url.searchParams.set('error','session_failed');return NextResponse.redirect(url)}
+  if(rawType==='recovery'){
+    url.pathname=next==='/descubrir'?'/perfil/seguridad':next;
+    return NextResponse.redirect(url);
+  }
   const{data:privateRow}=await s.from('user_private').select('user_id').eq('user_id',user.id).maybeSingle();
   if(!privateRow){url.pathname='/registro/completar';return NextResponse.redirect(url)}
   const{data:profile}=await s.from('profiles').select('status').eq('id',user.id).maybeSingle();
