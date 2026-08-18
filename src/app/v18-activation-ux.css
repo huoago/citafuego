@@ -1,0 +1,24 @@
+/* CitaFuego V18 — activation clarity + dark-surface readability */
+.activationCard{color:#fff9fc!important;background:linear-gradient(180deg,#151017 0%,#0d0a0f 100%)!important;border:1px solid rgba(255,255,255,.16)!important}
+.activationCard h1{color:#fff!important;text-shadow:0 1px 2px rgba(0,0,0,.4)}
+.activationIntro{color:#eee5eb!important;line-height:1.65!important}
+.activationChecklist{display:grid;gap:10px;margin:18px 0}
+.activationRequirement{width:100%;display:flex;align-items:center;justify-content:space-between;gap:14px;padding:14px 15px;border-radius:16px;border:1px solid rgba(255,255,255,.16);background:#201820;color:#fff9fc;text-align:left;font:inherit}
+button.activationRequirement{cursor:pointer;appearance:none}
+.activationRequirement span{display:grid;gap:3px;min-width:0}
+.activationRequirement b{color:#fff!important;font-size:15px;font-weight:850}
+.activationRequirement small{color:#ddd2d9!important;font-size:13px;line-height:1.4}
+.activationRequirement strong{flex:0 0 auto;padding:6px 9px;border-radius:999px;font-size:13px;font-weight:900;color:#fff!important}
+.activationRequirement.isReady{background:#11251d;border-color:rgba(101,232,166,.36)}
+.activationRequirement.isReady strong{background:#1d6b4c;color:#fff!important}
+.activationRequirement.isPending{background:#2a1e12;border-color:rgba(255,194,107,.38)}
+.activationRequirement.isPending strong{background:#7a4d14;color:#fff!important}
+button.activationRequirement:hover,button.activationRequirement:focus-visible{transform:translateY(-1px);border-color:rgba(255,255,255,.36);outline:2px solid transparent}
+.activationSummary{margin:14px 0 16px!important;padding:13px 14px;border-radius:14px;font-size:14px;line-height:1.55!important}
+.activationSummary.isReady{color:#dfffee!important;background:#10291e;border:1px solid rgba(111,237,174,.3)}
+.activationSummary.isPending{color:#fff0d4!important;background:#2a1b0d;border:1px solid rgba(255,190,92,.3)}
+.activationCta{min-height:52px!important;font-size:16px!important;font-weight:900!important}
+.activationCta.isPending{background:linear-gradient(135deg,#7f4f18,#a56518)!important;color:#fff!important;box-shadow:0 10px 26px rgba(126,78,24,.25)!important}
+.onboardingNotice{color:#fff!important;background:#311725!important;border:1px solid rgba(255,146,181,.42)!important;box-shadow:0 10px 26px rgba(0,0,0,.24)!important;font-weight:760!important;line-height:1.5!important}
+@media(max-width:560px){.activationRequirement{align-items:flex-start}.activationRequirement strong{margin-top:1px}.activationCard{padding:18px!important}}
+@media(prefers-contrast:more){.activationRequirement,.activationSummary,.onboardingNotice{border-width:2px!important}.activationRequirement small{color:#fff!important}}
