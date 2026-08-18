@@ -13,10 +13,14 @@ function adultMaxDate(){
   return `${year}-${month}-${day}`;
 }
 
+const months=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+function daysInMonth(year:string,month:string){if(!year||!month)return 31;return new Date(Number(year),Number(month),0).getDate()}
 function normalizePhone(value:string){return value.replace(/[\s().-]/g,'')}
 
 export function CompleteRegistrationForm({readiness,initialEmail=null,initialPhone=null,emailVerified=false,phoneVerified=false}:{readiness:AuthProviderReadiness;initialEmail?:string|null;initialPhone?:string|null;emailVerified?:boolean;phoneVerified?:boolean}){
-  const[birthDate,setBirthDate]=useState('');
+  const[birthDay,setBirthDay]=useState('');
+  const[birthMonth,setBirthMonth]=useState('');
+  const[birthYear,setBirthYear]=useState('');
   const[terms,setTerms]=useState(false);
   const[privacy,setPrivacy]=useState(false);
   const[sensitive,setSensitive]=useState(false);
@@ -29,6 +33,15 @@ export function CompleteRegistrationForm({readiness,initialEmail=null,initialPho
   const[phoneCode,setPhoneCode]=useState('');
   const[phoneState,setPhoneState]=useState(phoneVerified?'verified':'idle');
   const[phoneMessage,setPhoneMessage]=useState(phoneVerified?'Celular vinculado y verificado.':'');
+  const maxAdultDate=adultMaxDate();
+  const maxAdultYear=Number(maxAdultDate.slice(0,4));
+  const yearOptions=Array.from({length:maxAdultYear-1899},(_,i)=>String(maxAdultYear-i));
+  const maxDay=daysInMonth(birthYear,birthMonth);
+  const candidateBirthDate=birthYear&&birthMonth&&birthDay?`${birthYear}-${birthMonth.padStart(2,'0')}-${birthDay.padStart(2,'0')}`:'';
+  const birthDate=candidateBirthDate&&candidateBirthDate<=maxAdultDate?candidateBirthDate:'';
+
+  function changeMonth(value:string){setBirthMonth(value);if(birthDay&&Number(birthDay)>daysInMonth(birthYear,value))setBirthDay('')}
+  function changeYear(value:string){setBirthYear(value);if(birthDay&&Number(birthDay)>daysInMonth(value,birthMonth))setBirthDay('')}
 
   async function bindEmail(){
     if(!readiness.emailRegistration||!email.trim())return;
@@ -69,7 +82,7 @@ export function CompleteRegistrationForm({readiness,initialEmail=null,initialPho
   }
 
   return <form className="authForm legalCompletionForm" onSubmit={submit}>
-    <label>Fecha de nacimiento<input type="date" value={birthDate} min="1900-01-01" max={adultMaxDate()} autoComplete="bday" onChange={e=>setBirthDate(e.target.value)} required/><small className="fieldHelp">Solo se usa para validar que tienes 18 años o más.</small></label>
+    <fieldset className="birthDateGroup"><legend>Fecha de nacimiento</legend><div className="birthDateSelectGrid"><label>Día<select aria-label="Día" value={birthDay} onChange={e=>setBirthDay(e.target.value)} required><option value="">Día</option>{Array.from({length:maxDay},(_,i)=>String(i+1)).map(day=><option key={day} value={day}>{day}</option>)}</select></label><label>Mes<select aria-label="Mes" value={birthMonth} onChange={e=>changeMonth(e.target.value)} required><option value="">Mes</option>{months.map((month,i)=><option key={month} value={String(i+1)}>{month}</option>)}</select></label><label>Año<select aria-label="Año" value={birthYear} onChange={e=>changeYear(e.target.value)} required><option value="">Año</option>{yearOptions.map(year=><option key={year} value={year}>{year}</option>)}</select></label></div><small className="fieldHelp">Día, mes y año se seleccionan por separado para que también puedas deslizar el mes en el móvil. Solo se usa para validar que tienes 18 años o más.</small></fieldset>
     <fieldset className="legalGroup">
       <legend>Antes de continuar</legend>
       <label className="checkRow"><input type="checkbox" checked={terms} onChange={e=>setTerms(e.target.checked)} required/><span>Acepto los <Link href="/terminos" target="_blank" rel="noreferrer">Términos de uso</Link>.</span></label>
