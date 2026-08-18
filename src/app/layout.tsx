@@ -13,6 +13,7 @@ import './auth-safety-v3.css';
 import './chat-read-v7.css';
 import './registration-v9.css';
 import './whatsapp-contact.css';
+import './v14-onboarding-fixes.css';
 import { PwaRegistrar } from '@/components/pwa-registrar';
 
 export const metadata: Metadata = {
