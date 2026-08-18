@@ -64,6 +64,6 @@ test('V11 production smoke uses a stable unavailable-state marker instead of use
   const switcher=read('src/components/auth/auth-method-switcher.tsx');
   const smoke=read('e2e/production-smoke.mjs');
   assert.match(switcher,/data-auth-unavailable=\{mode\}/);
-  assert.match(smoke,/data-auth-unavailable=\\"register\\"/);
+  assert.match(smoke,/data-auth-unavailable="register"/);
   assert.doesNotMatch(smoke,/Registro temporalmente no disponible/);
 });
