@@ -26,7 +26,7 @@ test('V9.1 email auth APIs reject malformed JSON without throwing',()=>{
   assert.match(login,/request\.json\(\)\.catch\(\(\)=>null\)/);
 });
 
-test('V9.1 distinguishes registration rate limiting from temporary service failure',()=>{
+test('V11 distinguishes registration code rate limiting from temporary service failure',()=>{
   const route=read('src/app/api/auth/register/route.ts');
   const form=read('src/components/auth/register-form.tsx');
   assert.match(route,/error\.status===429/);
@@ -34,7 +34,7 @@ test('V9.1 distinguishes registration rate limiting from temporary service failu
   assert.match(route,/registration_unavailable/);
   assert.match(route,/status:503/);
   assert.match(form,/registration_rate_limited/);
-  assert.match(form,/Has solicitado varios enlaces/);
+  assert.match(form,/Has solicitado varios códigos/);
 });
 
 test('V9.1 pending registration validates semantic dates and 18+ before RPC',()=>{
