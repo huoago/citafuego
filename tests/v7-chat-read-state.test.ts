@@ -20,6 +20,14 @@ test('V7 stores per-user read cursors behind RLS and RPC-only access',()=>{
   assert.match(sql,/msg\.created_at>coalesce\(cr\.last_read_at,c\.created_at\)/);
 });
 
+test('V7 covers read-state foreign keys used by cleanup and joins',()=>{
+  const sql=read('supabase/migrations/073_chat_read_state_indexes.sql');
+  assert.match(sql,/conversation_reads_user_idx/);
+  assert.match(sql,/conversation_reads\(user_id\)/);
+  assert.match(sql,/conversation_reads_last_message_idx/);
+  assert.match(sql,/last_read_message_id/);
+});
+
 test('V7 read cursor can advance only through a delivered peer message in the active conversation',()=>{
   const sql=read('supabase/migrations/072_chat_read_state.sql');
   assert.match(sql,/if not public\.can_send_message\(p_conversation\)/);
