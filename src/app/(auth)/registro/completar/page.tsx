@@ -13,8 +13,8 @@ export default async function Page(){
   if(privateRow){const{data:profile}=await s.from('profiles').select('status').eq('id',user.id).maybeSingle();redirect(profile?.status==='active'?'/descubrir':'/onboarding')}
   return <main className="authPage"><div className="authCard">
     <Link href="/" className="brandLockup"><span>🔥</span> CitaFuego</Link>
-    <p className="eyebrow">Último paso · 18+</p><h1>Completa tu registro</h1>
-    <p className="muted">Tu cuenta de Google o teléfono ya fue verificada. Falta confirmar edad y consentimientos antes de crear el perfil.</p>
+    <p className="eyebrow">Paso 2 de 2 · 18+</p><h1>Confirma tu registro</h1>
+    <p className="muted">Tu acceso con Google o teléfono ya está listo. Completa esta última verificación para terminar el registro y empezar a crear tu perfil.</p>
     <div className="authTrust"><span>18+ obligatorio</span><span>Consentimiento explícito</span><span>Datos privados</span></div>
     <CompleteRegistrationForm/>
   </div></main>;

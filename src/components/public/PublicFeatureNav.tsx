@@ -1,6 +1,11 @@
 import Link from 'next/link';
-import { publicFeatures } from '@/lib/public-features';
 import styles from './public-feature.module.css';
+
+const primaryLinks=[
+  {href:'/como-funciona',label:'Cómo funciona'},
+  {href:'/safety',label:'Seguridad'},
+  {href:'/blog-info',label:'Comunidad'},
+] as const;
 
 export function PublicFeatureNav() {
   return (
@@ -8,11 +13,9 @@ export function PublicFeatureNav() {
       <Link href="/" className={styles.brand} aria-label="CitaFuego inicio">
         <span className={styles.brandMark}>🔥</span><span>CitaFuego</span>
       </Link>
-      <div className={styles.navViewport} aria-label="Funciones de CitaFuego">
+      <div className={styles.navViewport} aria-label="Información principal de CitaFuego">
         <nav className={styles.nav}>
-          {publicFeatures.map((feature) => (
-            <Link key={feature.slug} href={feature.slug}>{feature.label}</Link>
-          ))}
+          {primaryLinks.map((item)=><Link key={item.href} href={item.href}>{item.label}</Link>)}
         </nav>
       </div>
       <div className={styles.actions}>

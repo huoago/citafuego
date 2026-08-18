@@ -3,6 +3,9 @@ import { PublicFeatureNav } from '@/components/public/PublicFeatureNav';
 import { publicFeatures } from '@/lib/public-features';
 import styles from './home.module.css';
 
+const essentialSlugs=new Set(['/swipe','/verificacion','/chat-privado','/seguridad-privacidad']);
+const essentialFeatures=publicFeatures.filter((feature)=>essentialSlugs.has(feature.slug));
+
 export default function LandingPage() {
   return (
     <main className={styles.page}>
@@ -11,15 +14,15 @@ export default function LandingPage() {
       <div className={styles.stage}>
         <section className={styles.hero}>
           <div className={styles.heroCopy}>
-            <p className={styles.kicker}>Dating + social privado para adultos en Latinoamérica</p>
-            <h1>Conoce personas.<br />Siente la química.<br /><span>Conserva el control.</span></h1>
-            <p className={styles.lead}>CitaFuego reúne Swipe, verificación, chat sincronizado para Matches, Random, contenido social, álbum privado y recomendaciones en una sola experiencia.</p>
+            <p className={styles.kicker}>Conexiones para adultos en Latinoamérica</p>
+            <h1>Conoce personas reales cerca de ti.<br /><span>Conecta con más confianza.</span></h1>
+            <p className={styles.lead}>Haz Match, conversa y decide hasta dónde quieres compartir. CitaFuego combina perfiles con más contexto, ubicación aproximada y controles de privacidad para que tú mantengas el control.</p>
             <div className={styles.actions}>
               <Link className={styles.primary} href="/registro">🔥 Crear mi perfil</Link>
-              <Link className={styles.secondary} href="/swipe">Ver cómo funciona</Link>
+              <Link className={styles.secondary} href="/como-funciona">Cómo funciona</Link>
             </div>
             <div className={styles.trustRow}>
-              <span>18+</span><span>Ubicación aproximada</span><span>Chat sincronizado</span><span>Controles de privacidad</span>
+              <span>Solo 18+</span><span>Ubicación aproximada</span><span>Perfiles con señales de confianza</span><span>Privacidad bajo tu control</span>
             </div>
           </div>
 
@@ -40,16 +43,16 @@ export default function LandingPage() {
           </div>
         </section>
 
-        <section className={styles.featureDock} aria-label="Todas las funciones">
+        <section className={styles.featureDock} aria-label="Funciones esenciales">
           <div className={styles.dockTitle}>
-            <strong>Explora cada función</strong>
-            <span>Desliza horizontalmente y abre su página independiente →</span>
+            <strong>Lo esencial para conectar</strong>
+            <span>4 funciones clave · descubre el resto en Cómo funciona</span>
           </div>
           <div className={styles.featureRail}>
-            {publicFeatures.map((feature) => (
+            {essentialFeatures.map((feature) => (
               <Link className={styles.featureCard} href={feature.slug} key={feature.slug}>
                 <span className={styles.featureIcon}>{feature.icon}</span>
-                <div><strong>{feature.label}</strong><small>{feature.eyebrow}</small></div>
+                <div><strong>{feature.label}</strong><small>{feature.summary}</small></div>
                 <b>→</b>
               </Link>
             ))}

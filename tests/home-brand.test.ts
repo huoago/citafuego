@@ -11,9 +11,12 @@ const nav=readFileSync(join(root,'src/components/public/PublicFeatureNav.tsx'),'
 
 const routes=['swipe','verificacion','chat-privado','random-connect','para-ti-info','stories-info','blog-info','album-privado','match-intelligence','seguridad-privacidad'];
 
-test('homepage is a compact feature hub instead of the previous long-scroll feature stack',()=>{
-  assert.match(page,/Explora cada función/);
-  assert.match(page,/featureRail/);
+test('homepage is a compact benefit-led hub instead of a long feature catalogue',()=>{
+  assert.match(page,/Lo esencial para conectar/);
+  assert.match(page,/essentialFeatures/);
+  assert.match(page,/Conoce personas reales cerca de ti/);
+  assert.match(page,/Conecta con más confianza/);
+  assert.doesNotMatch(page,/publicFeatures\.map/);
   for(const oldSection of ['chatSection','randomSection','socialSection','albumSection','algorithmSection','premiumSection','privacyBanner']) {
     assert.doesNotMatch(page,new RegExp(oldSection));
   }
@@ -21,8 +24,13 @@ test('homepage is a compact feature hub instead of the previous long-scroll feat
   assert.match(css,/@media\(max-height:760px\)/);
 });
 
-test('top navigation exposes current public features on dedicated routes without membership marketing',()=>{
-  assert.match(nav,/publicFeatures\.map/);
+test('top navigation exposes three primary decisions while all public feature routes remain available',()=>{
+  assert.doesNotMatch(nav,/publicFeatures\.map/);
+  assert.match(nav,/Cómo funciona/);
+  assert.match(nav,/Seguridad/);
+  assert.match(nav,/Comunidad/);
+  assert.match(nav,/\/iniciar-sesion/);
+  assert.match(nav,/\/registro/);
   for(const route of routes) {
     assert.match(features,new RegExp(`slug: '/${route}'`));
     assert.equal(existsSync(join(root,`src/app/${route}/page.tsx`)),true,`missing /${route}`);
@@ -30,18 +38,19 @@ test('top navigation exposes current public features on dedicated routes without
   assert.doesNotMatch(features,/slug: '\/premium-info'/);
 });
 
-test('homepage keeps current chat claims accurate and labels the profile preview as demo data',()=>{
+test('homepage labels demo data and uses privacy and trust language instead of implementation jargon',()=>{
   assert.match(page,/Demo · datos de ejemplo/);
-  assert.match(page,/18\+/);
-  assert.match(page,/Chat sincronizado/);
+  assert.match(page,/Solo 18\+/);
+  assert.match(page,/Ubicación aproximada/);
+  assert.match(page,/Privacidad bajo tu control/);
   assert.doesNotMatch(page,/Chat P2P/);
-  assert.doesNotMatch(page,/Perfiles reales/);
+  assert.doesNotMatch(page,/Random, contenido social/);
   assert.match(features,/Entrega offline/);
   assert.match(features,/Historial sincronizado/);
   assert.match(features,/no pueden impedir capturas de pantalla/);
 });
 
-test('navigation hub remains responsive without hiding the feature menu',()=>{
+test('navigation hub remains responsive without hiding primary information',()=>{
   assert.match(css,/@media\(max-width:980px\)/);
   assert.match(css,/@media\(max-width:640px\)/);
   assert.match(css,/grid-template-columns:1fr/);
