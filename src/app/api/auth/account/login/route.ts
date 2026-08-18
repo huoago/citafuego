@@ -18,11 +18,14 @@ export async function POST(request:Request){
 
   const service=createServiceClient();
   const normalized=normalizeAccountUsername(parsed.data.username);
-  const{data:account}=await service.from('account_usernames').select('login_email').eq('normalized_username',normalized).maybeSingle();
-  if(!account?.login_email)return Response.json({error:'invalid_credentials'},{status:401});
+  const{data:account}=await service.from('account_usernames').select('user_id').eq('normalized_username',normalized).maybeSingle();
+  if(!account?.user_id)return Response.json({error:'invalid_credentials'},{status:401});
+  const{data:authUser,error:authLookupError}=await service.auth.admin.getUserById(String(account.user_id));
+  const loginEmail=authUser.user?.email;
+  if(authLookupError||!loginEmail)return Response.json({error:'invalid_credentials'},{status:401});
 
   const supabase=await createClient();
-  const{error}=await supabase.auth.signInWithPassword({email:String(account.login_email),password:parsed.data.password});
+  const{error}=await supabase.auth.signInWithPassword({email:loginEmail,password:parsed.data.password});
   if(error){
     if(error.status===429)return Response.json({error:'rate_limited'},{status:429});
     return Response.json({error:'invalid_credentials'},{status:401});
