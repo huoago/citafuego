@@ -12,7 +12,7 @@ test('V12 stores usernames in a private service-only mapping with case-insensiti
   assert.match(migration,/alter table public\.account_usernames enable row level security/);
   assert.match(migration,/revoke all on table public\.account_usernames from public,anon,authenticated/);
   assert.match(migration,/grant select,insert,update,delete on table public\.account_usernames to service_role/);
-  assert.match(migration,/@accounts\.citafuego\.invalid/);
+  assert.doesNotMatch(migration,/login_email text/);
 });
 
 test('V12 pending username identities cannot bypass the existing adult legal completion gate',()=>{
@@ -41,13 +41,15 @@ test('V12 account signup keeps password in Supabase Auth and requires no public 
   assert.doesNotMatch(route,/phone:z\.string/);
 });
 
-test('V12 account login resolves the private username and returns generic invalid credentials',()=>{
+test('V12 account login resolves username to stable user id then current Auth email',()=>{
   const route=read('src/app/api/auth/account/login/route.ts');
-  assert.match(route,/normalized_username/);
-  assert.match(route,/select\('login_email'\)/);
+  assert.match(route,/select\('user_id'\)/);
+  assert.match(route,/auth\.admin\.getUserById/);
+  assert.match(route,/authUser\.user\?\.email/);
   assert.match(route,/signInWithPassword/);
   assert.match(route,/invalid_credentials/);
   assert.match(route,/verifyTurnstile\(request,parsed\.data\.turnstileToken,'login'\)/);
+  assert.doesNotMatch(route,/select\('login_email'\)/);
 });
 
 test('V12 account auth is the first registration method and readiness never exposes the server secret',()=>{
@@ -79,10 +81,12 @@ test('V12 optional contact binding proves phone ownership and fails closed on un
   const phoneRequest=read('src/app/api/auth/bind/phone/request/route.ts');
   const phoneVerify=read('src/app/api/auth/bind/phone/verify/route.ts');
   const email=read('src/app/api/auth/bind/email/route.ts');
+  const completionMigration=read('supabase/migrations/066_auth_safety_membership_controls.sql');
   assert.match(phoneRequest,/isPhoneAuthProductionReady/);
   assert.match(phoneRequest,/auth\.updateUser\(\{phone/);
   assert.match(phoneVerify,/type:'phone_change'/);
-  assert.match(phoneVerify,/phone_verified_at/);
+  assert.match(completionMigration,/v_phone_confirmed/);
+  assert.match(completionMigration,/phone_verified_at/);
   assert.match(email,/isEmailRegistrationProductionReady/);
   assert.match(email,/auth\.updateUser\(\{email/);
 });
