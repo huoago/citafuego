@@ -1,5 +1,5 @@
 const base=process.env.E2E_BASE_URL||'https://citafuego.com';
-const userAgent={'user-agent':'CitaFuego-Production-Smoke/4.0'};
+const userAgent={'user-agent':'CitaFuego-Production-Smoke/4.1'};
 
 const readinessResponse=await fetch(new URL('/api/auth/readiness',base),{headers:userAgent});
 if(readinessResponse.status!==200)throw new Error(`/api/auth/readiness returned ${readinessResponse.status}; expected 200`);
@@ -16,6 +16,10 @@ const protectedChecks=['/para-ti','/descubrir','/matches','/likes','/chats','/pe
 
 function requireText(body,path,label){
   if(!body.toLowerCase().includes(label.toLowerCase()))throw new Error(`${path} missing expected auth method ${label}`);
+}
+
+function requireMarker(body,path,marker){
+  if(!body.includes(marker))throw new Error(`${path} missing expected state marker ${marker}`);
 }
 
 for(const path of publicChecks){
@@ -37,7 +41,7 @@ for(const path of publicChecks){
     if(authReadiness.emailRegistration)requireText(body,path,'Correo');
     if(authReadiness.phone)requireText(body,path,'teléfono');
     if(authReadiness.google)requireText(body,path,'Google');
-    if(!authReadiness.emailRegistration&&!authReadiness.phone&&!authReadiness.google)requireText(body,path,'Registro temporalmente no disponible');
+    if(!authReadiness.emailRegistration&&!authReadiness.phone&&!authReadiness.google)requireMarker(body,path,'data-auth-unavailable="register"');
   }
   console.log('public',path,r.status);
 }

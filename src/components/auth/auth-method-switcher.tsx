@@ -34,7 +34,7 @@ export function AuthMethodSwitcher({mode,turnstileSiteKey='',readiness}:{mode:'r
     document.getElementById(`${base}-${nextMethod}-tab`)?.focus();
   }
 
-  if(!activeMethod)return <div className="authInlineAlert" role="status"><strong>Acceso temporalmente no disponible.</strong><span>Inténtalo de nuevo más tarde.</span></div>;
+  if(!activeMethod)return <div className="authInlineAlert authUnavailableState" data-auth-unavailable={mode} role="status"><strong>Acceso temporalmente no disponible.</strong><span>Inténtalo de nuevo más tarde.</span></div>;
 
   return <div className="authMethodSwitcher">
     {methods.length>1?<div className={`authSegmented authSegmented${methods.length}`} role="tablist" aria-orientation="horizontal" aria-label={mode==='register'?'Cómo quieres registrarte':'Método de acceso'}>
