@@ -64,7 +64,8 @@ test('V7 marks only a rendered peer sent message as read',()=>{
   const chat=read('src/components/chat/server-chat.tsx');
   assert.match(chat,/message\.sender_id!==userId&&message\.status==='sent'/);
   assert.match(chat,/document\.visibilityState!=='visible'/);
-  assert.match(chat,/messageId:latestPeer\.id/);
+  assert.match(chat,/const readMessageId=latestPeer\.id/);
+  assert.match(chat,/messageId:readMessageId/);
   assert.match(chat,/citafuego:chat-unread/);
   assert.doesNotMatch(chat,/mark.*Date\.now|read.*Date\.now/i);
 });
