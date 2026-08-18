@@ -26,7 +26,7 @@ export async function GET(request:NextRequest){
   const{data:{user}}=await s.auth.getUser();
   if(!user){url.pathname='/iniciar-sesion';url.searchParams.set('error','session_failed');return NextResponse.redirect(url)}
   if(rawType==='recovery'){
-    url.pathname=next==='/descubrir'?'/perfil/seguridad':next;
+    url.pathname=next==='/descubrir'?'/perfil':next;
     return NextResponse.redirect(url);
   }
   const{data:privateRow}=await s.from('user_private').select('user_id').eq('user_id',user.id).maybeSingle();
