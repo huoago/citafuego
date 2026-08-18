@@ -12,7 +12,7 @@ export default function LandingPage() {
       <PublicFeatureNav />
 
       <div className={styles.stage}>
-        <section className={styles.hero}>
+        <section className={`${styles.hero} v15HomeHero`}>
           <div className={styles.heroCopy}>
             <p className={styles.kicker}>Conexiones para adultos en Latinoamérica</p>
             <h1>Conoce personas reales cerca de ti.<br /><span>Conecta con más confianza.</span></h1>
