@@ -1,0 +1,318 @@
+.page {
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  padding: max(20px, env(safe-area-inset-top)) 16px max(20px, env(safe-area-inset-bottom));
+  background:
+    radial-gradient(circle at 50% -8%, rgba(255, 85, 61, .22), transparent 34%),
+    linear-gradient(180deg, #120b0b 0%, #090606 100%);
+}
+
+.card {
+  width: min(100%, 430px);
+  border: 1px solid rgba(255,255,255,.10);
+  border-radius: 28px;
+  padding: 28px;
+  background: rgba(24, 16, 16, .94);
+  box-shadow: 0 28px 80px rgba(0,0,0,.38);
+  backdrop-filter: blur(24px);
+}
+
+.header {
+  display: grid;
+  justify-items: center;
+  text-align: center;
+  gap: 10px;
+}
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 20px;
+  font-weight: 850;
+  letter-spacing: -.03em;
+}
+
+.securityPill {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 30px;
+  padding: 6px 10px;
+  border: 1px solid rgba(101,214,155,.18);
+  border-radius: 999px;
+  background: rgba(101,214,155,.07);
+  color: #9be8be;
+  font-size: 12px;
+  font-weight: 750;
+}
+
+.title {
+  margin: 4px 0 0;
+  font-size: clamp(32px, 9vw, 40px);
+  line-height: 1.02;
+  letter-spacing: -.05em;
+}
+
+.subtitle {
+  max-width: 340px;
+  margin: 0;
+  color: #bdaead;
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+.alert {
+  margin-top: 18px;
+}
+
+.securityNote {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  margin-top: 18px;
+  padding: 12px 13px;
+  border-radius: 15px;
+  background: rgba(255,255,255,.025);
+  color: #9f9290;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.securityNote svg {
+  flex: 0 0 auto;
+  margin-top: 1px;
+}
+
+.footer {
+  margin: 20px 0 0;
+  text-align: center;
+  color: #a99b98;
+  font-size: 13px;
+}
+
+.footer a {
+  color: #ff7a4f;
+  font-weight: 800;
+}
+
+.page :global(.authMethodSwitcher) {
+  margin-top: 24px;
+}
+
+.page :global(.authSegmented) {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 4px;
+  padding: 4px;
+  border: 1px solid rgba(255,255,255,.08);
+  border-radius: 16px;
+  background: #100a0a;
+}
+
+.page :global(.authSegmented3) {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.page :global(.authSegment) {
+  min-height: 44px;
+  border: 0;
+  border-radius: 12px;
+  background: transparent;
+  color: #a99b98;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 800;
+  transition: background .18s ease, color .18s ease, transform .18s ease;
+}
+
+.page :global(.authSegment:hover) {
+  color: #fff7f2;
+}
+
+.page :global(.authSegment:active) {
+  transform: scale(.98);
+}
+
+.page :global(.authSegment:focus-visible) {
+  outline: 2px solid #ff7a4f;
+  outline-offset: 2px;
+}
+
+.page :global(.authSegment.active) {
+  background: #241515;
+  color: #fff7f2;
+  box-shadow: 0 5px 18px rgba(0,0,0,.22);
+}
+
+.page :global(.authMethodPanel) {
+  margin-top: 18px;
+}
+
+.page :global(.formStack),
+.page :global(.compactAuthForm) {
+  display: grid;
+  gap: 14px;
+  margin-top: 0;
+}
+
+.page :global(.formStack label),
+.page :global(.compactAuthForm label) {
+  display: grid;
+  gap: 8px;
+  color: #e4d9d5;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.page :global(.formStack input),
+.page :global(.compactAuthForm input) {
+  width: 100%;
+  min-height: 50px;
+  border: 1px solid rgba(255,255,255,.10);
+  border-radius: 14px;
+  background: #0d0909;
+  color: #fff7f2;
+  padding: 0 14px;
+  outline: none;
+  transition: border-color .18s ease, box-shadow .18s ease, background .18s ease;
+}
+
+.page :global(.formStack input:focus),
+.page :global(.compactAuthForm input:focus) {
+  border-color: #ff6a51;
+  background: #120b0b;
+  box-shadow: 0 0 0 3px rgba(255,85,61,.10);
+}
+
+.page :global(.formStack small),
+.page :global(.compactAuthForm small) {
+  color: #8f8280;
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+.page :global(.ctaButton),
+.page :global(.authMethodButton) {
+  width: 100%;
+  min-height: 50px;
+  border-radius: 14px;
+}
+
+.page :global(.phoneAuthBlock) {
+  display: grid;
+  gap: 12px;
+}
+
+.page :global(.authCodeDestination) {
+  margin: 0;
+  padding: 11px 12px;
+  border-radius: 13px;
+  background: rgba(255,255,255,.03);
+  color: #c9bbb7;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.page :global(.formStatus),
+.page :global(.formSuccess),
+.page :global(.formError),
+.page :global(.authInlineAlert) {
+  margin: 0;
+  border-radius: 14px;
+  padding: 12px 13px;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.page :global(.formStatus),
+.page :global(.formSuccess) {
+  border: 1px solid rgba(101,214,155,.16);
+  background: rgba(101,214,155,.07);
+  color: #a7eac6;
+}
+
+.page :global(.formError),
+.page :global(.authInlineAlert) {
+  border: 1px solid rgba(255,115,115,.18);
+  background: rgba(255,115,115,.06);
+  color: #ffc0c0;
+}
+
+.page :global(.authInlineAlert) {
+  display: grid;
+  gap: 4px;
+}
+
+.page :global(.textButton) {
+  justify-self: center;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  color: #bdaead;
+}
+
+.page :global(.loginEmailHint) {
+  margin: -4px 0 0;
+  color: #8f8280;
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+.page :global(.loginSentState) {
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  padding: 8px 2px 2px;
+  text-align: center;
+}
+
+.page :global(.loginSentIcon) {
+  width: 48px;
+  height: 48px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: rgba(101,214,155,.10);
+  color: #8fe2b4;
+  font-size: 22px;
+  font-weight: 900;
+}
+
+.page :global(.loginSentState h2) {
+  margin: 2px 0 0;
+  font-size: 20px;
+}
+
+.page :global(.loginSentState p) {
+  margin: 0;
+  color: #bdaead;
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+@media (max-width: 520px) {
+  .page {
+    align-items: start;
+    padding-inline: 12px;
+  }
+
+  .card {
+    margin-top: 8px;
+    padding: 24px 18px;
+    border-radius: 24px;
+  }
+
+  .title {
+    font-size: 34px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .page :global(.authSegment),
+  .page :global(.formStack input),
+  .page :global(.compactAuthForm input) {
+    transition: none;
+  }
+}
