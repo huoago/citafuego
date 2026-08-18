@@ -1,26 +1,28 @@
 .authRegistrationPage{background:radial-gradient(circle at 50% 0%,rgba(255,85,61,.20),transparent 34%),linear-gradient(180deg,#120a0a 0%,#090606 100%);color:#fff7f2}
 .authCardRegistration{width:min(500px,100%);background:#181010;color:#fff7f2;border-color:rgba(255,255,255,.14);box-shadow:0 24px 80px rgba(0,0,0,.46)}
+.authCompletionCard{width:min(560px,100%)}
 .authCardRegistration .brandLockup,.authCardRegistration h1,.authCardRegistration h2,.authCardRegistration strong,.authCardRegistration legend{color:#fff7f2}
 .authCardRegistration .eyebrow{color:#ff9a78}
 .registrationHeading{margin-top:22px}.registrationHeading h1{margin:7px 0 8px}
 .authIntro{margin:8px 0 0;color:#d9c9c4!important}
-.authSegmented2{grid-template-columns:repeat(2,minmax(0,1fr))}
+.authSegmented2{grid-template-columns:repeat(2,minmax(0,1fr))}.authSegmented3{grid-template-columns:repeat(3,minmax(0,1fr))}.authSegmented4{grid-template-columns:repeat(4,minmax(0,1fr))}
 .authMethodPanel{min-height:0}.authMethodSwitcher{margin-top:16px}.authSegmented{margin:0 0 14px;background:#0d0909!important;border-color:#4d3935!important}
 .authCardRegistration .authSegment{color:#cdbfba!important;background:transparent!important}
 .authCardRegistration .authSegment.active{background:#34201d!important;color:#fff!important;box-shadow:0 2px 12px rgba(0,0,0,.26)}
 .authCardRegistration .authSegment:focus-visible,.authCardRegistration input:focus-visible,.authCardRegistration button:focus-visible,.authCardRegistration a:focus-visible{outline:3px solid rgba(255,154,120,.55);outline-offset:2px}
-.registrationForm{margin-top:8px;gap:14px}
-.authCardRegistration .formStack label{color:#f0e3df;font-size:13px;font-weight:650}
-.authCardRegistration .formStack input[type="email"],.authCardRegistration .formStack input[type="date"],.authCardRegistration .authCodeInput{width:100%;min-height:50px;border:1px solid #604942;border-radius:14px;background:#0b0707;color:#fff7f2;padding:14px;outline:none;color-scheme:dark}
-.authCardRegistration .formStack input::placeholder,.authCardRegistration .authCodeInput::placeholder{color:#887874;opacity:1}
-.authCardRegistration .formStack input:focus,.authCardRegistration .authCodeInput:focus{border-color:#ff8066;box-shadow:0 0 0 3px rgba(255,128,102,.16)}
+.registrationForm{margin-top:8px;gap:14px}.legalCompletionForm{display:grid;gap:16px;margin-top:18px}
+.authCardRegistration .formStack label,.authCardRegistration .authForm>label{color:#f0e3df;font-size:13px;font-weight:650}
+.authRegistrationPage input[type="text"],.authRegistrationPage input[type="password"],.authRegistrationPage input[type="email"],.authRegistrationPage input[type="date"],.authRegistrationPage input[type="tel"],.authRegistrationPage .authCodeInput{width:100%;min-height:50px;border:1px solid #604942;border-radius:14px;background:#0b0707;color:#fff7f2;padding:14px;outline:none;color-scheme:dark}
+.authRegistrationPage input::placeholder,.authRegistrationPage .authCodeInput::placeholder{color:#887874;opacity:1}
+.authRegistrationPage input:focus,.authRegistrationPage .authCodeInput:focus{border-color:#ff8066;box-shadow:0 0 0 3px rgba(255,128,102,.16)}
+.authRegistrationPage input:disabled{background:#151010;color:#8f817d;border-color:#3d302d;cursor:not-allowed}
 .fieldHelp{display:block;color:#c7b6b1!important;font-size:12px;line-height:1.5;font-weight:500}
 .authStepHeader{display:flex;align-items:center;gap:11px;padding:12px 13px;border:1px solid rgba(255,255,255,.10);border-radius:15px;background:#211515}
 .authStepHeader>div{display:grid;gap:2px}.authStepHeader strong{font-size:14px}.authStepHeader small{color:#c7b6b1;font-size:12px}
 .authStepBadge{display:grid;place-items:center;width:30px;height:30px;flex:0 0 auto;border-radius:50%;background:#ff654d;color:#fff;font-weight:850}
 .authStepIndicator{margin:0;color:#ff9a78!important;font-size:12px!important;font-weight:800;text-transform:uppercase;letter-spacing:.06em}
 .legalGroup{display:grid;gap:12px;margin:2px 0 0;padding:15px 16px 14px;border:1px solid #4c3935;border-radius:16px;background:#211515}
-.legalGroup legend{padding:0 7px;font-size:13px;font-weight:800}.legalGroup .checkboxRow{margin:0;color:#eadeda!important}.legalGroup a{color:#ffb097;text-decoration:underline;text-underline-offset:2px;font-weight:750}.legalGroup input[type="checkbox"]{accent-color:#ff654d}
+.legalGroup legend{padding:0 7px;font-size:13px;font-weight:800}.legalGroup .checkboxRow,.legalGroup .checkRow{display:flex;align-items:flex-start;gap:10px;margin:0;color:#eadeda!important}.legalGroup a{color:#ffb097;text-decoration:underline;text-underline-offset:2px;font-weight:750}.legalGroup input[type="checkbox"]{width:18px;height:18px;min-height:0;margin-top:1px;accent-color:#ff654d}
 .authInlineAlert{display:grid;gap:5px;margin:16px 0 0;padding:13px 14px;border:1px solid rgba(255,115,115,.38);border-radius:15px;background:#3a1718;color:#fff0ef;font-size:13px;line-height:1.45}.authInlineAlert span{color:#f3c9c8!important}
 .authEmailSent{display:grid;justify-items:center;gap:10px;margin-top:18px;padding:22px 18px;border:1px solid #4d3935;border-radius:20px;background:#211515;color:#fff7f2;text-align:center}
 .authEmailSentIcon{display:grid;place-items:center;width:46px;height:46px;border-radius:50%;background:rgba(255,101,77,.16);color:#ff9a78;font-size:22px;font-weight:900}.authEmailSent h2{margin:0;font-size:24px;letter-spacing:-.03em}.authEmailSent p{margin:0;color:#d9c9c4!important;line-height:1.5}.authEmailSent strong{color:#fff7f2;overflow-wrap:anywhere}
@@ -28,12 +30,16 @@
 .authPrivacyHint{margin:0;text-align:center;color:#bfaeaa!important;font-size:11.5px;line-height:1.45}.authResetButton{width:100%;color:#ffae93!important}.authCardRegistration .authFoot{margin:20px 0 0;color:#c7b6b1}.authCardRegistration .authFoot a{color:#ffae93}
 .authCardRegistration .formError{margin:0;padding:11px 12px;border:1px solid rgba(255,115,115,.34);border-radius:13px;background:#3a1718;color:#ffe7e5!important;font-size:13px;line-height:1.45}
 .authCardRegistration .ctaButton{min-height:50px;color:#fff;background:linear-gradient(135deg,#ff654d,#ff3f65);box-shadow:0 12px 30px rgba(255,85,61,.28)}.authCardRegistration .ctaButton:disabled{opacity:.55;cursor:not-allowed;box-shadow:none}
+.optionalBindingSection{display:grid;gap:13px;padding:16px;border:1px solid #4c3935;border-radius:18px;background:#120c0c}.optionalBindingHeading{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}.optionalBindingHeading h2{margin:4px 0 0;font-size:20px}.optionalBadge{flex:0 0 auto;padding:5px 9px;border:1px solid rgba(255,255,255,.13);border-radius:999px;background:#211515;color:#cfc0bc;font-size:11px;font-weight:750}
+.bindingCard{display:grid;gap:10px;padding:14px;border:1px solid #463431;border-radius:15px;background:#211515}.bindingCard.isVerified{border-color:rgba(79,203,132,.45);background:#122119}.bindingCardHeader{display:flex;align-items:center;justify-content:space-between;gap:10px}.bindingCardHeader>div{display:grid;gap:2px}.bindingCardHeader strong{font-size:14px}.bindingCardHeader small{color:#bfaeaa}.bindingCardHeader>span{display:grid;place-items:center;width:30px;height:30px;border-radius:50%;background:#2f211e;color:#ffae93;font-weight:850}.bindingCard.isVerified .bindingCardHeader>span{background:#173824;color:#8ce0ae}
+.bindingCard .softButton{min-height:44px;border:1px solid #654b45;background:#2b1d1a;color:#fff7f2}.bindingCard .softButton:disabled{opacity:.55}.bindingUnavailable{margin:0;padding:9px 10px;border-radius:11px;background:#171111;color:#aa9b97;font-size:12px;line-height:1.45}.bindingMessage{margin:0;color:#d9c9c4;font-size:12px;line-height:1.45}.bindingCodeRow{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px}.bindingCodeRow .softButton{padding:0 16px}
 
 @media(max-width:640px){
   .authRegistrationPage{place-items:start center;padding:max(14px,env(safe-area-inset-top)) 12px max(18px,env(safe-area-inset-bottom));min-height:100dvh}
-  .authCardRegistration{padding:24px 18px 22px;border-radius:24px;margin:auto 0}
+  .authCardRegistration{padding:24px 18px 22px;border-radius:24px;margin:auto 0}.authCompletionCard{margin:0}
   .authCardRegistration h1{font-size:34px;line-height:1.05;margin:8px 0}
-  .registrationHeading{margin-top:18px}.authMethodSwitcher{margin-top:14px}.authSegment{min-height:44px}.registrationForm{gap:13px}.legalGroup{padding:13px 14px 12px;border-radius:15px}.authEmailSent{padding:20px 14px}.authCodeInput{font-size:25px!important;letter-spacing:.22em}
+  .registrationHeading{margin-top:18px}.authMethodSwitcher{margin-top:14px}.authSegment{min-height:44px;font-size:12px}.authSegmented4{grid-template-columns:repeat(2,minmax(0,1fr))}.authSegmented3{grid-template-columns:repeat(3,minmax(0,1fr))}.registrationForm{gap:13px}.legalGroup{padding:13px 14px 12px;border-radius:15px}.authEmailSent{padding:20px 14px}.authCodeInput{font-size:25px!important;letter-spacing:.22em}.optionalBindingSection{padding:13px}.optionalBindingHeading{align-items:center}.bindingCodeRow{grid-template-columns:1fr}.bindingCodeRow .softButton{min-height:44px}
 }
 
+@media(max-width:390px){.authSegmented3,.authSegmented4{grid-template-columns:repeat(2,minmax(0,1fr))}.optionalBindingHeading{display:grid}.optionalBadge{justify-self:start}}
 @media(prefers-reduced-motion:reduce){.authCardRegistration *{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
