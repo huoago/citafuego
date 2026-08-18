@@ -15,6 +15,7 @@ import './registration-v9.css';
 import './whatsapp-contact.css';
 import './v14-onboarding-fixes.css';
 import './v15-public-polish.css';
+import './v16-dark-theme-readability.css';
 import { PwaRegistrar } from '@/components/pwa-registrar';
 
 export const metadata: Metadata = {
