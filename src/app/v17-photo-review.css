@@ -1,0 +1,15 @@
+/* CitaFuego V17 — automatic photo review + verification readability */
+.onboardingCard{color:#fff8fb}
+.onboardingCard h1,.onboardingCard h2,.onboardingCard h3,.onboardingCard legend,.onboardingCard>p,.onboardingCard>label,.onboardingCard strong,.onboardingCard b{color:#fff8fb}
+.onboardingCard .muted,.onboardingCard .fieldHelp,.onboardingCard small{color:#d4cbd1!important}
+.onboardingCard .ctaButton,.verificationChallenge .ctaButton{color:#fff!important;background:linear-gradient(135deg,#ff5b78,#ff734f)!important;border:1px solid rgba(255,255,255,.14)!important;text-shadow:0 1px 2px rgba(0,0,0,.35);box-shadow:0 12px 30px rgba(255,71,120,.24)!important}
+.onboardingCard .ctaButton:hover,.verificationChallenge .ctaButton:hover{filter:brightness(1.08)}
+.onboardingCard .softButton{color:#f9f4f7!important;background:#2a2026!important;border:1px solid rgba(255,255,255,.18)!important;font-weight:780}
+.onboardingCard .softButton:hover,.onboardingCard .softButton:focus-visible{background:#352831!important;color:#fff!important;border-color:rgba(255,255,255,.28)!important}
+.onboardingCard button:disabled,.verificationChallenge button:disabled{color:#e2d8de!important;opacity:.68!important}
+.verificationChallenge{display:grid;gap:12px;margin:16px 0;padding:18px;border:1px solid rgba(255,255,255,.14);border-radius:18px;background:#141016;color:#fff8fb}
+.verificationChallenge b{color:#fff!important}.verificationChallenge p{margin:0;color:#fff8fb!important;font-size:16px;line-height:1.55}.verificationChallenge small{color:#d8cfd5!important}
+.onboardingCard p>b{color:#fff!important;padding:3px 8px;border-radius:999px;background:#272027;border:1px solid rgba(255,255,255,.12)}
+.photoSlot{color:#fff8fb!important}.photoSlot>span{color:#fff!important}.photoSlot small{color:#fff!important;background:rgba(5,5,8,.84)!important;border:1px solid rgba(255,255,255,.14)}
+.stepRail button{color:#f4edf2!important}.stepRail button:hover,.stepRail button:focus-visible{color:#fff!important}
+@media(prefers-contrast:more){.onboardingCard .softButton,.verificationChallenge{border-color:rgba(255,255,255,.38)!important}.onboardingCard .ctaButton{border-color:#fff!important}}
