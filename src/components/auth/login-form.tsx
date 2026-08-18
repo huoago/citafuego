@@ -5,7 +5,8 @@ function maskEmail(value:string){
  const [name='',domain='']=value.split('@');
  if(!domain)return value;
  const visible=name.length<=2?name.slice(0,1):name.slice(0,2);
- return `${visible}${'•'.repeat(Math.max(2,Math.min(5,name.length-visible)))}@${domain}`;
+ const hiddenLength=Math.max(2,Math.min(5,name.length-visible.length));
+ return `${visible}${'•'.repeat(hiddenLength)}@${domain}`;
 }
 
 export function LoginForm(){
