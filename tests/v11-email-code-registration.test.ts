@@ -59,3 +59,11 @@ test('V11 registration styles use explicit high contrast surfaces and text',()=>
   assert.match(css,/\.formError\{[^}]*background:#3a1718[^}]*color:#ffe7e5/);
   assert.match(css,/min-height:100dvh/);
 });
+
+test('V11 production smoke uses a stable unavailable-state marker instead of user-facing copy',()=>{
+  const switcher=read('src/components/auth/auth-method-switcher.tsx');
+  const smoke=read('e2e/production-smoke.mjs');
+  assert.match(switcher,/data-auth-unavailable=\{mode\}/);
+  assert.match(smoke,/data-auth-unavailable=\\"register\\"/);
+  assert.doesNotMatch(smoke,/Registro temporalmente no disponible/);
+});
