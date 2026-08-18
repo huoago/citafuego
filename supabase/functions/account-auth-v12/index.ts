@@ -1,10 +1,16 @@
 import {createClient} from 'npm:@supabase/supabase-js@2';
+import {createRemoteJWKSet,decodeJwt,jwtVerify} from 'npm:jose@6';
 
 type Action='register'|'login';
 type Payload={action?:Action;username?:string;password?:string};
 
 const jsonHeaders={'content-type':'application/json','cache-control':'no-store'};
 const reserved=new Set(['admin','administrator','soporte','support','citafuego','moderador','moderator','seguridad','security','root','staff']);
+const teamSlug='huoago-7712s-projects';
+const projectName='citafuego-prod';
+const expectedAudience=`https://vercel.com/${teamSlug}`;
+const expectedSubject=`owner:${teamSlug}:project:${projectName}:environment:production`;
+const allowedIssuers=new Set([`https://oidc.vercel.com/${teamSlug}`,'https://oidc.vercel.com']);
 
 function response(body:Record<string,unknown>,status=200){return new Response(JSON.stringify(body),{status,headers:jsonHeaders})}
 function normalize(value:string){return value.trim().toLowerCase()}
@@ -19,17 +25,24 @@ function parseNamedKey(name:string,legacyName:string){
   return Deno.env.get(legacyName)??'';
 }
 
+async function verifyVercelIdentity(req:Request){
+  const authHeader=req.headers.get('authorization')??'';
+  const token=authHeader.startsWith('Bearer ')?authHeader.slice(7).trim():'';
+  if(!token)return false;
+  let issuer='';
+  try{issuer=String(decodeJwt(token).iss??'')}catch{return false}
+  if(!allowedIssuers.has(issuer))return false;
+  try{
+    const jwks=createRemoteJWKSet(new URL(`${issuer}/.well-known/jwks`));
+    await jwtVerify(token,jwks,{issuer,audience:expectedAudience,subject:expectedSubject});
+    return true;
+  }catch{return false}
+}
+
 async function digest(value:string){
   const bytes=new TextEncoder().encode(value);
   const hash=await crypto.subtle.digest('SHA-256',bytes);
   return Array.from(new Uint8Array(hash),byte=>byte.toString(16).padStart(2,'0')).join('');
-}
-
-function requestFingerprint(req:Request){
-  const forwarded=req.headers.get('x-forwarded-for')?.split(',')[0]?.trim();
-  const ip=forwarded||req.headers.get('cf-connecting-ip')?.trim()||'unknown';
-  const agent=(req.headers.get('user-agent')??'unknown').slice(0,180);
-  return `${ip}|${agent}`;
 }
 
 Deno.serve(async(req)=>{
@@ -37,11 +50,13 @@ Deno.serve(async(req)=>{
   const secretKey=parseNamedKey('SUPABASE_SECRET_KEYS','SUPABASE_SERVICE_ROLE_KEY');
   const publishableKey=parseNamedKey('SUPABASE_PUBLISHABLE_KEYS','SUPABASE_ANON_KEY');
 
-  if(req.method==='GET'){
-    return response({ready:Boolean(url&&secretKey&&publishableKey),version:'v12.1'});
-  }
+  if(req.method==='GET')return response({ready:Boolean(url&&secretKey&&publishableKey),version:'v12.1'});
   if(req.method!=='POST'||req.headers.get('x-citafuego-account-edge')!=='v12')return response({error:'not_found'},404);
+  if(!(await verifyVercelIdentity(req)))return response({error:'unauthorized_backend'},401);
   if(!url||!secretKey||!publishableKey)return response({error:'service_unavailable'},503);
+
+  const trustedFingerprint=req.headers.get('x-citafuego-client-fingerprint')??'';
+  if(!/^[a-f0-9]{64}$/.test(trustedFingerprint))return response({error:'invalid_fingerprint'},400);
 
   let payload:Payload={};
   try{payload=await req.json()}catch{return response({error:'invalid_payload'},400)}
@@ -54,10 +69,9 @@ Deno.serve(async(req)=>{
   const admin=createClient(url,secretKey,{auth:{persistSession:false,autoRefreshToken:false}});
   const auth=createClient(url,publishableKey,{auth:{persistSession:false,autoRefreshToken:false}});
   const normalized=normalize(username);
-  const baseFingerprint=await digest(requestFingerprint(req));
 
   if(action==='register'){
-    const{data:allowed,error:rateError}=await admin.rpc('consume_account_auth_rate_limit',{p_action:'register_ip',p_fingerprint:baseFingerprint,p_limit:5,p_window_seconds:3600});
+    const{data:allowed,error:rateError}=await admin.rpc('consume_account_auth_rate_limit',{p_action:'register_ip',p_fingerprint:trustedFingerprint,p_limit:5,p_window_seconds:3600});
     if(rateError)return response({error:'service_unavailable'},503);
     if(allowed!==true)return response({error:'rate_limited'},429);
 
@@ -80,9 +94,9 @@ Deno.serve(async(req)=>{
     return response({ok:true,accessToken:sessionData.session.access_token,refreshToken:sessionData.session.refresh_token,expiresIn:sessionData.session.expires_in});
   }
 
-  const accountFingerprint=await digest(`${baseFingerprint}|${normalized}`);
+  const accountFingerprint=await digest(`${trustedFingerprint}|${normalized}`);
   const[{data:ipAllowed,error:ipRateError},{data:accountAllowed,error:accountRateError}]=await Promise.all([
-    admin.rpc('consume_account_auth_rate_limit',{p_action:'login_ip',p_fingerprint:baseFingerprint,p_limit:30,p_window_seconds:600}),
+    admin.rpc('consume_account_auth_rate_limit',{p_action:'login_ip',p_fingerprint:trustedFingerprint,p_limit:30,p_window_seconds:600}),
     admin.rpc('consume_account_auth_rate_limit',{p_action:'login_account',p_fingerprint:accountFingerprint,p_limit:10,p_window_seconds:600}),
   ]);
   if(ipRateError||accountRateError)return response({error:'service_unavailable'},503);
