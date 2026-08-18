@@ -1,3 +1,5 @@
+import {getSupabasePublishableKey,getSupabaseUrl} from '@/lib/supabase/public-config';
+
 type SupabaseAuthSettings={
   external?:Record<string,unknown>;
   sms_provider?:unknown;
@@ -12,8 +14,8 @@ export type AuthProviderReadiness={
 const fallback:AuthProviderReadiness={checked:false,google:false,phone:false};
 
 export async function getAuthProviderReadiness():Promise<AuthProviderReadiness>{
-  const baseUrl=process.env.NEXT_PUBLIC_SUPABASE_URL?.trim().replace(/\/$/,'');
-  const publishableKey=process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY?.trim();
+  const baseUrl=getSupabaseUrl().trim().replace(/\/$/,'');
+  const publishableKey=getSupabasePublishableKey().trim();
   if(!baseUrl||!publishableKey)return fallback;
   try{
     const response=await fetch(`${baseUrl}/auth/v1/settings`,{
