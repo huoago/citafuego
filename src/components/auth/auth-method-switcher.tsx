@@ -8,13 +8,15 @@ import {SocialAuthButtons} from '@/components/auth/social-auth-buttons';
 import type {AuthProviderReadiness} from '@/lib/auth/provider-readiness';
 
 type Method='email'|'phone'|'google';
-const labels:Record<Method,string>={email:'Correo',phone:'Teléfono',google:'Google'};
+const methodOrder:Method[]=['email','phone','google'];
 
 export function AuthMethodSwitcher({mode,turnstileSiteKey='',readiness}:{mode:'register'|'login';turnstileSiteKey?:string;readiness:AuthProviderReadiness}){
-  const[method,setMethod]=useState<Method>('email');
+  const defaultMethod:Method=mode==='login'&&readiness.phone?'phone':'email';
+  const[method,setMethod]=useState<Method>(defaultMethod);
   const base=useId().replace(/:/g,'');
+  const labels:Record<Method,string>={email:'Correo',phone:mode==='login'?'SMS':'Teléfono',google:'Google'};
   const available:Record<Method,boolean>={email:mode==='login'||readiness.emailRegistration,phone:readiness.phone,google:readiness.google};
-  const methods=(Object.keys(labels) as Method[]).filter(item=>available[item]);
+  const methods=methodOrder.filter(item=>available[item]);
   const activeMethod=available[method]?method:methods[0];
 
   function moveTab(event:React.KeyboardEvent<HTMLButtonElement>,index:number){
@@ -31,10 +33,10 @@ export function AuthMethodSwitcher({mode,turnstileSiteKey='',readiness}:{mode:'r
     document.getElementById(`${base}-${nextMethod}-tab`)?.focus();
   }
 
-  if(!activeMethod)return <div className="authInlineAlert" role="status"><strong>Registro temporalmente no disponible.</strong><span>Inténtalo de nuevo más tarde.</span></div>;
+  if(!activeMethod)return <div className="authInlineAlert" role="status"><strong>Acceso temporalmente no disponible.</strong><span>Inténtalo de nuevo más tarde.</span></div>;
 
   return <div className="authMethodSwitcher">
-    {methods.length>1?<div className={`authSegmented authSegmented${methods.length}`} role="tablist" aria-orientation="horizontal" aria-label={mode==='register'?'Cómo quieres registrarte':'Cómo quieres entrar'}>
+    {methods.length>1?<div className={`authSegmented authSegmented${methods.length}`} role="tablist" aria-orientation="horizontal" aria-label={mode==='register'?'Cómo quieres registrarte':'Método de acceso'}>
       {methods.map((item,index)=><button key={item} type="button" role="tab" id={`${base}-${item}-tab`} aria-selected={activeMethod===item} aria-controls={`${base}-${item}-panel`} tabIndex={activeMethod===item?0:-1} className={activeMethod===item?'authSegment active':'authSegment'} onClick={()=>setMethod(item)} onKeyDown={event=>moveTab(event,index)}>{labels[item]}</button>)}
     </div>:null}
     <div className="authMethodPanel" role={methods.length>1?'tabpanel':undefined} id={`${base}-${activeMethod}-panel`} aria-labelledby={methods.length>1?`${base}-${activeMethod}-tab`:undefined}>
