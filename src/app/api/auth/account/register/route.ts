@@ -1,7 +1,7 @@
 import {z} from 'zod';
 import {createClient} from '@/lib/supabase/server';
-import {createServiceClient} from '@/lib/supabase/service';
-import {createInternalAccountEmail,isAllowedAccountUsername,normalizeAccountUsername} from '@/lib/auth/account-identity';
+import {callAccountEdge} from '@/lib/auth/account-edge';
+import {isAllowedAccountUsername} from '@/lib/auth/account-identity';
 import {verifyTurnstile} from '@/lib/security/turnstile';
 
 const schema=z.object({
@@ -16,36 +16,17 @@ export async function POST(request:Request){
   const challenge=await verifyTurnstile(request,parsed.data.turnstileToken,'register');
   if(!challenge.ok)return Response.json({error:challenge.error??'challenge_failed'},{status:403});
 
-  const service=createServiceClient();
-  const normalized=normalizeAccountUsername(parsed.data.username);
-  const{data:existing,error:lookupError}=await service.from('account_usernames').select('user_id').eq('normalized_username',normalized).maybeSingle();
-  if(lookupError)return Response.json({error:'registration_unavailable'},{status:503});
-  if(existing)return Response.json({error:'account_taken'},{status:409});
-
-  const loginEmail=createInternalAccountEmail();
-  const{data:created,error:createError}=await service.auth.admin.createUser({
-    email:loginEmail,
-    password:parsed.data.password,
-    email_confirm:true,
-    user_metadata:{registration_kind:'username_password'},
-  });
-  if(createError||!created.user)return Response.json({error:'registration_unavailable'},{status:503});
-
-  const{error:mappingError}=await service.from('account_usernames').insert({
-    user_id:created.user.id,
-    username:parsed.data.username.trim(),
-    normalized_username:normalized,
-  });
-  if(mappingError){
-    await service.auth.admin.deleteUser(created.user.id).catch(()=>undefined);
-    return Response.json({error:mappingError.code==='23505'?'account_taken':'registration_unavailable'},{status:mappingError.code==='23505'?409:503});
+  const edge=await callAccountEdge(request,'register',parsed.data.username,parsed.data.password);
+  if(edge.status!==200||!edge.data.ok||!edge.data.accessToken||!edge.data.refreshToken){
+    const error=edge.data.error??'registration_unavailable';
+    const status=edge.status===409?409:edge.status===429?429:edge.status===400?400:503;
+    return Response.json({error},{status});
   }
 
   const supabase=await createClient();
-  const{error:signInError}=await supabase.auth.signInWithPassword({email:loginEmail,password:parsed.data.password});
-  if(signInError){
-    await service.auth.admin.deleteUser(created.user.id).catch(()=>undefined);
-    return Response.json({error:'registration_unavailable'},{status:503});
-  }
+  const{error:sessionError}=await supabase.auth.setSession({access_token:edge.data.accessToken,refresh_token:edge.data.refreshToken});
+  if(sessionError)return Response.json({error:'session_failed'},{status:503});
+  const{data:{user}}=await supabase.auth.getUser();
+  if(!user)return Response.json({error:'session_failed'},{status:503});
   return Response.json({ok:true,next:'/registro/completar'});
 }
