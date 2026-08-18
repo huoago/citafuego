@@ -15,7 +15,7 @@ const allowedIssuers=new Set([`https://oidc.vercel.com/${teamSlug}`,'https://oid
 function response(body:Record<string,unknown>,status=200){return new Response(JSON.stringify(body),{status,headers:jsonHeaders})}
 function normalize(value:string){return value.trim().toLowerCase()}
 function validUsername(value:string){const v=normalize(value);return /^[a-z0-9][a-z0-9._-]{3,23}$/.test(v)&&!reserved.has(v)}
-function validRegisterPassword(value:string){return value.length>=10&&value.length<=72&&/[A-Za-z]/.test(value)&&/\d/.test(value)}
+function validRegisterPassword(value:string){return value.length>=6&&value.length<=72}
 
 function parseNamedKey(name:string,legacyName:string){
   try{
