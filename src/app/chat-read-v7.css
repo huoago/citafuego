@@ -1,0 +1,8 @@
+.navItem .navIcon{position:relative;display:grid;place-items:center}
+.navUnreadBadge{position:absolute;top:-8px;right:-14px;min-width:18px;height:18px;padding:0 4px;display:grid;place-items:center;border-radius:999px;background:var(--ios-pink);color:#fff;font-size:9px;font-weight:850;line-height:1;border:2px solid rgba(20,20,26,.98);box-shadow:0 4px 12px rgba(0,0,0,.32)}
+.chatRow.unread{background:rgba(255,255,255,.035)}
+.chatRow.unread .chatCopy strong{color:#fff;font-weight:900}
+.chatRow.unread .chatCopy>span{color:#ddd9e2;font-weight:690}
+.chatUnreadCount{min-width:20px;height:20px;padding:0 6px;display:grid;place-items:center;border-radius:999px;background:var(--ios-pink);color:#fff;font-size:10px;font-weight:850;line-height:1}
+.chatMeta{gap:6px}
+@media(max-width:430px){.navUnreadBadge{right:-11px}.chatUnreadCount{min-width:19px;height:19px;padding:0 5px}}

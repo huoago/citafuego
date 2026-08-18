@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useEffect,useState } from 'react';
 
 type IconName='discover'|'community'|'matches'|'chat'|'profile';
 
@@ -21,21 +22,52 @@ function TabIcon({name}:{name:IconName}){
   return <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3.2"/><path d="M5.5 19c.7-3.4 2.9-5.2 6.5-5.2s5.8 1.8 6.5 5.2"/></svg>;
 }
 
-export function BottomNav() {
+export function BottomNav({initialUnreadChats=0}:{initialUnreadChats?:number}) {
   const pathname = usePathname();
+  const[unreadChats,setUnreadChats]=useState(()=>Math.max(0,initialUnreadChats));
+
+  useEffect(()=>{
+    let active=true;
+    async function refreshUnread(){
+      const response=await fetch('/api/chat-read',{cache:'no-store'}).catch(()=>null);
+      if(!active||!response?.ok)return;
+      const data=await response.json().catch(()=>null) as {unreadCount?:number}|null;
+      const count=Number(data?.unreadCount);
+      if(active&&Number.isFinite(count))setUnreadChats(Math.max(0,count));
+    }
+    function onUnreadChanged(event:Event){
+      const count=Number((event as CustomEvent<number>).detail);
+      if(Number.isFinite(count))setUnreadChats(Math.max(0,count));
+      else void refreshUnread();
+    }
+    function onVisibility(){if(document.visibilityState==='visible')void refreshUnread()}
+    window.addEventListener('citafuego:chat-unread',onUnreadChanged);
+    window.addEventListener('focus',refreshUnread);
+    document.addEventListener('visibilitychange',onVisibility);
+    const timer=window.setInterval(()=>{if(document.visibilityState==='visible')void refreshUnread()},15000);
+    return()=>{
+      active=false;
+      window.clearInterval(timer);
+      window.removeEventListener('citafuego:chat-unread',onUnreadChanged);
+      window.removeEventListener('focus',refreshUnread);
+      document.removeEventListener('visibilitychange',onVisibility);
+    };
+  },[]);
 
   return (
     <nav className="bottomNav iosTabBar" aria-label="Navegación principal">
       {items.map((item) => {
         const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
+        const chatWithUnread=item.icon==='chat'&&unreadChats>0;
         return (
           <Link
             key={item.href}
             className={`navItem${active ? ' active' : ''}`}
             href={item.href}
             aria-current={active ? 'page' : undefined}
+            aria-label={chatWithUnread?`Chat, ${unreadChats} mensajes sin leer`:undefined}
           >
-            <span className="navIcon"><TabIcon name={item.icon}/></span>
+            <span className="navIcon"><TabIcon name={item.icon}/>{chatWithUnread?<span className="navUnreadBadge" aria-hidden="true">{unreadChats>99?'99+':unreadChats}</span>:null}</span>
             <span className="navLabel">{item.label}</span>
           </Link>
         );

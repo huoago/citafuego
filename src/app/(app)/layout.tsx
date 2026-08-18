@@ -7,13 +7,14 @@ export default async function AppLayout({children}:{children:ReactNode}){
   const s=await createClient();
   const{data:{user}}=await s.auth.getUser();
   if(!user)redirect('/iniciar-sesion');
-  const[{data:privateRow},{data:p},{count}]=await Promise.all([
+  const[{data:privateRow},{data:p},{count},{data:chatUnread}]=await Promise.all([
     s.from('user_private').select('user_id').eq('user_id',user.id).maybeSingle(),
     s.from('profiles').select('status').eq('id',user.id).maybeSingle(),
     s.from('user_notifications').select('id',{count:'exact',head:true}).eq('user_id',user.id).is('read_at',null),
+    s.rpc('get_my_unread_chat_count'),
   ]);
   if(!privateRow)redirect('/registro/completar');
   if(!p||p.status==='onboarding')redirect('/onboarding');
   if(p.status!=='active')redirect('/cuenta-restringida');
-  return <MobileShell unreadNotifications={count??0}>{children}</MobileShell>;
+  return <MobileShell unreadNotifications={count??0} unreadChats={Number(chatUnread??0)}>{children}</MobileShell>;
 }
