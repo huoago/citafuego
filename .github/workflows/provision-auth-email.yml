@@ -1,0 +1,194 @@
+name: Provision auth email infrastructure
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/provision-auth-email.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  provision:
+    runs-on: ubuntu-latest
+    environment: production
+    timeout-minutes: 15
+    env:
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      VERCEL_ORG_ID: team_Ga9U5PGbdPU9nUBdWJh8wIV3
+      VERCEL_PROJECT_ID: prj_QJxwaFzzxgPX2ZWy26gkA3WLWJKj
+      AUTH_MAIL_DOMAIN: auth.citafuego.com
+      ROOT_DOMAIN: citafuego.com
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+
+      - name: Validate production credentials
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "${VERCEL_TOKEN:-}" || { echo 'Missing VERCEL_TOKEN'; exit 1; }
+          mkdir -p .vercel
+          printf '{"orgId":"%s","projectId":"%s"}\n' "$VERCEL_ORG_ID" "$VERCEL_PROJECT_ID" > .vercel/project.json
+
+      - name: Provision Resend free Marketplace resource
+        shell: bash
+        run: |
+          set -euo pipefail
+          # Never fall back to a paid plan. The command must accept the explicit free plan.
+          npx --yes vercel@latest integration add resend \
+            --plan free \
+            --environment production \
+            --no-claim \
+            --no-env-pull \
+            --yes
+
+      - name: Pull production environment without printing secrets
+        shell: bash
+        run: |
+          set -euo pipefail
+          npx --yes vercel@latest env pull /tmp/citafuego-production.env --environment=production --yes >/tmp/vercel-env-pull.log 2>&1
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          const text=fs.readFileSync('/tmp/citafuego-production.env','utf8');
+          const names=text.split(/\r?\n/).map((line)=>line.match(/^([A-Za-z_][A-Za-z0-9_]*)=/)?.[1]).filter(Boolean);
+          if(!names.includes('RESEND_API_KEY')) {
+            console.error('RESEND_API_KEY was not provisioned into the production project.');
+            process.exit(1);
+          }
+          console.log('RESEND_API_KEY is present in the production project (value intentionally hidden).');
+          NODE
+
+      - name: Create or reuse Resend auth sending domain
+        id: resend
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          const envText=fs.readFileSync('/tmp/citafuego-production.env','utf8');
+          const env={};
+          for(const line of envText.split(/\r?\n/)){
+            const m=line.match(/^([A-Za-z_][A-Za-z0-9_]*)=(.*)$/);
+            if(!m) continue;
+            let value=m[2];
+            if((value.startsWith('"')&&value.endsWith('"'))||(value.startsWith("'")&&value.endsWith("'"))) value=value.slice(1,-1);
+            env[m[1]]=value.replace(/\\n/g,'\n');
+          }
+          const key=env.RESEND_API_KEY;
+          if(!key) throw new Error('RESEND_API_KEY missing after pull');
+          const headers={Authorization:`Bearer ${key}`,'Content-Type':'application/json'};
+          const list=await fetch('https://api.resend.com/domains',{headers});
+          if(!list.ok) throw new Error(`Unable to list Resend domains (${list.status})`);
+          const listed=await list.json();
+          let domain=(listed.data||[]).find((item)=>item.name===process.env.AUTH_MAIL_DOMAIN);
+          if(!domain){
+            const created=await fetch('https://api.resend.com/domains',{
+              method:'POST',headers,
+              body:JSON.stringify({name:process.env.AUTH_MAIL_DOMAIN,region:'us-east-1',capabilities:{sending:'enabled',receiving:'disabled'}}),
+            });
+            const body=await created.json().catch(()=>({}));
+            if(!created.ok) throw new Error(`Unable to create Resend domain (${created.status}): ${JSON.stringify(body)}`);
+            domain=body;
+          } else {
+            const fetched=await fetch(`https://api.resend.com/domains/${encodeURIComponent(domain.id)}`,{headers});
+            const body=await fetched.json().catch(()=>({}));
+            if(!fetched.ok) throw new Error(`Unable to retrieve Resend domain (${fetched.status})`);
+            domain=body;
+          }
+          const safe={id:domain.id,name:domain.name,status:domain.status,records:(domain.records||[]).map(({record,name,type,value,priority,status})=>({record,name,type,value,priority,status}))};
+          fs.writeFileSync('/tmp/resend-domain.json',JSON.stringify(safe,null,2));
+          fs.appendFileSync(process.env.GITHUB_OUTPUT,`domain_id=${domain.id}\n`);
+          console.log(`Resend domain ready for DNS provisioning: ${domain.name} (${domain.status})`);
+          NODE
+
+      - name: Detect authoritative DNS provider
+        id: dns
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update -qq >/dev/null
+          sudo apt-get install -y -qq dnsutils >/dev/null
+          ns=$(dig +short NS "$ROOT_DOMAIN" | tr '\n' ' ')
+          echo "Authoritative nameservers: ${ns:-<none>}"
+          if echo "$ns" | grep -qi 'vercel-dns'; then
+            echo 'vercel_dns=true' >> "$GITHUB_OUTPUT"
+          else
+            echo 'vercel_dns=false' >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Add Resend DNS records through Vercel DNS
+        if: steps.dns.outputs.vercel_dns == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          const data=JSON.parse(fs.readFileSync('/tmp/resend-domain.json','utf8'));
+          const token=process.env.VERCEL_TOKEN;
+          const teamId=process.env.VERCEL_ORG_ID;
+          const root=process.env.ROOT_DOMAIN;
+          const authDomain=process.env.AUTH_MAIL_DOMAIN;
+          const authLabel=authDomain.slice(0,-(`.${root}`).length);
+          const normalizeName=(name)=>{
+            if(name===authDomain) return authLabel;
+            if(name.endsWith(`.${root}`)) return name.slice(0,-(`.${root}`).length);
+            return `${name}.${authLabel}`;
+          };
+          for(const record of data.records||[]){
+            if(!['MX','TXT','CNAME'].includes(record.type)) continue;
+            const payload={type:record.type,name:normalizeName(record.name),value:record.value,ttl:60,comment:'CitaFuego Resend Auth email'};
+            if(record.type==='MX'&&Number.isFinite(Number(record.priority))) payload.mxPriority=Number(record.priority);
+            const res=await fetch(`https://api.vercel.com/v2/domains/${encodeURIComponent(root)}/records?teamId=${encodeURIComponent(teamId)}`,{
+              method:'POST',headers:{Authorization:`Bearer ${token}`,'Content-Type':'application/json'},body:JSON.stringify(payload),
+            });
+            const body=await res.json().catch(()=>({}));
+            if(!res.ok){
+              const duplicate=res.status===400 && /already|exist|duplicate/i.test(JSON.stringify(body));
+              if(duplicate){ console.log(`DNS record already present: ${payload.type} ${payload.name}`); continue; }
+              throw new Error(`Unable to create DNS record ${payload.type} ${payload.name} (${res.status}): ${JSON.stringify(body)}`);
+            }
+            console.log(`Created DNS record: ${payload.type} ${payload.name}`);
+          }
+          NODE
+
+      - name: Stop safely when DNS is external
+        if: steps.dns.outputs.vercel_dns != 'true'
+        shell: bash
+        run: |
+          echo 'Resend resource/domain were created, but citafuego.com authoritative DNS is not Vercel DNS.'
+          echo 'No DNS mutation was attempted against an external provider.'
+          cat /tmp/resend-domain.json
+          exit 2
+
+      - name: Trigger Resend verification and confirm status
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          const envText=fs.readFileSync('/tmp/citafuego-production.env','utf8');
+          const match=envText.match(/^RESEND_API_KEY=(.*)$/m);
+          if(!match) throw new Error('RESEND_API_KEY missing');
+          let key=match[1].trim();
+          if((key.startsWith('"')&&key.endsWith('"'))||(key.startsWith("'")&&key.endsWith("'"))) key=key.slice(1,-1);
+          const domainId='${{ steps.resend.outputs.domain_id }}';
+          const headers={Authorization:`Bearer ${key}`,'Content-Type':'application/json'};
+          const verify=await fetch(`https://api.resend.com/domains/${encodeURIComponent(domainId)}/verify`,{method:'POST',headers});
+          if(!verify.ok) throw new Error(`Resend verification request failed (${verify.status})`);
+          for(let i=1;i<=12;i++){
+            await new Promise((r)=>setTimeout(r,5000));
+            const res=await fetch(`https://api.resend.com/domains/${encodeURIComponent(domainId)}`,{headers});
+            const body=await res.json().catch(()=>({}));
+            if(!res.ok) throw new Error(`Unable to inspect Resend domain (${res.status})`);
+            console.log(`Resend verification attempt ${i}: ${body.status}`);
+            if(body.status==='verified') process.exit(0);
+            if(body.status==='failed') process.exit(1);
+          }
+          console.error('Resend domain verification did not complete within the workflow window.');
+          process.exit(1);
+          NODE
