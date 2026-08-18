@@ -23,7 +23,7 @@ test('V8 registration and login gate unavailable providers before interaction',(
   assert.match(login,/getAuthProviderReadiness/);
   assert.match(switcher,/readiness\.phone/);
   assert.match(switcher,/readiness\.google/);
-  assert.match(switcher,/disabled=!enabled/);
+  assert.match(switcher,/disabled=\{!enabled\}/);
   assert.match(switcher,/No disponible/);
 });
 
@@ -50,7 +50,7 @@ test('V8 exposes only safe provider readiness and production verifies it',()=>{
   const workflow=read('.github/workflows/production-deploy.yml');
   assert.match(route,/getAuthProviderReadiness/);
   assert.match(route,/cache-control':'no-store/);
-  assert.match(audit,/GET|fetch/);
+  assert.match(audit,/\/auth\/v1\/settings/);
   assert.match(audit,/\/config\/auth/);
   assert.doesNotMatch(audit,/console\.log\([^\n]*smtp_pass/);
   assert.match(workflow,/Audit production auth readiness/);
