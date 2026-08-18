@@ -51,6 +51,14 @@ jobs:
           NEXT_PUBLIC_APP_URL: https://citafuego.com
           NEXT_PUBLIC_SUPABASE_URL: https://stfbybkutnoqoxhqxyou.supabase.co
           NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: sb_publishable_bzwmFw6D6rx0X4D5VWonhA_hkxf9c4d
+      - name: Audit production auth readiness
+        id: auth
+        env:
+          SUPABASE_URL: https://stfbybkutnoqoxhqxyou.supabase.co
+          SUPABASE_PUBLISHABLE_KEY: sb_publishable_bzwmFw6D6rx0X4D5VWonhA_hkxf9c4d
+          SUPABASE_PROJECT_REF: stfbybkutnoqoxhqxyou
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: node scripts/check-auth-readiness.mjs
       - name: Validate Vercel credential
         shell: bash
         run: |
@@ -165,6 +173,20 @@ jobs:
           done
           exit 1
 
+      - name: Verify deployed auth readiness endpoint
+        shell: bash
+        run: |
+          set -euo pipefail
+          body_file=$(mktemp)
+          code=$(curl --silent --show-error --location --max-time 30 --output "$body_file" --write-out '%{http_code}' "https://citafuego.com/api/auth/readiness" || true)
+          cat "$body_file"
+          if [ "$code" != "200" ] || ! grep -Eq '"checked"[[:space:]]*:[[:space:]]*true' "$body_file"; then
+            rm -f "$body_file"
+            echo 'Deployed application cannot confirm Supabase Auth readiness.'
+            exit 1
+          fi
+          rm -f "$body_file"
+
       - name: Public production smoke
         env:
           E2E_BASE_URL: https://citafuego.com
@@ -176,6 +198,10 @@ jobs:
           DEPLOYMENT_URL: ${{ steps.deploy.outputs.url }}
           APEX_IP: ${{ steps.dns.outputs.apex_ip }}
           WWW_IP: ${{ steps.dns.outputs.www_ip }}
+          GOOGLE_AUTH: ${{ steps.auth.outputs.google }}
+          PHONE_AUTH: ${{ steps.auth.outputs.phone }}
+          SMTP_STATUS: ${{ steps.auth.outputs.smtp }}
+          SUPABASE_MANAGEMENT_AUDIT: ${{ steps.auth.outputs.management }}
           GH_TOKEN: ${{ github.token }}
         shell: bash
         run: |
@@ -192,6 +218,11 @@ jobs:
             '- Vercel state: READY',
             '- aliases: citafuego.com + www.citafuego.com',
             '- health: apex + www passed',
+            '- auth readiness endpoint: passed',
+            `- Google Auth: ${process.env.GOOGLE_AUTH}`,
+            `- Phone SMS: ${process.env.PHONE_AUTH}`,
+            `- Custom SMTP: ${process.env.SMTP_STATUS}`,
+            `- Supabase Management audit: ${process.env.SUPABASE_MANAGEMENT_AUDIT}`,
             '- public smoke: passed',
             `- verified at: ${new Date().toISOString()}`,
             `- workflow run: https://github.com/${process.env.GITHUB_REPOSITORY}/actions/runs/${process.env.GITHUB_RUN_ID}`,
