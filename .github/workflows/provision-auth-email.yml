@@ -21,6 +21,7 @@ jobs:
       VERCEL_PROJECT_ID: prj_QJxwaFzzxgPX2ZWy26gkA3WLWJKj
       AUTH_MAIL_DOMAIN: auth.citafuego.com
       ROOT_DOMAIN: citafuego.com
+      CI: '1'
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-node@v6
@@ -39,13 +40,12 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          # Never fall back to a paid plan. The command must accept the explicit free plan.
+          # Never fall back to a paid plan. CI=1 prevents interactive prompts.
           npx --yes vercel@latest integration add resend \
             --plan free \
             --environment production \
             --no-claim \
-            --no-env-pull \
-            --yes
+            --no-env-pull
 
       - name: Pull production environment without printing secrets
         shell: bash
