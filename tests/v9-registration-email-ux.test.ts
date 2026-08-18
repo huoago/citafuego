@@ -28,7 +28,7 @@ test('V9 callback distinguishes PKCE browser mismatch and disables caching',()=>
   assert.match(confirm,/Pragma','no-cache'/);
 });
 
-test('V9 registration form recovers from network errors and constrains age before submit',()=>{
+test('V11 registration form recovers from network errors and constrains age before submit',()=>{
   const form=read('src/components/auth/register-form.tsx');
   assert.match(form,/try\{/);
   assert.match(form,/catch\{/);
@@ -53,11 +53,11 @@ test('V9 auth UI contains no disabled-provider or Supabase readiness jargon',()=
   assert.match(switcher,/filter\(item=>available\[item\]\)/);
 });
 
-test('V9 mobile registration styles reduce visual density without removing legal consent',()=>{
+test('V11 mobile registration styles stay scoped and preserve legal consent',()=>{
   const css=read('src/app/registration-v9.css');
   const form=read('src/components/auth/register-form.tsx');
   assert.match(css,/@media\(max-width:640px\)/);
-  assert.match(css,/\.authCard\{padding:24px 18px 22px/);
+  assert.match(css,/\.authCardRegistration\{padding:24px 18px 22px/);
   assert.match(css,/\.legalGroup/);
   assert.match(form,/acceptedTerms/);
   assert.match(form,/acceptedPrivacy/);
