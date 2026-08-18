@@ -49,3 +49,13 @@ test('V10 login page is mobile-safe and motion-aware',()=>{
   assert.match(css,/@media \(max-width: 520px\)/);
   assert.match(css,/@media \(prefers-reduced-motion: reduce\)/);
 });
+
+test('V10 production smoke validates only auth methods enabled by live readiness',()=>{
+  const smoke=read('e2e/production-smoke.mjs');
+  assert.match(smoke,/\/api\/auth\/readiness/);
+  assert.match(smoke,/authReadiness\.phone/);
+  assert.match(smoke,/authReadiness\.google/);
+  assert.match(smoke,/authReadiness\.emailRegistration/);
+  assert.match(smoke,/requireText\(body,path,'SMS'\)/);
+  assert.doesNotMatch(smoke,/\['Google','teléfono','email'\]/);
+});
