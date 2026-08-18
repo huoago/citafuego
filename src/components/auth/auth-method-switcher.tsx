@@ -25,8 +25,9 @@ export function AuthMethodSwitcher({mode,turnstileSiteKey='',readiness}:{mode:'r
     else return;
     event.preventDefault();
     for(let offset=1;offset<=methods.length;offset++){
-      const candidate=event.key==='End'?methods.length-offset:(index+direction*offset+methods.length*2)%methods.length;
+      const candidate:number=event.key==='End'?methods.length-offset:(index+direction*offset+methods.length*2)%methods.length;
       const nextMethod=methods[candidate];
+      if(!nextMethod)continue;
       if(available[nextMethod]){setMethod(nextMethod);document.getElementById(`${base}-${nextMethod}-tab`)?.focus();return;}
     }
   }
