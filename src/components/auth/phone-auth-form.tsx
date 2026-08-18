@@ -40,7 +40,7 @@ export function PhoneAuthForm({mode,embedded=false}:{mode:'register'|'login';emb
     {!embedded?<div className="authDivider"><span>o con teléfono</span></div>:null}
     {step==='phone'?<form className="authForm compactAuthForm" onSubmit={requestCode}>
       <label>Número de celular<input inputMode="tel" autoComplete="tel" value={phone} onChange={e=>setPhone(e.target.value)} placeholder="+51 999 999 999" aria-describedby="phone-help" required/></label>
-      <small id="phone-help">Incluye el código de país. Puedes escribir espacios, guiones o paréntesis.</small>
+      <small id="phone-help">Incluye el código de país. Puedes escribirlo con espacios, guiones o paréntesis.</small>
       <button className="ctaButton authMethodButton" disabled={busy} type="submit">{busy?'Enviando…':mode==='register'?'Continuar':'Enviar código por SMS'}</button>
     </form>:<form className="authForm compactAuthForm" onSubmit={verifyCode}>
       <p className="authCodeDestination">Código enviado a <strong>{phone}</strong></p>
