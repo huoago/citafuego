@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 1000" role="img" aria-labelledby="title desc">
+  <title id="title">Perfil sin foto</title>
+  <desc id="desc">Marcador neutro para un perfil que todavía no añadió fotos.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#261820"/>
+      <stop offset="1" stop-color="#0d0a0f"/>
+    </linearGradient>
+    <linearGradient id="ring" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ff718c"/>
+      <stop offset="1" stop-color="#ff9a68"/>
+    </linearGradient>
+  </defs>
+  <rect width="800" height="1000" rx="48" fill="url(#bg)"/>
+  <circle cx="400" cy="365" r="150" fill="#3a2931" stroke="url(#ring)" stroke-width="8"/>
+  <path d="M170 835c20-180 112-275 230-275s210 95 230 275" fill="#3a2931" stroke="#6d505c" stroke-width="8" stroke-linecap="round"/>
+  <circle cx="400" cy="365" r="72" fill="#59404b"/>
+  <text x="400" y="925" text-anchor="middle" font-family="system-ui,-apple-system,sans-serif" font-size="34" font-weight="700" fill="#d8cfd5">Sin foto todavía</text>
+</svg>
