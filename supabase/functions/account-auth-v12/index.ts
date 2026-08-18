@@ -1,7 +1,7 @@
 import {createClient} from 'npm:@supabase/supabase-js@2';
 import {createRemoteJWKSet,decodeJwt,jwtVerify} from 'npm:jose@6';
 
-type Action='register'|'login';
+type Action='health'|'register'|'login';
 type Payload={action?:Action;username?:string;password?:string};
 
 const jsonHeaders={'content-type':'application/json','cache-control':'no-store'};
@@ -50,16 +50,17 @@ Deno.serve(async(req)=>{
   const secretKey=parseNamedKey('SUPABASE_SECRET_KEYS','SUPABASE_SERVICE_ROLE_KEY');
   const publishableKey=parseNamedKey('SUPABASE_PUBLISHABLE_KEYS','SUPABASE_ANON_KEY');
 
-  if(req.method==='GET')return response({ready:Boolean(url&&secretKey&&publishableKey),version:'v12.1'});
   if(req.method!=='POST'||req.headers.get('x-citafuego-account-edge')!=='v12')return response({error:'not_found'},404);
   if(!(await verifyVercelIdentity(req)))return response({error:'unauthorized_backend'},401);
   if(!url||!secretKey||!publishableKey)return response({error:'service_unavailable'},503);
 
+  let payload:Payload={};
+  try{payload=await req.json()}catch{return response({error:'invalid_payload'},400)}
+  if(payload.action==='health')return response({ready:true,version:'v12.1'});
+
   const trustedFingerprint=req.headers.get('x-citafuego-client-fingerprint')??'';
   if(!/^[a-f0-9]{64}$/.test(trustedFingerprint))return response({error:'invalid_fingerprint'},400);
 
-  let payload:Payload={};
-  try{payload=await req.json()}catch{return response({error:'invalid_payload'},400)}
   const username=typeof payload.username==='string'?payload.username:'';
   const password=typeof payload.password==='string'?payload.password:'';
   const action=payload.action;
@@ -90,7 +91,11 @@ Deno.serve(async(req)=>{
     }
 
     const{data:sessionData,error:sessionError}=await auth.auth.signInWithPassword({email:internalEmail,password});
-    if(sessionError||!sessionData.session)return response({error:'session_failed'},503);
+    if(sessionError||!sessionData.session){
+      await admin.from('account_usernames').delete().eq('user_id',created.user.id).catch(()=>undefined);
+      await admin.auth.admin.deleteUser(created.user.id).catch(()=>undefined);
+      return response({error:'session_failed'},503);
+    }
     return response({ok:true,accessToken:sessionData.session.access_token,refreshToken:sessionData.session.refresh_token,expiresIn:sessionData.session.expires_in});
   }
 
