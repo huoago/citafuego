@@ -1,33 +1,42 @@
 import Link from 'next/link';
+import { PublicFeatureNav } from '@/components/public/PublicFeatureNav';
+
+const steps=[
+  {number:'01',title:'Crea tu perfil',text:'Añade lo que quieras compartir. La información complementaria puede completarse más adelante y tú decides cuánto contexto mostrar.'},
+  {number:'02',title:'Descubre con contexto',text:'Revisa intención, intereses, distancia aproximada y señales de confianza antes de decidir Like o Pass.'},
+  {number:'03',title:'Haz Match',text:'La conversación se abre cuando existe interés mutuo. Tus Matches quedan organizados en una pantalla propia.'},
+  {number:'04',title:'Conversa con control',text:'Chat, bloqueo, reporte, privacidad y verificación permanecen accesibles durante toda la experiencia.'},
+] as const;
 
 export default function ComoFuncionaPage() {
   return (
-    <main className="marketingPage">
-      <header className="landingNav">
-        <Link href="/" className="brandLockup"><span>🔥</span> CitaFuego</Link>
-        <div className="landingNavLinks">
-          <Link href="/explorar">Explorar</Link>
-          <Link href="/safety">Seguridad</Link>
-          <Link className="ghostButton" href="/registro">Crear perfil</Link>
-        </div>
-      </header>
+    <div className="v15InfoShell v15HowShell">
+      <PublicFeatureNav />
+      <main className="v15InfoMain">
+        <section className="v15InfoHero">
+          <Link href="/" className="v15BackHome">← Volver al inicio</Link>
+          <p className="v15Eyebrow">Cómo funciona</p>
+          <h1>Descubrir, conectar y conversar sin complicarlo.</h1>
+          <p className="v15InfoLead">CitaFuego organiza cada decisión en una etapa clara. Menos ruido visual, más contexto y controles de privacidad visibles cuando los necesitas.</p>
+          <div className="v15InfoActions">
+            <Link className="v15PrimaryAction" href="/registro">🔥 Crear mi perfil</Link>
+            <Link className="v15SecondaryAction" href="/iniciar-sesion">Ya tengo cuenta</Link>
+          </div>
+        </section>
 
-      <section className="marketingHero">
-        <p className="eyebrow">Cómo funciona</p>
-        <h1>Una ruta clara desde descubrir hasta conversar.</h1>
-        <p>La experiencia está separada por pantallas para que cada decisión tenga contexto: perfil, descubrimiento, match, chat, preferencias, plan y seguridad.</p>
-        <div className="marketingActions">
-          <Link className="ctaButton" href="/registro">Empezar gratis</Link>
-          <Link className="ghostButton" href="/iniciar-sesion">Ya tengo cuenta</Link>
-        </div>
-      </section>
+        <section className="v15StepGrid" aria-label="Pasos principales de CitaFuego">
+          {steps.map(step=><article className="v15StepCard" key={step.number}>
+            <span>{step.number}</span>
+            <h2>{step.title}</h2>
+            <p>{step.text}</p>
+          </article>)}
+        </section>
 
-      <section className="marketingGrid">
-        <article className="marketingCard"><b>01 · Perfil</b><h2>Preséntate con intención.</h2><p>Fotos, bio, intereses, preferencias y objetivo de conexión construyen una señal más útil que una foto aislada.</p></article>
-        <article className="marketingCard"><b>02 · Descubrir</b><h2>Menos perfiles, mejores decisiones.</h2><p>La pantalla de descubrimiento prioriza compatibilidad, cercanía aproximada, verificación e intereses compartidos.</p></article>
-        <article className="marketingCard"><b>03 · Match</b><h2>El interés mutuo abre la conversación.</h2><p>Los matches viven en su propia pantalla y cada conexión lleva directamente a un chat individual.</p></article>
-        <article className="marketingCard"><b>04 · Control</b><h2>Privacidad y seguridad siempre visibles.</h2><p>Bloqueos, reportes, verificación y preferencias se gestionan en interfaces específicas, sin esconder controles críticos.</p></article>
-      </section>
-    </main>
+        <section className="v15InfoNote">
+          <div><b>Privacidad desde el principio</b><p>La ubicación exacta no se publica. Los controles de seguridad, reporte y bloqueo forman parte del flujo, no de una pantalla escondida.</p></div>
+          <Link href="/safety">Ver Seguridad →</Link>
+        </section>
+      </main>
+    </div>
   );
 }
