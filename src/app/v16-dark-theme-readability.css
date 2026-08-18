@@ -1,0 +1,131 @@
+/* CitaFuego V16 — dark theme readability baseline */
+:root{
+  --text:#fff8fb;
+  --muted:#d0c7cd;
+  --cf-text:#fff8fb;
+  --cf-muted:#d0c7cd;
+  --cf-readable-text:#fff8fb;
+  --cf-readable-body:#e8e1e5;
+  --cf-readable-muted:#d0c7cd;
+  --cf-readable-subtle:#b8afb6;
+  --cf-readable-placeholder:#aba1a8;
+}
+
+body{color:var(--cf-readable-text)}
+
+/* Form controls on dark surfaces */
+input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),
+textarea,
+select{
+  color:var(--cf-readable-text);
+}
+input::placeholder,textarea::placeholder{
+  color:var(--cf-readable-placeholder)!important;
+  opacity:1!important;
+}
+select option{
+  background:#0e090b;
+  color:#fff8fb;
+}
+
+/* Onboarding / "Crea un perfil real" */
+.onboardingMain{color:var(--cf-readable-text)}
+.onboardingHeader b,.onboardingHeader span{color:#fff8fb}
+.stepRail button{
+  color:#eee8ec!important;
+  background:#21171a!important;
+  border-color:#58444a!important;
+  font-weight:750;
+}
+.stepRail button:hover,.stepRail button:focus-visible{
+  color:#fff!important;
+  background:#322126!important;
+  border-color:#8e5b68!important;
+}
+.onboardingCard{color:#fff8fb}
+.onboardingCard h1,.onboardingCard h2,.onboardingCard h3,
+.onboardingCard b,.onboardingCard strong,.onboardingCard label,.onboardingCard legend{
+  color:#fff8fb;
+}
+.onboardingCard p{color:var(--cf-readable-body)}
+.onboardingCard small,
+.onboardingCard label small,
+.onboardingCard legend small,
+.onboardingCard .fieldHelp,
+#birth-help{
+  color:var(--cf-readable-muted)!important;
+}
+.onboardingCard .choice{
+  color:#f6f0f3!important;
+  background:#171012!important;
+  border-color:#604a50!important;
+  font-weight:720;
+}
+.onboardingCard .choice:hover,.onboardingCard .choice:focus-visible{
+  color:#fff!important;
+  background:#281a1f!important;
+  border-color:#95606e!important;
+}
+.onboardingCard .choice.active{
+  color:#fff!important;
+  background:#4b202d!important;
+  border-color:#ff6f8c!important;
+}
+.onboardingCard .softButton{
+  color:#fff8fb!important;
+  background:#2a1c20!important;
+  border-color:#654d55!important;
+}
+.onboardingCard .checkboxRow{color:#f1e9ed!important}
+.onboardingCard input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),
+.onboardingCard textarea,
+.onboardingCard select{
+  color:#fff8fb!important;
+  background:#0e090b!important;
+  border-color:#644c54!important;
+}
+.onboardingCard input[readonly]{color:#ded5da!important;background:#171013!important}
+.onboardingNotice{color:#fff1f5!important}
+.photoSlot small{color:#fff!important}
+.verificationChallenge,.verificationChallenge p,.verificationChallenge small{color:#f1eaee!important}
+
+/* Shared dark application surfaces */
+.authPage,.authCard,.authRegistrationPage,.authCardRegistration,
+.appCanvas,.mobileShell,.legalPage,.marketingPage,.landing,.v15InfoShell{
+  color:var(--cf-readable-text);
+}
+.muted,.fieldHelp,.privacyNote,.authFoot,.authPrivacyHint,
+.bindingMessage,.bindingUnavailable,.chatCopy>span,.chatMeta,
+.profileSummary p,.softPanel p,.dangerPanel p,.safetyRow small,
+.emptyState,.conversationHeader span,.planStatus{
+  color:var(--cf-readable-muted)!important;
+}
+
+/* Navigation and dark buttons should never inherit browser-default dark text */
+.bottomNav a,.bottomNav button,.navItem,.settingsList a,.settingsList button,
+.safetyMenu button,.headerIconButton,.filterButton,.ghostButton,.textButton,.softButton{
+  color:#f0e9ed;
+}
+
+/* Readable secondary text for V15 public information surfaces */
+.v15BackHome{color:#d0c9d0}
+.v15Eyebrow{color:#e6a2b2}
+.v15InfoLead{color:#cbc4cc}
+.v15StepCard>span{color:#e3a1b1}
+.v15StepCard p{color:#c8c1c9}
+.v15InfoNote p{color:#beb7c0}
+.v15InfoNote>a{color:#e1bec7}
+.v15SafetyCard>span{color:#e4a3b2}
+.v15SafetyCard p{color:#c8c1c9}
+.v15SafetyRules ul{color:#d0c9d0}
+.v15SafetyLinks a{color:#d8d1d8}
+
+/* Disabled text stays distinguishable without disappearing */
+button:disabled,input:disabled,select:disabled,textarea:disabled{
+  color:#a9a0a6!important;
+}
+
+@media(prefers-contrast:more){
+  :root{--muted:#e0d9de;--cf-muted:#e0d9de;--cf-readable-muted:#e0d9de;--cf-readable-subtle:#cbc4ca}
+  .stepRail button,.onboardingCard .choice{border-color:#8b6b75!important}
+}
