@@ -29,10 +29,11 @@ export function ServerChat({conversationId,userId,peerName,initialMessages}:{con
     if(document.visibilityState!=='visible')return;
     const latestPeer=[...messages].reverse().find(message=>message.sender_id!==userId&&message.status==='sent');
     if(!latestPeer||readAttemptRef.current===latestPeer.id)return;
-    readAttemptRef.current=latestPeer.id;
+    const readMessageId=latestPeer.id;
+    readAttemptRef.current=readMessageId;
     let active=true;
     async function markRead(){
-      const response=await fetch('/api/chat-read',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({conversationId,messageId:latestPeer.id})}).catch(()=>null);
+      const response=await fetch('/api/chat-read',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({conversationId,messageId:readMessageId})}).catch(()=>null);
       if(!response?.ok){if(active)readAttemptRef.current='';return}
       const data=await response.json().catch(()=>null) as {unreadCount?:number}|null;
       const count=Number(data?.unreadCount);
