@@ -24,9 +24,8 @@ function TabIcon({name}:{name:IconName}){
 
 export function BottomNav({initialUnreadChats=0}:{initialUnreadChats?:number}) {
   const pathname = usePathname();
-  const[unreadChats,setUnreadChats]=useState(Math.max(0,initialUnreadChats));
+  const[unreadChats,setUnreadChats]=useState(()=>Math.max(0,initialUnreadChats));
 
-  useEffect(()=>{setUnreadChats(Math.max(0,initialUnreadChats))},[initialUnreadChats]);
   useEffect(()=>{
     let active=true;
     async function refreshUnread(){
