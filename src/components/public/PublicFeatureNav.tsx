@@ -2,6 +2,7 @@ import Link from 'next/link';
 import styles from './public-feature.module.css';
 
 const primaryLinks=[
+  {href:'/',label:'Inicio'},
   {href:'/como-funciona',label:'Cómo funciona'},
   {href:'/safety',label:'Seguridad'},
   {href:'/blog-info',label:'Comunidad'},
