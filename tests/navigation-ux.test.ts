@@ -23,6 +23,16 @@ test('authenticated tab bar keeps five stable Social V2 destinations and active 
   assert.equal(source.includes("href: '/likes'"),false);
   assert.equal(source.includes('aria-current'),true);
   assert.equal(source.includes('usePathname'),true);
+  assert.match(source,/<svg/);
+});
+
+test('authenticated header only keeps notifications and creation as global utilities',()=>{
+  const source=read('src/components/mobile-shell.tsx');
+  assert.match(source,/href="\/notificaciones"/);
+  assert.match(source,/href="\/blog\/nuevo"/);
+  assert.match(source,/href="\/stories\/nuevo"/);
+  assert.doesNotMatch(source,/homeAction/);
+  assert.doesNotMatch(source,/href="\/azar"/);
 });
 
 test('community consolidates creation stories interests and conversation feed',()=>{
@@ -52,13 +62,34 @@ test('subscription membership is hidden while its backend stays feature-flagged'
   assert.match(checkout,/feature_unavailable/);
 });
 
-test('profile decision buttons keep Rewind Pass and Like without membership upsell',()=>{
+test('discovery uses horizontal decisions only and lets the user choose after a Match',()=>{
   const source=read('src/components/discover-deck.tsx');
   for(const action of ["rewind()","decide('pass')","decide('like')"]) assert.equal(source.includes(action),true,`missing interaction ${action}`);
   assert.doesNotMatch(source,/decide\('superfuego'\)/);
   assert.doesNotMatch(source,/Fuego Plus|Fuego Gold/);
-  assert.match(source,/dy<=-76/);
+  assert.doesNotMatch(source,/dy<=-76|dy>=76/);
+  assert.match(source,/Math\.abs\(dx\)>=72/);
+  assert.match(source,/Seguir descubriendo/);
+  assert.match(source,/Enviar mensaje/);
   assert.match(source,/Ver perfil completo/);
+});
+
+test('main profile keeps commercial tools in a secondary screen',()=>{
+  const profile=read('src/app/(app)/perfil/page.tsx');
+  const more=read('src/app/(app)/perfil/mas/page.tsx');
+  assert.match(profile,/Más ajustes y herramientas/);
+  for(const route of ['/boost','/tienda','/anunciantes']) assert.equal(profile.includes(`href="${route}"`),false,`${route} should not be on main profile`);
+  for(const route of ['/boost','/tienda','/anunciantes']) assert.equal(more.includes(`href="${route}"`),true,`${route} missing from secondary settings`);
+  assert.match(profile,/Completar perfil/);
+  assert.match(profile,/Preguntas de perfil/);
+  assert.match(profile,/Seguridad para citas/);
+});
+
+test('reporting offers immediate blocking as a separate user choice',()=>{
+  const source=read('src/components/safety/safety-actions.tsx');
+  assert.match(source,/Gracias por avisarnos/);
+  assert.match(source,/Bloquear también/);
+  assert.match(source,/setPostReport\(true\)/);
 });
 
 test('incoming likes can be accepted or declined',()=>{
