@@ -31,12 +31,15 @@ test('all user creator mutation APIs fail closed before business logic',()=>{
   }
 });
 
-test('profile hides creator monetization entry points when the program is closed',()=>{
-  const source=read('src/app/(app)/perfil/page.tsx');
-  assert.match(source,/creatorProgramEnabled\?<></);
-  assert.match(source,/Centro de creadores/);
-  assert.match(source,/Monetización y KYC/);
-  assert.match(source,/Oportunidades de marca/);
+test('creator monetization stays off the main profile and remains feature-gated in secondary settings',()=>{
+  const profile=read('src/app/(app)/perfil/page.tsx');
+  const more=read('src/app/(app)/perfil/mas/page.tsx');
+  assert.doesNotMatch(profile,/href="\/creadores/);
+  assert.match(more,/isCreatorProgramEnabled/);
+  assert.match(more,/creatorProgramEnabled\?<></);
+  assert.match(more,/Centro de creadores/);
+  assert.match(more,/Monetización y KYC/);
+  assert.match(more,/Oportunidades de marca/);
 });
 
 test('database migration revokes direct authenticated RPC access while preserving service role operations',()=>{
