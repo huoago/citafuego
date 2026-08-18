@@ -5,7 +5,7 @@ import { getAuthRequestOrigin } from '@/lib/auth/request-origin';
 const schema=z.object({email:z.string().trim().email().max(254)});
 
 export async function POST(request:Request){
-  const parsed=schema.safeParse(await request.json());
+  const parsed=schema.safeParse(await request.json().catch(()=>null));
   if(!parsed.success)return Response.json({error:'invalid_payload'},{status:400});
   const supabase=await createClient();
   const appUrl=getAuthRequestOrigin(request);
