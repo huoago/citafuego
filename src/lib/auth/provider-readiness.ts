@@ -7,11 +7,16 @@ type SupabaseAuthSettings={
 
 export type AuthProviderReadiness={
   checked:boolean;
+  emailRegistration:boolean;
   google:boolean;
   phone:boolean;
 };
 
-const fallback:AuthProviderReadiness={checked:false,google:false,phone:false};
+const fallback:AuthProviderReadiness={checked:false,emailRegistration:false,google:false,phone:false};
+
+export function isEmailRegistrationProductionReady(){
+  return process.env.EMAIL_AUTH_PRODUCTION_READY==='true';
+}
 
 export async function getAuthProviderReadiness():Promise<AuthProviderReadiness>{
   const baseUrl=getSupabaseUrl().trim().replace(/\/$/,'');
@@ -27,7 +32,7 @@ export async function getAuthProviderReadiness():Promise<AuthProviderReadiness>{
     const google=settings.external?.google===true;
     const smsProvider=typeof settings.sms_provider==='string'?settings.sms_provider.trim().toLowerCase():'';
     const phone=Boolean(smsProvider&&smsProvider!=='none'&&smsProvider!=='noop');
-    return{checked:true,google,phone};
+    return{checked:true,emailRegistration:isEmailRegistrationProductionReady(),google,phone};
   }catch{
     return fallback;
   }
