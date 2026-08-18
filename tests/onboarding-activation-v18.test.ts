@@ -18,18 +18,19 @@ test('activation has visible network and server failure feedback',()=>{
   assert.match(flow,/role="status" aria-live="polite"/);
 });
 
-test('blocked activation routes users to missing photo or verification steps',()=>{
-  assert.match(flow,/if\(approved<2\).*setStep\(2\)/s);
-  assert.match(flow,/if\(!verified\).*setStep\(3\)/s);
-  assert.match(flow,/Añadir fotos para continuar/);
-  assert.match(flow,/Completar verificación/);
+test('photos and selfie verification no longer block activation',()=>{
+  assert.match(flow,/const activationReady=nameOk&&consentOk/);
+  assert.doesNotMatch(flow,/if\(approved<2\).*setStep\(2\)/s);
+  assert.doesNotMatch(flow,/if\(!verified\).*setStep\(3\)/s);
+  assert.match(flow,/Continuar sin fotos/);
+  assert.match(flow,/Continuar sin verificar/);
+  assert.match(flow,/Fotos y verificación son mejoras opcionales de confianza/);
 });
 
-test('activation UI exposes a readable checklist instead of one dense sentence',()=>{
-  for(const token of ['activationChecklist','activationRequirement','Fotos aprobadas','Verificación','Consentimientos','activationSummary'])assert.match(flow,new RegExp(token));
+test('activation UI remains a readable checklist',()=>{
+  for(const token of ['activationChecklist','activationRequirement','Fotos','Verificación','Consentimientos','activationSummary'])assert.match(flow,new RegExp(token));
   assert.match(css,/\.activationRequirement\.isReady/);
   assert.match(css,/\.activationRequirement\.isPending/);
-  assert.match(css,/color:#fff9fc/);
-  assert.match(css,/\.onboardingNotice\{color:#fff!important/);
   assert.match(layout,/v18-activation-ux\.css/);
+  assert.match(layout,/v19-trust-theme\.css/);
 });
