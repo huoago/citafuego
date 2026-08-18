@@ -6,8 +6,12 @@ import {join} from 'node:path';
 const root=process.cwd();
 const read=(path:string)=>readFileSync(join(root,path),'utf8');
 
-test('V8 derives Google and phone availability from Supabase Auth settings',()=>{
+test('V8 derives Google and phone availability from Supabase Auth settings using shared production config',()=>{
   const readiness=read('src/lib/auth/provider-readiness.ts');
+  assert.match(readiness,/getSupabasePublishableKey,getSupabaseUrl/);
+  assert.match(readiness,/getSupabaseUrl\(\)/);
+  assert.match(readiness,/getSupabasePublishableKey\(\)/);
+  assert.doesNotMatch(readiness,/process\.env\.NEXT_PUBLIC_SUPABASE/);
   assert.match(readiness,/\/auth\/v1\/settings/);
   assert.match(readiness,/external\?\.google===true/);
   assert.match(readiness,/sms_provider/);
