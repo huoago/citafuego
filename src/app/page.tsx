@@ -46,7 +46,7 @@ export default function LandingPage() {
         <section className={styles.featureDock} aria-label="Funciones esenciales">
           <div className={styles.dockTitle}>
             <strong>Lo esencial para conectar</strong>
-            <Link href="/como-funciona">Ver cómo funciona todo →</Link>
+            <span>4 funciones clave · descubre el resto en Cómo funciona</span>
           </div>
           <div className={styles.featureRail}>
             {essentialFeatures.map((feature) => (
