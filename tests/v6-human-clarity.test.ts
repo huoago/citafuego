@@ -16,11 +16,12 @@ test('V6 public navigation reduces choices without deleting feature routes',()=>
   assert.match(home,/Lo esencial para conectar/);
 });
 
-test('V9 registration explains available paths without provider implementation jargon',()=>{
+test('V11 registration explains only currently usable paths without provider jargon',()=>{
   const register=read('src/app/(auth)/registro/page.tsx');
   const complete=read('src/app/(auth)/registro/completar/page.tsx');
   const switcher=read('src/components/auth/auth-method-switcher.tsx');
-  assert.match(register,/Solo mostramos las opciones que están disponibles ahora/);
+  assert.match(register,/registrationIntro\(readiness\)/);
+  assert.match(register,/código de 6 dígitos/);
   assert.doesNotMatch(register,/Supabase/);
   assert.match(switcher,/Registro con teléfono · paso 1 de 2/);
   assert.match(complete,/Paso 2 de 2/);
