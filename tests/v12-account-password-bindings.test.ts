@@ -27,45 +27,87 @@ test('V12 pending username identities cannot bypass the existing adult legal com
   assert.match(completion,/p_accept_sensitive:true/);
 });
 
-test('V12 account signup keeps password in Supabase Auth and requires no public email or phone',()=>{
+test('V12.1 account privilege stays inside Supabase Edge instead of copying admin keys into Vercel routes',()=>{
+  const register=read('src/app/api/auth/account/register/route.ts');
+  const login=read('src/app/api/auth/account/login/route.ts');
+  const edge=read('supabase/functions/account-auth-v12/index.ts');
+  assert.match(register,/callAccountEdge\(request,'register'/);
+  assert.match(login,/callAccountEdge\(request,'login'/);
+  assert.match(register,/auth\.setSession/);
+  assert.match(login,/auth\.setSession/);
+  assert.doesNotMatch(register,/createServiceClient|auth\.admin\.createUser|SUPABASE_SECRET_KEY/);
+  assert.doesNotMatch(login,/createServiceClient|auth\.admin\.getUserById|SUPABASE_SECRET_KEY/);
+  assert.match(edge,/SUPABASE_SECRET_KEYS/);
+  assert.match(edge,/SUPABASE_SERVICE_ROLE_KEY/);
+  assert.match(edge,/auth\.admin\.createUser/);
+  assert.match(edge,/auth\.admin\.getUserById/);
+  assert.match(edge,/accounts\.citafuego\.invalid/);
+});
+
+test('V12.1 account edge accepts only signed CitaFuego production Vercel identity',()=>{
+  const edge=read('supabase/functions/account-auth-v12/index.ts');
+  const bridge=read('src/lib/auth/account-edge.ts');
+  assert.match(edge,/createRemoteJWKSet/);
+  assert.match(edge,/jwtVerify/);
+  assert.match(edge,/https:\/\/oidc\.vercel\.com/);
+  assert.match(edge,/huoago-7712s-projects/);
+  assert.match(edge,/projectName='citafuego-prod'/);
+  assert.match(edge,/environment:production/);
+  assert.match(edge,/unauthorized_backend/);
+  assert.match(bridge,/VERCEL_OIDC_TOKEN/);
+  assert.match(bridge,/authorization:`Bearer \$\{oidcToken\}`/);
+  assert.match(bridge,/x-citafuego-account-edge/);
+});
+
+test('V12.1 account edge trusts client fingerprint only after backend identity and rate-limits atomically',()=>{
+  const edge=read('supabase/functions/account-auth-v12/index.ts');
+  const bridge=read('src/lib/auth/account-edge.ts');
+  const migration=read('supabase/migrations/075_account_auth_edge_rate_limits.sql');
+  assert.ok(edge.indexOf('verifyVercelIdentity(req)')<edge.indexOf("x-citafuego-client-fingerprint"));
+  assert.match(bridge,/createHash\('sha256'\)/);
+  assert.match(bridge,/x-forwarded-for/);
+  assert.match(migration,/pg_advisory_xact_lock/);
+  assert.match(migration,/register_ip/);
+  assert.match(migration,/login_ip/);
+  assert.match(migration,/login_account/);
+  assert.match(migration,/revoke all on function public\.consume_account_auth_rate_limit/);
+});
+
+test('V12.1 account readiness proves the OIDC Edge bridge rather than checking a local secret',()=>{
+  const readiness=read('src/lib/auth/provider-readiness.ts');
+  assert.match(readiness,/VERCEL_OIDC_TOKEN/);
+  assert.match(readiness,/functions\/v1\/account-auth-v12/);
+  assert.match(readiness,/JSON\.stringify\(\{action:'health'\}\)/);
+  assert.match(readiness,/authorization:`Bearer \$\{oidcToken\}`/);
+  assert.match(readiness,/account:boolean/);
+  assert.doesNotMatch(readiness,/getSupabaseServerSecret|isAccountAuthProductionReady|SUPABASE_SECRET_KEY/);
+});
+
+test('V12 account registration still requires Turnstile and creates no public email or phone requirement',()=>{
   const route=read('src/app/api/auth/account/register/route.ts');
-  const helper=read('src/lib/auth/account-identity.ts');
-  assert.match(route,/auth\.admin\.createUser/);
-  assert.match(route,/email_confirm:true/);
-  assert.match(route,/password:parsed\.data\.password/);
-  assert.match(route,/account_usernames/);
-  assert.match(route,/signInWithPassword/);
-  assert.match(route,/next:'\/registro\/completar'/);
+  const form=read('src/components/auth/account-auth-form.tsx');
   assert.match(route,/verifyTurnstile\(request,parsed\.data\.turnstileToken,'register'\)/);
-  assert.match(helper,/accounts\.citafuego\.invalid/);
+  assert.match(form,/Nombre de cuenta/);
+  assert.match(form,/Contraseña/);
+  assert.match(form,/Repite la contraseña/);
   assert.doesNotMatch(route,/phone:z\.string/);
 });
 
-test('V12 account login resolves username to stable user id then current Auth email',()=>{
+test('V12 account login keeps generic credential errors and correct Turnstile action',()=>{
   const route=read('src/app/api/auth/account/login/route.ts');
-  assert.match(route,/select\('user_id'\)/);
-  assert.match(route,/auth\.admin\.getUserById/);
-  assert.match(route,/authUser\.user\?\.email/);
-  assert.match(route,/signInWithPassword/);
   assert.match(route,/invalid_credentials/);
   assert.match(route,/verifyTurnstile\(request,parsed\.data\.turnstileToken,'login'\)/);
-  assert.doesNotMatch(route,/select\('login_email'\)/);
+  assert.match(route,/callAccountEdge/);
+  assert.doesNotMatch(route,/account_usernames|auth\.admin/);
 });
 
-test('V12 account auth is the first registration method and readiness never exposes the server secret',()=>{
+test('V12 account auth is the first registration method',()=>{
   const switcher=read('src/components/auth/auth-method-switcher.tsx');
-  const readiness=read('src/lib/auth/provider-readiness.ts');
-  const service=read('src/lib/supabase/service.ts');
   assert.match(switcher,/type Method='account'\|'email'\|'phone'\|'google'/);
   assert.match(switcher,/\['account','email','phone','google'\]/);
   assert.match(switcher,/account:'Cuenta'/);
   assert.match(switcher,/readiness\.account/);
   assert.match(switcher,/AccountAuthForm/);
-  assert.match(readiness,/account:boolean/);
-  assert.match(readiness,/isAccountAuthProductionReady/);
-  assert.match(service,/SUPABASE_SECRET_KEY/);
-  assert.match(service,/SUPABASE_SERVICE_ROLE_KEY/);
-  assert.doesNotMatch(readiness,/return\{[^}]*SUPABASE_SECRET_KEY/);
 });
 
 test('V12 Turnstile separates register and login actions',()=>{

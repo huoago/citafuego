@@ -1,7 +1,7 @@
 import {z} from 'zod';
 import {createClient} from '@/lib/supabase/server';
-import {createServiceClient} from '@/lib/supabase/service';
-import {isAllowedAccountUsername,normalizeAccountUsername} from '@/lib/auth/account-identity';
+import {callAccountEdge} from '@/lib/auth/account-edge';
+import {isAllowedAccountUsername} from '@/lib/auth/account-identity';
 import {verifyTurnstile} from '@/lib/security/turnstile';
 
 const schema=z.object({
@@ -16,20 +16,16 @@ export async function POST(request:Request){
   const challenge=await verifyTurnstile(request,parsed.data.turnstileToken,'login');
   if(!challenge.ok)return Response.json({error:challenge.error??'challenge_failed'},{status:403});
 
-  const service=createServiceClient();
-  const normalized=normalizeAccountUsername(parsed.data.username);
-  const{data:account}=await service.from('account_usernames').select('user_id').eq('normalized_username',normalized).maybeSingle();
-  if(!account?.user_id)return Response.json({error:'invalid_credentials'},{status:401});
-  const{data:authUser,error:authLookupError}=await service.auth.admin.getUserById(String(account.user_id));
-  const loginEmail=authUser.user?.email;
-  if(authLookupError||!loginEmail)return Response.json({error:'invalid_credentials'},{status:401});
+  const edge=await callAccountEdge(request,'login',parsed.data.username,parsed.data.password);
+  if(edge.status!==200||!edge.data.ok||!edge.data.accessToken||!edge.data.refreshToken){
+    if(edge.status===429)return Response.json({error:'rate_limited'},{status:429});
+    if(edge.status===401)return Response.json({error:'invalid_credentials'},{status:401});
+    return Response.json({error:'login_unavailable'},{status:503});
+  }
 
   const supabase=await createClient();
-  const{error}=await supabase.auth.signInWithPassword({email:loginEmail,password:parsed.data.password});
-  if(error){
-    if(error.status===429)return Response.json({error:'rate_limited'},{status:429});
-    return Response.json({error:'invalid_credentials'},{status:401});
-  }
+  const{error:sessionError}=await supabase.auth.setSession({access_token:edge.data.accessToken,refresh_token:edge.data.refreshToken});
+  if(sessionError)return Response.json({error:'session_failed'},{status:503});
   const{data:{user}}=await supabase.auth.getUser();
   if(!user)return Response.json({error:'session_failed'},{status:503});
   const[{data:privateRow},{data:profile}]=await Promise.all([
