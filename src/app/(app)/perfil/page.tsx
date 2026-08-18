@@ -1,10 +1,52 @@
-import Image from 'next/image';import Link from 'next/link';import { redirect } from 'next/navigation';import { getAuthenticatedUserId } from '@/lib/auth/server';import { createClient } from '@/lib/supabase/server';import { getSocialProfile } from '@/lib/social/server';import { HandleForm } from '@/components/social/handle-form';
+import Image from 'next/image';
+import Link from 'next/link';
+import { redirect } from 'next/navigation';
+import { getAuthenticatedUserId } from '@/lib/auth/server';
+import { createClient } from '@/lib/supabase/server';
+import { getSocialProfile } from '@/lib/social/server';
+import { HandleForm } from '@/components/social/handle-form';
+import { TrustMark } from '@/components/profile/trust-mark';
+
 export const dynamic='force-dynamic';
 const SettingLink=({href,children}:{href:string;children:React.ReactNode})=><Link href={href}>{children}<span aria-hidden="true">›</span></Link>;
-export default async function Page(){const id=await getAuthenticatedUserId();if(!id)redirect('/iniciar-sesion');const supabase=await createClient();const[{data:profile},{data:photo},{data:boost},social]=await Promise.all([supabase.from('profiles').select('display_name,district,city,verification_badge,identity_verification_badge,profile_completion,bio,intent,last_active_at').eq('id',id).maybeSingle(),supabase.from('profile_photos').select('storage_path').eq('user_id',id).eq('status','approved').order('is_primary',{ascending:false}).order('position').limit(1).maybeSingle(),supabase.rpc('get_my_boost_status'),getSocialProfile(id)]);if(!profile)redirect('/onboarding');let imageUrl:string|null=null;if(photo?.storage_path){const{data}=await supabase.storage.from('profile-photos').createSignedUrl(photo.storage_path,600);imageUrl=data?.signedUrl??null}const boostStatus=(boost??{}) as {active?:boolean};return <section><div className="pageHeader"><p className="eyebrow">Tu presencia</p><h1>Perfil</h1></div><div className="profileSummary">{imageUrl?<span className="profileAvatar"><Image src={imageUrl} alt={profile.display_name} fill sizes="76px"/></span>:<span className="avatarPlaceholder large">{profile.display_name.slice(0,1)}</span>}<div><h2>{profile.display_name} {profile.identity_verification_badge?<span className="identityBadge" title="Identidad verificada">✓✓</span>:profile.verification_badge?<span className="verifiedBadge">✓</span>:null}</h2><p>{profile.district??profile.city} · Lima</p>{social?.handle?<small>@{social.handle}</small>:null}{boostStatus.active?<small className="boostInline">⚡ Boost activo</small>:null}</div><Link className="completionBadge completionAction" href="/onboarding?edit=1" aria-label={`Perfil completado al ${profile.profile_completion} por ciento`}>{profile.profile_completion}%</Link></div>{profile.profile_completion<100?<div className="profileCompletionPrompt"><div><strong>Tu perfil está al {profile.profile_completion}%</strong><span>Completa fotos, bio, preferencias o preguntas para dar más contexto antes de un Match.</span></div><Link className="ghostButton" href="/onboarding?edit=1">Completar perfil</Link></div>:null}{social?<div className="socialStats"><Link href={`/perfil/${id}/seguidores`}><strong>{social.followers}</strong><span>Seguidores</span></Link><Link href={`/perfil/${id}/seguidos`}><strong>{social.following}</strong><span>Siguiendo</span></Link><Link href="/stories"><strong>{social.activeStories}</strong><span>Stories</span></Link></div>:null}<div className="softPanel"><strong>Tu bio</strong><p>{profile.bio}</p></div>{social?<HandleForm initial={social.handle}/>:null}
-<div className="profileSettingsGroups">
-<section className="settingsSection"><header><div><h2>Mi perfil</h2><p>Lo que otras personas ven y cómo quieres conectar.</p></div></header><div className="settingsList"><SettingLink href="/onboarding?edit=1">Editar perfil y preferencias</SettingLink><SettingLink href="/perfil/identidad">Identidad y deseos</SettingLink><SettingLink href="/perfil/fotos">Fotos y foto principal</SettingLink><SettingLink href="/perfil/prompts">Preguntas de perfil</SettingLink><SettingLink href="/perfil/whatsapp">WhatsApp · número y visibilidad</SettingLink></div></section>
-<section className="settingsSection"><header><div><h2>Contenido y social</h2><p>Tu actividad, publicaciones y contenido privado.</p></div></header><div className="settingsList"><SettingLink href="/stories">Stories de 24 horas</SettingLink><SettingLink href="/stories/nuevo">Crear Story</SettingLink><SettingLink href="/blog/mio">Mi blog</SettingLink><SettingLink href="/guardados">Publicaciones guardadas</SettingLink><SettingLink href="/albumes">Álbumes privados</SettingLink></div></section>
-<section className="settingsSection"><header><div><h2>Seguridad y privacidad</h2><p>Verificación, protección, alertas y controles de privacidad.</p></div></header><div className="settingsList"><SettingLink href="/perfil/verificacion-identidad">✓✓ Verificación de identidad</SettingLink><SettingLink href="/perfil/verificacion-telefono">☎ Verificación de teléfono</SettingLink><SettingLink href="/citas">⌖ Seguridad para citas</SettingLink><SettingLink href="/blog/configuracion">Privacidad del blog</SettingLink><SettingLink href="/notificaciones">Notificaciones</SettingLink><SettingLink href="/seguridad">Seguridad y verificación</SettingLink></div></section>
-<div className="settingsList profileMoreLink"><SettingLink href="/perfil/mas">Más ajustes y herramientas</SettingLink></div>
-</div></section>}
+
+export default async function Page(){
+  const id=await getAuthenticatedUserId();if(!id)redirect('/iniciar-sesion');
+  const supabase=await createClient();
+  const[{data:profile},{data:photo},{data:boost},social]=await Promise.all([
+    supabase.from('profiles').select('display_name,district,city,verification_badge,identity_verification_badge,profile_completion,bio,intent,last_active_at').eq('id',id).maybeSingle(),
+    supabase.from('profile_photos').select('storage_path').eq('user_id',id).eq('status','approved').order('is_primary',{ascending:false}).order('position').limit(1).maybeSingle(),
+    supabase.rpc('get_my_boost_status'),
+    getSocialProfile(id),
+  ]);
+  if(!profile)redirect('/onboarding');
+  let imageUrl:string|null=null;
+  if(photo?.storage_path){const{data}=await supabase.storage.from('profile-photos').createSignedUrl(photo.storage_path,600);imageUrl=data?.signedUrl??null}
+  const hasPhoto=Boolean(imageUrl);
+  const verified=Boolean(profile.verification_badge);
+  const identityVerified=Boolean(profile.identity_verification_badge);
+  const trustLabel=identityVerified?'Identidad verificada':hasPhoto&&verified?'Confianza avanzada':verified?'Perfil verificado':hasPhoto?'Fotos aprobadas':'Perfil estándar';
+  const boostStatus=(boost??{}) as {active?:boolean};
+
+  return <section>
+    <div className="pageHeader"><p className="eyebrow">Tu presencia</p><h1>Perfil</h1></div>
+    <div className="profileSummary">
+      <span className="profileAvatarWrap">
+        {imageUrl?<span className="profileAvatar"><Image src={imageUrl} alt={profile.display_name} fill sizes="76px"/></span>:<span className="avatarPlaceholder large">{profile.display_name.slice(0,1)}</span>}
+        <TrustMark hasPhoto={hasPhoto} verified={verified} identityVerified={identityVerified} className="avatarTrustMark"/>
+      </span>
+      <div><h2>{profile.display_name}</h2><p>{profile.district??profile.city} · Lima</p><small className="trustCaption">{trustLabel}</small>{social?.handle?<small>@{social.handle}</small>:null}{boostStatus.active?<small className="boostInline">⚡ Boost activo</small>:null}</div>
+      <Link className="completionBadge completionAction" href="/onboarding?edit=1" aria-label={`Perfil completado al ${profile.profile_completion} por ciento`}>{profile.profile_completion}%</Link>
+    </div>
+    {profile.profile_completion<100?<div className="profileCompletionPrompt"><div><strong>Tu perfil está al {profile.profile_completion}%</strong><span>Añade fotos, bio, preferencias o preguntas cuando quieras para dar más contexto antes de un Match.</span></div><Link className="ghostButton" href="/onboarding?edit=1">Completar perfil</Link></div>:null}
+    {social?<div className="socialStats"><Link href={`/perfil/${id}/seguidores`}><strong>{social.followers}</strong><span>Seguidores</span></Link><Link href={`/perfil/${id}/seguidos`}><strong>{social.following}</strong><span>Siguiendo</span></Link><Link href="/stories"><strong>{social.activeStories}</strong><span>Stories</span></Link></div>:null}
+    <div className="softPanel"><strong>Tu bio</strong><p>{profile.bio||'Puedes añadir una bio cuando quieras.'}</p></div>
+    {social?<HandleForm initial={social.handle}/>:null}
+    <div className="profileSettingsGroups">
+      <section className="settingsSection"><header><div><h2>Mi perfil</h2><p>Lo que otras personas ven y cómo quieres conectar.</p></div></header><div className="settingsList"><SettingLink href="/onboarding?edit=1">Editar perfil y preferencias</SettingLink><SettingLink href="/perfil/identidad">Identidad y deseos</SettingLink><SettingLink href="/perfil/fotos">Fotos y foto principal</SettingLink><SettingLink href="/perfil/prompts">Preguntas de perfil</SettingLink><SettingLink href="/perfil/whatsapp">WhatsApp · número y visibilidad</SettingLink></div></section>
+      <section className="settingsSection"><header><div><h2>Contenido y social</h2><p>Tu actividad, publicaciones y contenido privado.</p></div></header><div className="settingsList"><SettingLink href="/stories">Stories de 24 horas</SettingLink><SettingLink href="/stories/nuevo">Crear Story</SettingLink><SettingLink href="/blog/mio">Mi blog</SettingLink><SettingLink href="/guardados">Publicaciones guardadas</SettingLink><SettingLink href="/albumes">Álbumes privados</SettingLink></div></section>
+      <section className="settingsSection"><header><div><h2>Seguridad y privacidad</h2><p>Las verificaciones son opcionales y añaden señales de confianza; aquí también gestionas protección y privacidad.</p></div></header><div className="settingsList"><SettingLink href="/perfil/verificacion-identidad">✓✓ Verificación de identidad</SettingLink><SettingLink href="/perfil/verificacion-telefono">☎ Verificación de teléfono</SettingLink><SettingLink href="/citas">⌖ Seguridad para citas</SettingLink><SettingLink href="/blog/configuracion">Privacidad del blog</SettingLink><SettingLink href="/notificaciones">Notificaciones</SettingLink><SettingLink href="/seguridad">Seguridad y verificación</SettingLink></div></section>
+      <div className="settingsList profileMoreLink"><SettingLink href="/perfil/mas">Más ajustes y herramientas</SettingLink></div>
+    </div>
+  </section>;
+}
