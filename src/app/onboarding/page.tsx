@@ -1,5 +1,52 @@
 import { redirect } from 'next/navigation';
+import { MobileShell } from '@/components/mobile-shell';
 import { createClient } from '@/lib/supabase/server';
 import { OnboardingFlow } from '@/components/onboarding/onboarding-flow';
+
 export const dynamic='force-dynamic';
-export default async function Page({searchParams}:{searchParams:Promise<{edit?:string}>}){const query=await searchParams;const s=await createClient();const{data:claims}=await s.auth.getClaims();const userId=claims?.claims?.sub;if(typeof userId!=='string')redirect('/login');const[pr,pref,ints,sel,photos,ver,priv,privateLocation,consents]=await Promise.all([s.from('profiles').select('display_name,bio,gender_identity,city,district,intent,status,profile_completion,verification_badge').eq('id',userId).maybeSingle(),s.from('dating_preferences').select('interested_in,min_age,max_age,max_distance_km,intentions').eq('user_id',userId).maybeSingle(),s.from('interests').select('id,label_es,category').eq('active',true).order('label_es'),s.from('profile_interests').select('interest_id').eq('user_id',userId),s.from('profile_photos').select('id,status,storage_path,position,is_primary').eq('user_id',userId).neq('status','removed').order('position'),s.from('verification_sessions').select('status').eq('user_id',userId).order('started_at',{ascending:false}).limit(1).maybeSingle(),s.from('user_private').select('birth_date').eq('user_id',userId).maybeSingle(),s.from('user_location_private').select('address_label,latitude,longitude,accuracy_m').eq('user_id',userId).maybeSingle(),s.from('consent_events').select('consent_type,document_version,granted,created_at').eq('user_id',userId).eq('granted',true).order('created_at',{ascending:false})]);if(pr.data?.status==='active'&&query.edit!=='1')redirect('/discover');const paths=(photos.data??[]).map(x=>String(x.storage_path));const signed=new Map<string,string>();if(paths.length){const{data}=await s.storage.from('profile-photos').createSignedUrls(paths,900);data?.forEach(x=>{if(x.path&&x.signedUrl)signed.set(x.path,x.signedUrl)})}const consentMap=Object.fromEntries((consents.data??[]).map(c=>[c.consent_type,c.document_version]));const savedLocation=privateLocation.data?.latitude!=null&&privateLocation.data?.longitude!=null?{latitude:Number(privateLocation.data.latitude),longitude:Number(privateLocation.data.longitude),accuracyM:privateLocation.data.accuracy_m==null?null:Number(privateLocation.data.accuracy_m)}:null;return <OnboardingFlow initialStep={query.edit==='1'?1:undefined} interests={(ints.data??[]).map(x=>({id:Number(x.id),label_es:String(x.label_es),category:String(x.category)}))} initial={{profile:pr.data,preferences:pref.data,birthDate:String(priv.data?.birth_date??''),consents:consentMap,selectedInterestIds:(sel.data??[]).map(x=>Number(x.interest_id)),photos:(photos.data??[]).map(x=>({id:String(x.id),status:String(x.status) as 'pending'|'approved'|'rejected'|'removed',signedUrl:signed.get(String(x.storage_path))??null,position:Number(x.position),isPrimary:Boolean(x.is_primary)})),verificationStatus:String(ver.data?.status??'unverified'),addressLabel:String(privateLocation.data?.address_label??''),location:savedLocation}}/>}
+
+export default async function Page({searchParams}:{searchParams:Promise<{edit?:string}>}){
+  const query=await searchParams;
+  const s=await createClient();
+  const{data:claims}=await s.auth.getClaims();
+  const userId=claims?.claims?.sub;
+  if(typeof userId!=='string')redirect('/iniciar-sesion');
+
+  const[pr,pref,ints,sel,photos,ver,priv,privateLocation,consents]=await Promise.all([
+    s.from('profiles').select('display_name,bio,gender_identity,city,district,intent,status,profile_completion,verification_badge').eq('id',userId).maybeSingle(),
+    s.from('dating_preferences').select('interested_in,min_age,max_age,max_distance_km,intentions').eq('user_id',userId).maybeSingle(),
+    s.from('interests').select('id,label_es,category').eq('active',true).order('label_es'),
+    s.from('profile_interests').select('interest_id').eq('user_id',userId),
+    s.from('profile_photos').select('id,status,storage_path,position,is_primary').eq('user_id',userId).neq('status','removed').order('position'),
+    s.from('verification_sessions').select('status').eq('user_id',userId).order('started_at',{ascending:false}).limit(1).maybeSingle(),
+    s.from('user_private').select('birth_date').eq('user_id',userId).maybeSingle(),
+    s.from('user_location_private').select('address_label,latitude,longitude,accuracy_m').eq('user_id',userId).maybeSingle(),
+    s.from('consent_events').select('consent_type,document_version,granted,created_at').eq('user_id',userId).eq('granted',true).order('created_at',{ascending:false}),
+  ]);
+  if(pr.data?.status==='active'&&query.edit!=='1')redirect('/descubrir');
+
+  const paths=(photos.data??[]).map(x=>String(x.storage_path));
+  const signed=new Map<string,string>();
+  if(paths.length){
+    const{data}=await s.storage.from('profile-photos').createSignedUrls(paths,900);
+    data?.forEach(x=>{if(x.path&&x.signedUrl)signed.set(x.path,x.signedUrl)});
+  }
+  const consentMap=Object.fromEntries((consents.data??[]).map(c=>[c.consent_type,c.document_version]));
+  const savedLocation=privateLocation.data?.latitude!=null&&privateLocation.data?.longitude!=null?{
+    latitude:Number(privateLocation.data.latitude),longitude:Number(privateLocation.data.longitude),accuracyM:privateLocation.data.accuracy_m==null?null:Number(privateLocation.data.accuracy_m),
+  }:null;
+
+  const flow=<OnboardingFlow
+    initialStep={query.edit==='1'?1:undefined}
+    interests={(ints.data??[]).map(x=>({id:Number(x.id),label_es:String(x.label_es),category:String(x.category)}))}
+    initial={{
+      profile:pr.data,preferences:pref.data,birthDate:String(priv.data?.birth_date??''),consents:consentMap,
+      selectedInterestIds:(sel.data??[]).map(x=>Number(x.interest_id)),
+      photos:(photos.data??[]).map(x=>({id:String(x.id),status:String(x.status) as 'pending'|'approved'|'rejected'|'removed',signedUrl:signed.get(String(x.storage_path))??null,position:Number(x.position),isPrimary:Boolean(x.is_primary)})),
+      verificationStatus:String(ver.data?.status??'unverified'),addressLabel:String(privateLocation.data?.address_label??''),location:savedLocation,
+    }}
+  />;
+
+  // After legal/adult registration, profile setup/editing remains inside the same app navigation shell.
+  return priv.data?.birth_date?<MobileShell>{flow}</MobileShell>:flow;
+}
