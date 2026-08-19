@@ -13,8 +13,9 @@ export default async function AppLayout({children}:{children:ReactNode}){
     s.from('user_notifications').select('id',{count:'exact',head:true}).eq('user_id',user.id).is('read_at',null),
     s.rpc('get_my_unread_chat_count'),
   ]);
+  // Age/legal registration remains mandatory. Profile completion is optional for browsing the app.
   if(!privateRow)redirect('/registro/completar');
-  if(!p||p.status==='onboarding')redirect('/onboarding');
-  if(p.status!=='active')redirect('/cuenta-restringida');
+  if(!p)redirect('/onboarding');
+  if(['restricted','suspended','banned'].includes(String(p.status)))redirect('/cuenta-restringida');
   return <MobileShell unreadNotifications={count??0} unreadChats={Number(chatUnread??0)}>{children}</MobileShell>;
 }
