@@ -25,6 +25,8 @@ export function AccountAuthForm({mode,turnstileSiteKey=''}:{mode:'register'|'log
       if(code==='account_taken')setError('Ese nombre de cuenta ya está en uso. Elige otro.');
       else if(code==='invalid_credentials')setError('Cuenta o contraseña incorrectos.');
       else if(code==='rate_limited')setError('Demasiados intentos. Espera un momento antes de volver a probar.');
+      else if(code==='compromised_password')setError('Esa contraseña apareció en filtraciones conocidas. Elige una contraseña distinta y única.');
+      else if(code==='password_security_unavailable')setError('La comprobación de seguridad de contraseñas no está disponible ahora. Inténtalo de nuevo.');
       else if(code.startsWith('challenge_'))setError('No pudimos validar la verificación de seguridad. Inténtalo de nuevo.');
       else setError(mode==='register'?'No pudimos crear la cuenta ahora. Comprueba que la contraseña tenga al menos 10 caracteres.':'No pudimos iniciar sesión ahora. Inténtalo de nuevo.');
       return;
@@ -35,7 +37,7 @@ export function AccountAuthForm({mode,turnstileSiteKey=''}:{mode:'register'|'log
   return <form className="formStack registrationForm accountAuthForm" onSubmit={submit}>
     <div className="authStepHeader"><span className="authStepBadge">{mode==='register'?'1':'✓'}</span><div><strong>{mode==='register'?'Crea tu cuenta':'Entra con tu cuenta'}</strong><small>{mode==='register'?'El correo y el celular se pueden vincular después.':'Usa el nombre de cuenta que elegiste al registrarte.'}</small></div></div>
     <label>Nombre de cuenta<input name="username" autoComplete="username" inputMode="text" minLength={4} maxLength={24} pattern="[A-Za-z0-9][A-Za-z0-9._-]{3,23}" placeholder="ej. fuego_lima" required/><small className="fieldHelp">4–24 caracteres: letras, números, punto, guion o guion bajo.</small></label>
-    <label>Contraseña<input type="password" name="password" autoComplete={mode==='register'?'new-password':'current-password'} minLength={mode==='register'?10:1} maxLength={72} required/><small className="fieldHelp">{mode==='register'?'10–72 caracteres. Usa una contraseña única que no reutilices en otros servicios.':'Tu contraseña nunca se muestra ni se envía por mensaje.'}</small></label>
+    <label>Contraseña<input type="password" name="password" autoComplete={mode==='register'?'new-password':'current-password'} minLength={mode==='register'?10:1} maxLength={72} required/><small className="fieldHelp">{mode==='register'?'10–72 caracteres. Usa una contraseña única; rechazamos contraseñas conocidas por filtraciones públicas.':'Tu contraseña nunca se muestra ni se envía por mensaje.'}</small></label>
     {mode==='register'?<label>Repite la contraseña<input type="password" name="confirmPassword" autoComplete="new-password" minLength={10} maxLength={72} required/></label>:null}
     {turnstileSiteKey?<TurnstileField key={challengeKey} siteKey={turnstileSiteKey} onToken={setChallengeToken} action={mode}/>:null}
     <button className="ctaButton fullWidth" disabled={busy||(Boolean(turnstileSiteKey)&&!challengeToken)}>{busy?(mode==='register'?'Creando…':'Entrando…'):(mode==='register'?'Crear cuenta':'Iniciar sesión')}</button>
