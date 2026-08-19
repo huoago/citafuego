@@ -26,10 +26,10 @@ export default function LandingPage() {
             </div>
           </div>
 
-          <div className={styles.demoArea} aria-label="Demostración del producto con datos de ejemplo">
+          <div className={styles.demoArea} aria-label="Vista previa ilustrativa de la experiencia CitaFuego">
             <div className={styles.cardBack} />
             <article className={styles.profileCard}>
-              <div className={styles.demoLabel}>Demo · datos de ejemplo</div>
+              <div className={styles.demoLabel}>Vista previa</div>
               <div className={styles.photo} />
               <div className={styles.shade} />
               <div className={styles.profileCopy}>
