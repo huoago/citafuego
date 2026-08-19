@@ -33,6 +33,7 @@ export default async function Page({searchParams}:PageProps){
    {error?<div className={`${styles.alert} authInlineAlert`} role="alert"><strong>{error.title}</strong><span>{error.body}</span></div>:null}
 
    <AuthMethodSwitcher mode="login" turnstileSiteKey={turnstileSiteKey} readiness={readiness}/>
+   <p className={styles.footer}><Link href="/recuperar-cuenta">¿Olvidaste tu contraseña?</Link></p>
 
    <div className={styles.securityNote}>
     <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 3 5 6v5c0 4.8 2.9 8.1 7 10 4.1-1.9 7-5.2 7-10V6z" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round"/><path d="m9.5 12 1.7 1.7 3.6-3.8" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
