@@ -11,6 +11,8 @@ const settings=readFileSync('src/app/(app)/ajustes/page.tsx','utf8');
 const settingsClient=readFileSync('src/components/settings/settings-client.tsx','utf8');
 const api=readFileSync('src/app/api/ui/preferences/route.ts','utf8');
 const migration=readFileSync('supabase/migrations/080_open_discovery_ui_security_hardening.sql','utf8');
+const rlsOptimization=readFileSync('supabase/migrations/081_ui_preferences_rls_initplan.sql','utf8');
+const interactionMigration=readFileSync('supabase/migrations/082_discover_interactions_without_activation.sql','utf8');
 
 test('onboarding profile is no longer redirected away from the app or Discover',()=>{
   assert.doesNotMatch(appLayout,/p\.status==='onboarding'\)redirect\('\/onboarding'/);
@@ -20,6 +22,13 @@ test('onboarding profile is no longer redirected away from the app or Discover',
   assert.match(discover,/no necesitas activar un perfil para entrar/);
   assert.match(migration,/unable_to_remove_discover_candidate_activation_gate/);
   assert.match(migration,/unable_to_remove_discover_page_activation_gate/);
+});
+
+test('onboarding users can Like and Pass in Discover without weakening target availability',()=>{
+  assert.match(interactionMigration,/p\.status in \(''active'',''onboarding''\)/);
+  assert.match(interactionMigration,/profile_not_available/);
+  assert.match(interactionMigration,/unable_to_open_discover_interactions/);
+  assert.doesNotMatch(interactionMigration,/target_unavailable.*onboarding/);
 });
 
 test('top dating navigation is shared across logged-in app pages',()=>{
@@ -48,4 +57,9 @@ test('security hardening makes RPC-only tables explicit and locks trigger functi
   assert.match(migration,/deny_direct_access_v20/);
   assert.match(migration,/revoke all on table/);
   for(const fn of ['enforce_interaction_trust','enforce_message_rate_limit','handle_citafuego_new_user','notify_interaction','notify_match','sync_content_topic_vector'])assert.match(migration,new RegExp(`revoke all on function public\\.${fn}`));
+});
+
+test('new preference RLS policies use initplan-friendly auth lookup',()=>{
+  assert.match(rlsOptimization,/\(select auth\.uid\(\)\)/);
+  assert.doesNotMatch(rlsOptimization,/user_id=auth\.uid\(\)/);
 });
