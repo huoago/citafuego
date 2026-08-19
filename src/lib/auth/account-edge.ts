@@ -2,13 +2,22 @@ import 'server-only';
 import {createHash} from 'node:crypto';
 import {getSupabasePublishableKey,getSupabaseUrl} from '@/lib/supabase/public-config';
 
-type AccountAction='register'|'login';
-type AccountEdgeResponse={
+export type AccountAction='register'|'login'|'change_password'|'set_recovery_email'|'request_recovery';
+export type AccountEdgePayload={
+  action:AccountAction;
+  username?:string;
+  password?:string;
+  currentPassword?:string;
+  newPassword?:string;
+  email?:string;
+};
+export type AccountEdgeResponse={
   ok?:boolean;
   error?:string;
   accessToken?:string;
   refreshToken?:string;
   expiresIn?:number;
+  email?:string;
 };
 
 export function accountClientFingerprint(request:Request){
@@ -22,29 +31,31 @@ export function getVercelRequestOidcToken(request:Request){
   return request.headers.get('x-vercel-oidc-token')?.trim()||process.env.VERCEL_OIDC_TOKEN?.trim()||'';
 }
 
-export async function callAccountEdge(request:Request,action:AccountAction,username:string,password:string){
+export async function callAccountEdgePayload(request:Request,payload:AccountEdgePayload,userJwt=''){
   const oidcToken=getVercelRequestOidcToken(request);
   if(!oidcToken)return{status:503,data:{error:'account_backend_unavailable'} as AccountEdgeResponse};
   const baseUrl=getSupabaseUrl().trim().replace(/\/$/,'');
   const publishableKey=getSupabasePublishableKey().trim();
   if(!baseUrl||!publishableKey)return{status:503,data:{error:'account_backend_unavailable'} as AccountEdgeResponse};
   try{
+    const headers:Record<string,string>={
+      'content-type':'application/json',
+      apikey:publishableKey,
+      authorization:`Bearer ${oidcToken}`,
+      'x-citafuego-account-edge':'v12',
+      'x-citafuego-client-fingerprint':accountClientFingerprint(request),
+    };
+    if(userJwt)headers['x-citafuego-user-jwt']=userJwt;
     const response=await fetch(`${baseUrl}/functions/v1/account-auth-v12`,{
-      method:'POST',
-      headers:{
-        'content-type':'application/json',
-        apikey:publishableKey,
-        authorization:`Bearer ${oidcToken}`,
-        'x-citafuego-account-edge':'v12',
-        'x-citafuego-client-fingerprint':accountClientFingerprint(request),
-      },
-      body:JSON.stringify({action,username,password}),
-      cache:'no-store',
-      redirect:'error',
+      method:'POST',headers,body:JSON.stringify(payload),cache:'no-store',redirect:'error',
     });
     const data=await response.json().catch(()=>({error:'account_backend_unavailable'})) as AccountEdgeResponse;
     return{status:response.status,data};
   }catch{
     return{status:503,data:{error:'account_backend_unavailable'} as AccountEdgeResponse};
   }
+}
+
+export function callAccountEdge(request:Request,action:'register'|'login',username:string,password:string){
+  return callAccountEdgePayload(request,{action,username,password});
 }
