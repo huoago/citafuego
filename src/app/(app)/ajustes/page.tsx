@@ -1,8 +1,15 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
-import { SettingsClient,DEFAULT_MODULE_LAYOUT,type UiPreferences } from '@/components/settings/settings-client';
+import { SettingsClient,type UiPreferences } from '@/components/settings/settings-client';
 
+const defaultLayout:UiPreferences['module_layout']=[
+  {id:'completion',colSpan:2,rowSpan:1,visible:true},
+  {id:'social',colSpan:2,rowSpan:1,visible:true},
+  {id:'bio',colSpan:2,rowSpan:1,visible:true},
+  {id:'handle',colSpan:1,rowSpan:1,visible:true},
+  {id:'shortcuts',colSpan:1,rowSpan:2,visible:true},
+];
 const SettingLink=({href,title,copy}:{href:string;title:string;copy:string})=><Link className="settingsRoute" href={href}><span><strong>{title}</strong><small>{copy}</small></span><b aria-hidden="true">›</b></Link>;
 
 export const dynamic='force-dynamic';
@@ -15,7 +22,7 @@ export default async function Page(){
   const initial:UiPreferences={
     theme:typeof data?.theme==='string'?data.theme:'noche',
     custom_background:typeof data?.custom_background==='string'?data.custom_background:null,
-    module_layout:Array.isArray(data?.module_layout)?data.module_layout as UiPreferences['module_layout']:DEFAULT_MODULE_LAYOUT,
+    module_layout:Array.isArray(data?.module_layout)?data.module_layout as UiPreferences['module_layout']:defaultLayout,
   };
   return <section className="settingsCenter">
     <div className="pageHeader settingsTitleRow"><div><p className="eyebrow">Tu espacio, tus reglas</p><h1>Configuración</h1><p className="muted">Administra tu cuenta, privacidad, apariencia y la forma en que se organiza tu perfil.</p></div><Link className="ghostButton" href="/perfil">← Perfil</Link></div>
