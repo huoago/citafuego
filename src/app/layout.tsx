@@ -19,6 +19,7 @@ import './v16-dark-theme-readability.css';
 import './v17-photo-review.css';
 import './v18-activation-ux.css';
 import './v19-trust-theme.css';
+import './v20-settings-personalization.css';
 import { PwaRegistrar } from '@/components/pwa-registrar';
 
 export const metadata: Metadata = {
