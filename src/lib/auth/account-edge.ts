@@ -2,7 +2,7 @@ import 'server-only';
 import {createHash} from 'node:crypto';
 import {getSupabasePublishableKey,getSupabaseUrl} from '@/lib/supabase/public-config';
 
-export type AccountAction='register'|'login'|'change_password'|'set_recovery_email'|'request_recovery';
+export type AccountAction='register'|'login'|'change_password'|'reset_password'|'set_recovery_email'|'request_recovery';
 export type AccountEdgePayload={
   action:AccountAction;
   username?:string;
