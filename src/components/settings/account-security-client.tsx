@@ -11,7 +11,14 @@ export function AccountSecurityClient({username,initialRecoveryEmail}:{username:
     const form=new FormData(event.currentTarget);const currentPassword=String(form.get('currentPassword')??'');const newPassword=String(form.get('newPassword')??'');const confirm=String(form.get('confirmPassword')??'');
     if(newPassword!==confirm){setBusy(false);setPasswordMessage('Las contraseñas nuevas no coinciden.');return;}
     const r=await fetch('/api/auth/account/password',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({currentPassword,newPassword})}).catch(()=>null);const data=await r?.json().catch(()=>({}))??{};setBusy(false);
-    if(!r?.ok){setPasswordMessage(data.error==='current_password_incorrect'?'La contraseña actual no es correcta.':'No pudimos cambiar la contraseña. Revisa los datos e inténtalo de nuevo.');return;}
+    if(!r?.ok){
+      const code=String(data.error??'');
+      if(code==='current_password_incorrect')setPasswordMessage('La contraseña actual no es correcta.');
+      else if(code==='compromised_password')setPasswordMessage('Esa contraseña apareció en filtraciones conocidas. Elige una contraseña distinta y única.');
+      else if(code==='password_security_unavailable')setPasswordMessage('La comprobación de seguridad no está disponible ahora. Inténtalo de nuevo.');
+      else setPasswordMessage('No pudimos cambiar la contraseña. Revisa los datos e inténtalo de nuevo.');
+      return;
+    }
     event.currentTarget.reset();setPasswordMessage('Contraseña actualizada correctamente.');
   }
 
@@ -27,7 +34,7 @@ export function AccountSecurityClient({username,initialRecoveryEmail}:{username:
       <div className="softPanel"><strong>Nombre de cuenta</strong><p><code>{username}</code></p></div>
       <form className="formStack" onSubmit={changePassword}>
         <label>Contraseña actual<input name="currentPassword" type="password" autoComplete="current-password" maxLength={72} required/></label>
-        <label>Nueva contraseña<input name="newPassword" type="password" autoComplete="new-password" minLength={10} maxLength={72} required/><small className="fieldHelp">10–72 caracteres. Para cuentas administrativas recomendamos una contraseña única de 20+ caracteres.</small></label>
+        <label>Nueva contraseña<input name="newPassword" type="password" autoComplete="new-password" minLength={10} maxLength={72} required/><small className="fieldHelp">10–72 caracteres. No se aceptan contraseñas conocidas por filtraciones públicas; para cuentas administrativas recomendamos una contraseña única de 20+ caracteres.</small></label>
         <label>Repite la nueva contraseña<input name="confirmPassword" type="password" autoComplete="new-password" minLength={10} maxLength={72} required/></label>
         <button className="ctaButton" disabled={busy}>Cambiar contraseña</button>{passwordMessage?<p className="muted" role="status">{passwordMessage}</p>:null}
       </form>
