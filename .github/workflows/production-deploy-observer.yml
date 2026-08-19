@@ -1,0 +1,54 @@
+name: Production deploy observer
+
+on:
+  workflow_run:
+    workflows: ["Production deploy"]
+    types: [completed]
+
+permissions:
+  actions: read
+  contents: read
+  issues: write
+
+jobs:
+  report-failure:
+    if: ${{ github.event.workflow_run.conclusion != 'success' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Record failed production deployment diagnostics
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const run = context.payload.workflow_run;
+            const { data } = await github.rest.actions.listJobsForWorkflowRun({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              run_id: run.id,
+              per_page: 100,
+            });
+            const failures = [];
+            for (const job of data.jobs || []) {
+              const failedSteps = (job.steps || [])
+                .filter((step) => ['failure', 'cancelled', 'timed_out'].includes(step.conclusion))
+                .map((step) => `${step.number}. ${step.name} = ${step.conclusion}`);
+              if (job.conclusion !== 'success' || failedSteps.length) {
+                failures.push(`- job: ${job.name} = ${job.conclusion}`);
+                for (const step of failedSteps) failures.push(`  - ${step}`);
+              }
+            }
+            const body = [
+              '❌ Production deployment failed',
+              '',
+              `- commit: ${run.head_sha}`,
+              `- conclusion: ${run.conclusion}`,
+              `- workflow run: ${run.html_url}`,
+              '',
+              'Failed jobs / steps:',
+              failures.length ? failures.join('\n') : '- No failed step metadata returned by GitHub.',
+            ].join('\n');
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: 29,
+              body,
+            });
