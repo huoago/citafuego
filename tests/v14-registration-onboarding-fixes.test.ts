@@ -27,7 +27,7 @@ test('V14 birth date uses separate scrollable day month and year selectors',()=>
 test('V14 profile enrichment fields are optional in UI and API',()=>{
   const flow=read('src/components/onboarding/onboarding-flow.tsx');
   const route=read('src/app/api/onboarding/profile/route.ts');
-  assert.match(flow,/Solo el nombre visible es necesario para guardar/);
+  assert.match(flow,/El resto es opcional/);
   assert.doesNotMatch(flow,/name="gender"[^>]*required/);
   assert.doesNotMatch(flow,/name="district"[^>]*required/);
   assert.doesNotMatch(flow,/name="bio"[^>]*minLength/);
