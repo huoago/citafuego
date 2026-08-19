@@ -3,6 +3,7 @@
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
+import { TrustMark } from '@/components/profile/trust-mark';
 
 type Liker = {
   profileId: string;
@@ -31,7 +32,7 @@ export function LikesGrid({ initialRows }: { initialRows: Liker[] }) {
     setBusyId(null);
 
     if (!response.ok) {
-      setToast('No pudimos guardar tu decisión. Inténtalo de nuevo.');
+      setToast(data.error==='verified_sender_required'?'Esta persona acepta Likes únicamente de perfiles verificados.':'No pudimos guardar tu decisión. Inténtalo de nuevo.');
       return;
     }
 
@@ -53,10 +54,11 @@ export function LikesGrid({ initialRows }: { initialRows: Liker[] }) {
       <div className="matchGrid">
         {rows.map((row) => (
           <article className="matchTile" key={row.profileId}>
-            {row.imageUrl ? (
-              <span className="matchPhoto"><Image src={row.imageUrl} alt={row.displayName} fill sizes="220px" /></span>
-            ) : null}
-            <strong>{row.displayName}, {row.age} {row.verified ? '✓' : ''}</strong>
+            <span className="profileAvatarWrap matchAvatarWrap">
+              <span className="matchPhoto"><Image src={row.imageUrl??'/profile-placeholder.svg'} alt={row.imageUrl?row.displayName:`${row.displayName} todavía no añadió foto`} fill sizes="220px" /></span>
+              <TrustMark hasPhoto={Boolean(row.imageUrl)} verified={row.verified}/>
+            </span>
+            <strong>{row.displayName}, {row.age}</strong>
             <span>{row.district}</span>
             <div className="tileActions">
               <button className="tileAction secondary" disabled={busyId === row.profileId} onClick={() => void respond(row.profileId, 'pass')} aria-label={`Descartar a ${row.displayName}`}>×</button>
