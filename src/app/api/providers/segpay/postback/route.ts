@@ -15,7 +15,7 @@ async function reverseStorePurchase(db:ReturnType<typeof createServiceClient>,pu
 }
 
 async function handle(request:Request){
- const url=new URL(request.url);if(!verifySegpayPostbackSecret(url))return new NextResponse('FORBIDDEN',{status:403});
+ const url=new URL(request.url);if(!(await verifySegpayPostbackSecret(url)))return new NextResponse('FORBIDDEN',{status:403});
  const event=parseSegpayPostback(url);const transactionId=event.transactionId||event.purchaseId||crypto.randomUUID();const kind=(event.transactionType||event.action||event.stage||'transaction').toLowerCase();const amount=micros(event.price,event.currencyCode);const db=createServiceClient();
  const{data:existing}=await db.from('provider_transaction_events').select('id,status').eq('provider_slug','segpay').eq('external_event_ref',transactionId).eq('event_kind',kind).maybeSingle();if(existing)return new NextResponse('GOOD',{status:200});
  const{data:row,error:insertError}=await db.from('provider_transaction_events').insert({provider_slug:'segpay',external_event_ref:transactionId,event_kind:kind,reference:event.reference||null,amount_usd_micros:amount,currency_code:event.currencyCode||null,metadata:{action:event.action,stage:event.stage,approved:event.approved,purchaseId:event.purchaseId,relatedTransactionId:event.relatedTransactionId}}).select('id').single();if(insertError||!row)return new NextResponse('ERROR',{status:500});
