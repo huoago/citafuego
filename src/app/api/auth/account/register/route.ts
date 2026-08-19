@@ -6,7 +6,7 @@ import {verifyTurnstile} from '@/lib/security/turnstile';
 
 const schema=z.object({
   username:z.string().trim().min(4).max(24),
-  password:z.string().min(6).max(72),
+  password:z.string().min(10).max(72),
   turnstileToken:z.string().max(2048).optional(),
 });
 
