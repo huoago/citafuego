@@ -38,8 +38,9 @@ test('top navigation exposes three primary decisions while all public feature ro
   assert.doesNotMatch(features,/slug: '\/premium-info'/);
 });
 
-test('homepage labels demo data and uses privacy and trust language instead of implementation jargon',()=>{
-  assert.match(page,/Demo · datos de ejemplo/);
+test('homepage labels illustrative preview and uses privacy and trust language instead of implementation jargon',()=>{
+  assert.match(page,/Vista previa/);
+  assert.doesNotMatch(page,/Demo · datos de ejemplo/);
   assert.match(page,/Solo 18\+/);
   assert.match(page,/Ubicación aproximada/);
   assert.match(page,/Privacidad bajo tu control/);
