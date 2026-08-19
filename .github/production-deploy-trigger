@@ -1,4 +1,4 @@
 CitaFuego production release trigger
-source_main_commit=7c955458c25b06ae25581cf1d9ed0f33e8892dc2
-requested_at=2026-08-17T20:58:00-05:00
-purpose=deploy V4 profile/auth/risk timeline/anti-abuse release
+source_main_commit=19cd4028702acb2472f53c30916ca6509fa6ae34
+requested_at=2026-08-18T21:37:00-05:00
+purpose=deploy all completed launch closeout changes to production
