@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
+import { requireAdmin } from '@/lib/admin/auth';
 import { SettingsClient,type UiPreferences } from '@/components/settings/settings-client';
 
 const defaultLayout:UiPreferences['module_layout']=[
@@ -18,12 +19,11 @@ export default async function Page(){
   const supabase=await createClient();
   const{data:{user}}=await supabase.auth.getUser();
   if(!user)redirect('/iniciar-sesion');
-  const[{data},{data:roles}]=await Promise.all([
+  const[{data},adminContext]=await Promise.all([
     supabase.from('user_ui_preferences').select('theme,custom_background,module_layout').eq('user_id',user.id).maybeSingle(),
-    supabase.from('admin_user_roles').select('role_id,expires_at').eq('user_id',user.id),
+    requireAdmin(['super_admin','trust_safety','support','finance','analyst']),
   ]);
-  const now=Date.now();
-  const activeRoles=(roles??[]).filter(row=>!row.expires_at||new Date(row.expires_at).getTime()>now).map(row=>String(row.role_id));
+  const activeRoles=adminContext?.roles??[];
   const isSuperAdmin=activeRoles.includes('super_admin');
   const isAnyAdmin=activeRoles.length>0;
   const initial:UiPreferences={
