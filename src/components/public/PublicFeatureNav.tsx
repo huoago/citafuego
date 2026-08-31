@@ -4,6 +4,7 @@ import styles from './public-feature.module.css';
 const primaryLinks=[
   {href:'/',label:'Inicio'},
   {href:'/como-funciona',label:'Cómo funciona'},
+  {href:'/lima',label:'Lima'},
   {href:'/safety',label:'Seguridad'},
   {href:'/blog-info',label:'Comunidad'},
 ] as const;

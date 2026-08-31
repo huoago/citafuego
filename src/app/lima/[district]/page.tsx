@@ -1,0 +1,9 @@
+import type { Metadata } from 'next';
+import Link from 'next/link';
+import { notFound } from 'next/navigation';
+import { PublicFeatureNav } from '@/components/public/PublicFeatureNav';
+import { limaDistrictBySlug, limaDistricts } from '@/lib/lima-districts';
+import styles from '../lima.module.css';
+export function generateStaticParams(){return limaDistricts.map(([district])=>({district}))}
+export async function generateMetadata({params}:{params:Promise<{district:string}>}):Promise<Metadata>{const{district}=await params;const name=limaDistrictBySlug.get(district);if(!name)return{};return{title:`Conocer personas en ${name}, Lima | CitaFuego`,description:`Conexiones reales para mayores de 18 años en ${name} y distritos cercanos de Lima, con privacidad y ubicación aproximada.`}}
+export default async function DistrictPage({params}:{params:Promise<{district:string}>}){const{district}=await params;const name=limaDistrictBySlug.get(district);if(!name)notFound();return <main className={styles.page}><PublicFeatureNav/><div className={styles.main}><Link className={styles.breadcrumb} href="/lima">← Todos los distritos de Lima</Link><section className={styles.hero}><p className={styles.eyebrow}>{name} · Lima · Solo 18+</p><h1>Conocer personas en {name}</h1><p>CitaFuego prioriza perfiles reales de {name} y, si todavía no hay suficiente actividad local, muestra opciones de distritos cercanos sin fingir disponibilidad.</p><div className={styles.actions}><Link className={styles.primary} href={`/registro?district=${district}`}>Crear perfil en {name}</Link><Link className={styles.secondary} href="/safety">Ver seguridad</Link></div></section><div className={styles.empty}><h2>Disponibilidad honesta</h2><p>Los perfiles solo aparecen después del registro y según tus preferencias. No publicamos fichas falsas para llenar esta página ni revelamos ubicaciones exactas.</p></div></div></main>}

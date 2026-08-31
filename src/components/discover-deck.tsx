@@ -9,12 +9,16 @@ import type{DiscoverProfile,RelationshipIntent}from '@/lib/types';
 
 const intentLabels:Record<RelationshipIntent,string>={serious:'Relación seria',meet_people:'Conocer gente',casual:'Algo casual',friendship:'Amistad',open_to_see:'Ver qué pasa'};
 const promptLabels:Record<string,string>={plan_ideal:'Mi plan ideal',me_gana:'Me conquistas si',domingo:'Un domingo perfecto',viaje:'Un viaje pendiente',obsesion:'Ahora mismo me obsesiona',primera_cita:'Para una primera cita'};
+type ViewMode='swipe'|'grid'|'list';
+type Segment='for_you'|'nearby'|'online'|'verified'|'compatible'|'featured';
 
 export function DiscoverDeck({initialProfiles,initialHasMore}:{initialProfiles:DiscoverProfile[];initialHasMore:boolean}){
   const router=useRouter();
-  const[profiles,setProfiles]=useState(initialProfiles);const[index,setIndex]=useState(0);const[toast,setToast]=useState('');const[busy,setBusy]=useState(false);const[hasMore,setHasMore]=useState(initialHasMore);const[photoIndex,setPhotoIndex]=useState(0);const[dragX,setDragX]=useState(0);const[match,setMatch]=useState<{name:string;conversationId:string}|null>(null);const pointerStart=useRef<{x:number;y:number}|null>(null);
+  const[profiles,setProfiles]=useState(initialProfiles);const[index,setIndex]=useState(0);const[viewMode,setViewMode]=useState<ViewMode>(()=>{if(typeof window==='undefined')return'swipe';const saved=window.localStorage.getItem('citafuego:discover-view');return saved==='grid'||saved==='list'?saved:'swipe'});const[segment,setSegment]=useState<Segment>('for_you');const[toast,setToast]=useState('');const[busy,setBusy]=useState(false);const[hasMore,setHasMore]=useState(initialHasMore);const[photoIndex,setPhotoIndex]=useState(0);const[dragX,setDragX]=useState(0);const[match,setMatch]=useState<{name:string;conversationId:string}|null>(null);const pointerStart=useRef<{x:number;y:number}|null>(null);
   const profile=profiles[index];
   const photos=profile?(profile.imageUrls?.length?profile.imageUrls:[profile.imageUrl]):[];
+
+  function changeView(next:ViewMode){setViewMode(next);window.localStorage.setItem('citafuego:discover-view',next)}
 
   useEffect(()=>{if(!profile)return;void fetch('/api/analytics',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({eventName:'profile_impression',properties:{targetUserId:profile.id,score:profile.chemistryScore,online:profile.isOnline,boosted:profile.isBoosted}})})},[profile]);
   function resetMedia(){setPhotoIndex(0);setDragX(0);pointerStart.current=null}
@@ -29,10 +33,14 @@ export function DiscoverDeck({initialProfiles,initialHasMore}:{initialProfiles:D
 
   if(!profile)return <section className="emptyState"><p className="eyebrow">Feed honesto</p><h1>Eso es todo por ahora</h1><p>CitaFuego no rellena el feed con perfiles falsos ni repite personas para simular actividad.</p><div className="heroActions">{hasMore?<button className="ctaButton" onClick={()=>void refill()}>Cargar más perfiles</button>:<Link className="ctaButton" href="/onboarding?edit=1">Ajustar preferencias</Link>}<Link className="ghostButton" href="/comunidad">Explorar comunidad</Link></div></section>;
 
+  const segmentProfiles=profiles.filter(item=>segment==='for_you'||segment==='online'&&item.isOnline||segment==='verified'&&(item.verified||item.identityVerified)||segment==='compatible'&&item.chemistryScore>=75||segment==='featured'&&item.isBoosted||segment==='nearby');
+  const browseControls=<><div className="discoverSegments" aria-label="Filtros de descubrimiento">{([['for_you','Para ti'],['nearby','Cerca'],['online','Online'],['verified','Verificados'],['compatible','Compatibles'],['featured','Destacados']] as const).map(([key,label])=><button type="button" key={key} aria-pressed={segment===key} onClick={()=>setSegment(key)}>{label}</button>)}</div><div className="discoverViewModes" aria-label="Vista de perfiles">{([['swipe','Swipe'],['grid','Cuadrícula'],['list','Lista']] as const).map(([key,label])=><button type="button" key={key} aria-pressed={viewMode===key} onClick={()=>changeView(key)}>{label}</button>)}</div></>;
+  if(viewMode!=='swipe')return <section className="immersiveDiscover discoverBrowse"><div className="discoverTopline iosLargeHeader"><div><p className="eyebrow">Personas reales · Lima</p><h1>Descubrir</h1></div><Link className="filterButton" href="/onboarding?edit=1">Preferencias</Link></div>{browseControls}<div className={viewMode==='grid'?'discoverProfileGrid':'discoverProfileList'}>{segmentProfiles.map(item=><article className="discoverProfileTile" key={item.id}><div className="discoverTileMedia"><Image src={item.imageUrl} alt={item.hasPhoto?`Foto de ${item.name}`:`Perfil de ${item.name} sin foto`} fill sizes={viewMode==='grid'?'(max-width:560px) 50vw,240px':'96px'}/></div><div><h2>{item.name}, {item.age}</h2><p>{item.district} · {item.distanceBucket}</p><strong>🔥 {item.chemistryScore}% química</strong><Link href={`/perfil/${item.id}`}>Abrir perfil</Link></div></article>)}</div>{!segmentProfiles.length?<div className="emptyState"><p>No hay perfiles reales en este filtro por ahora.</p></div>:null}</section>;
+
   const transform=dragX?`translate3d(${dragX}px,0,0) rotate(${dragX/100}deg)`:undefined;
   const hasPhoto=Boolean(profile.hasPhoto);
   return <section className="immersiveDiscover">
-    <div className="discoverTopline iosLargeHeader"><div><p className="eyebrow">Personas reales · Lima</p><h1>Descubrir</h1></div><div className="toplineActions"><Link className="filterButton" href="/azar">⚡ Al azar</Link><Link className="filterButton" href="/onboarding?edit=1">Preferencias</Link></div></div>
+    <div className="discoverTopline iosLargeHeader"><div><p className="eyebrow">Personas reales · Lima</p><h1>Descubrir</h1></div><div className="toplineActions"><Link className="filterButton" href="/azar">⚡ Al azar</Link><Link className="filterButton" href="/onboarding?edit=1">Preferencias</Link></div></div>{browseControls}
     <article className="profileCard immersiveProfileCard" style={{transform,opacity:dragX?Math.max(.82,1-Math.abs(dragX)/520):undefined}}>
       <div className="profileMedia immersiveProfileMedia" onPointerDown={pointerDown} onPointerMove={pointerMove} onPointerUp={pointerEnd} onPointerCancel={resetMedia}>
         <Image key={photos[photoIndex]??profile.imageUrl} src={photos[photoIndex]??profile.imageUrl} alt={hasPhoto?`Foto ${photoIndex+1} de ${profile.name}`:`Perfil de ${profile.name} sin foto`} fill priority sizes="(max-width:560px) 100vw,720px"/>

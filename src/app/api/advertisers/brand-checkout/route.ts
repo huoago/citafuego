@@ -1,3 +1,17 @@
-import { NextResponse } from 'next/server';import { z } from 'zod';import { getAuthenticatedUserId } from '@/lib/auth/server';import { createClient } from '@/lib/supabase/server';import { createSegpayDynamicCheckout } from '@/lib/providers/segpay';
+import { NextResponse } from 'next/server';
+import { z } from 'zod';
+import { getAuthenticatedUserId } from '@/lib/auth/server';
+import { areFeaturesEnabled } from '@/lib/features/server';
+import { createSegpayDynamicCheckout } from '@/lib/providers/segpay';
+import { createClient } from '@/lib/supabase/server';
 const schema=z.object({dealId:z.number().int().positive()});
-export async function POST(request:Request){const userId=await getAuthenticatedUserId();if(!userId)return NextResponse.json({error:'not_authenticated'},{status:401});const parsed=schema.safeParse(await request.json().catch(()=>null));if(!parsed.success)return NextResponse.json({error:'invalid_request'},{status:400});const s=await createClient();const{data:deal}=await s.from('brand_deals').select('id,advertiser_user_id,gross_usd_micros,status').eq('id',parsed.data.dealId).maybeSingle();if(!deal||deal.advertiser_user_id!==userId)return NextResponse.json({error:'deal_not_found'},{status:404});if(!['contracted','in_production','submitted','approved','published'].includes(deal.status))return NextResponse.json({error:'deal_not_payable'},{status:409});try{const checkout=await createSegpayDynamicCheckout({amountUsd:Number(deal.gross_usd_micros)/1_000_000,reference:`branddeal:${deal.id}`,description:`CitaFuego Brand Marketplace · deal ${deal.id}`});return NextResponse.json({url:checkout.url,provider:'segpay'})}catch(e){return NextResponse.json({error:e instanceof Error?e.message:'segpay_unavailable'},{status:503})}}
+export async function POST(request:Request){
+ if(!await areFeaturesEnabled('ADS_ENABLED','PAYMENTS_ENABLED'))return NextResponse.json({error:'feature_unavailable'},{status:404});
+ const userId=await getAuthenticatedUserId();if(!userId)return NextResponse.json({error:'not_authenticated'},{status:401});
+ const parsed=schema.safeParse(await request.json().catch(()=>null));if(!parsed.success)return NextResponse.json({error:'invalid_request'},{status:400});
+ const s=await createClient();const{data:deal}=await s.from('brand_deals').select('id,advertiser_user_id,gross_usd_micros,status').eq('id',parsed.data.dealId).maybeSingle();
+ if(!deal||deal.advertiser_user_id!==userId)return NextResponse.json({error:'deal_not_found'},{status:404});
+ if(!['contracted','in_production','submitted','approved','published'].includes(deal.status))return NextResponse.json({error:'deal_not_payable'},{status:409});
+ try{const checkout=await createSegpayDynamicCheckout({amountUsd:Number(deal.gross_usd_micros)/1_000_000,reference:`branddeal:${deal.id}`,description:`CitaFuego Brand Marketplace · deal ${deal.id}`});return NextResponse.json({url:checkout.url,provider:'segpay'})}
+ catch(e){return NextResponse.json({error:e instanceof Error?e.message:'segpay_unavailable'},{status:503})}
+}
