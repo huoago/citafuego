@@ -5,32 +5,33 @@ import { join } from 'node:path';
 
 const root=process.cwd();
 const page=readFileSync(join(root,'src/app/page.tsx'),'utf8');
+const controls=readFileSync(join(root,'src/components/public/HomeDirectoryControls.tsx'),'utf8');
 const css=readFileSync(join(root,'src/app/home.module.css'),'utf8');
 const features=readFileSync(join(root,'src/lib/public-features.ts'),'utf8');
 const nav=readFileSync(join(root,'src/components/public/PublicFeatureNav.tsx'),'utf8');
 
 const routes=['swipe','verificacion','chat-privado','random-connect','para-ti-info','stories-info','blog-info','album-privado','match-intelligence','seguridad-privacidad'];
 
-test('homepage is a compact benefit-led hub instead of a long feature catalogue',()=>{
-  assert.match(page,/Lo esencial para conectar/);
-  assert.match(page,/essentialFeatures/);
-  assert.match(page,/Conoce personas reales cerca de ti/);
-  assert.match(page,/Conecta con más confianza/);
+test('homepage is a compact directory-first dating hub instead of a long marketing catalogue',()=>{
+  assert.match(page,/CitaFuego en Lima/);
+  assert.match(page,/Conoce personas reales con más contexto antes de conversar/);
+  assert.match(page,/no convertimos los perfiles en anuncios de servicios/);
+  assert.match(page,/HomeDirectoryControls/);
   assert.doesNotMatch(page,/publicFeatures\.map/);
-  for(const oldSection of ['chatSection','randomSection','socialSection','albumSection','algorithmSection','premiumSection','privacyBanner']) {
+  for(const oldSection of ['chatSection','randomSection','socialSection','albumSection','algorithmSection','premiumSection','privacyBanner','v15HomeHero']) {
     assert.doesNotMatch(page,new RegExp(oldSection));
   }
-  assert.match(css,/overflow-x:auto/);
-  assert.match(css,/@media\(max-height:760px\)/);
+  assert.match(css,/\.profileGrid\{display:grid/);
+  assert.match(css,/\.cityScroller\{[^}]*overflow:auto/);
 });
 
-test('top navigation exposes three primary decisions while all public feature routes remain available',()=>{
+test('top navigation exposes primary decisions while all public feature routes remain available',()=>{
   assert.doesNotMatch(nav,/publicFeatures\.map/);
   assert.match(nav,/Cómo funciona/);
   assert.match(nav,/Seguridad/);
   assert.match(nav,/Comunidad/);
-  assert.match(nav,/\/iniciar-sesion/);
-  assert.match(nav,/\/registro/);
+  assert.match(page,/\/iniciar-sesion/);
+  assert.match(page,/\/registro/);
   for(const route of routes) {
     assert.match(features,new RegExp(`slug: '/${route}'`));
     assert.equal(existsSync(join(root,`src/app/${route}/page.tsx`)),true,`missing /${route}`);
@@ -39,21 +40,21 @@ test('top navigation exposes three primary decisions while all public feature ro
 });
 
 test('homepage labels illustrative preview and uses privacy and trust language instead of implementation jargon',()=>{
-  assert.match(page,/Vista previa/);
-  assert.doesNotMatch(page,/Demo · datos de ejemplo/);
-  assert.match(page,/Solo 18\+/);
-  assert.match(page,/Ubicación aproximada/);
-  assert.match(page,/Privacidad bajo tu control/);
-  assert.doesNotMatch(page,/Chat P2P/);
-  assert.doesNotMatch(page,/Random, contenido social/);
+  assert.match(controls,/Vista previa/);
+  assert.doesNotMatch(`${page}\n${controls}`,/Demo · datos de ejemplo/);
+  assert.match(page,/Solo adultos 18\+/);
+  assert.match(controls,/distancia se muestra de forma aproximada para proteger la privacidad/);
+  assert.match(page,/Bloqueo, denuncia, verificación y privacidad/);
+  assert.doesNotMatch(`${page}\n${controls}`,/Chat P2P|Random, contenido social/);
   assert.match(features,/Entrega offline/);
   assert.match(features,/Historial sincronizado/);
   assert.match(features,/no pueden impedir capturas de pantalla/);
 });
 
-test('navigation hub remains responsive without hiding primary information',()=>{
-  assert.match(css,/@media\(max-width:980px\)/);
-  assert.match(css,/@media\(max-width:640px\)/);
+test('directory navigation remains responsive without hiding primary information',()=>{
+  assert.match(css,/@media\(max-width:1000px\)/);
+  assert.match(css,/@media\(max-width:760px\)/);
+  assert.match(css,/@media\(max-width:430px\)/);
   assert.match(css,/grid-template-columns:1fr/);
   const navCss=readFileSync(join(root,'src/components/public/public-feature.module.css'),'utf8');
   assert.match(navCss,/overflow-x:auto/);
