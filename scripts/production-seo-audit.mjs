@@ -1,5 +1,7 @@
 const base=(process.env.SEO_AUDIT_BASE_URL||'https://citafuego.com').replace(/\/$/,'');
-const ua={'user-agent':'CitaFuego-SEO-Audit/1.0'};
+const auditOrigin=new URL(base).origin;
+const productionOrigin='https://citafuego.com';
+const ua={'user-agent':'CitaFuego-SEO-Audit/2.2'};
 
 async function get(path,{redirect='follow'}={}){
   const response=await fetch(`${base}${path}`,{headers:ua,redirect});
@@ -12,6 +14,8 @@ const health=await get('/api/health');
 expect(health.response.status===200,`/api/health returned ${health.response.status}`);
 const healthJson=JSON.parse(health.text);
 expect(healthJson.ok===true&&healthJson.service==='citafuego','health identity mismatch');
+const expectedVersion=process.env.EXPECTED_DEPLOYMENT_SHA?.slice(0,12);
+if(expectedVersion)expect(healthJson.version===expectedVersion,`production health version ${healthJson.version} does not match expected deployment ${expectedVersion}`);
 
 for(const [from,to] of [['/login','/iniciar-sesion'],['/signup','/registro'],['/register','/registro']]){
   const result=await get(from,{redirect:'manual'});
@@ -22,15 +26,29 @@ for(const [from,to] of [['/login','/iniciar-sesion'],['/signup','/registro'],['/
 
 const robots=await get('/robots.txt');
 expect(robots.response.status===200,'robots.txt unavailable');
-expect(robots.text.includes('Sitemap:'),'robots.txt missing sitemap declaration');
+expect((robots.response.headers.get('content-type')||'').toLowerCase().includes('text/plain'),'robots.txt is not text/plain');
+expect(robots.text.includes('Sitemap: https://citafuego.com/sitemap.xml'),'robots.txt missing canonical sitemap declaration');
 for(const token of ['/admin/','/api/','/chat/','/perfil/','/onboarding/'])expect(robots.text.includes(token),`robots.txt missing ${token}`);
 
 const sitemap=await get('/sitemap.xml');
 expect(sitemap.response.status===200,'sitemap.xml unavailable');
+expect((sitemap.response.headers.get('content-type')||'').toLowerCase().includes('xml'),'sitemap.xml did not return XML content-type');
+expect(/<urlset\b[^>]*xmlns=["']http:\/\/www\.sitemaps\.org\/schemas\/sitemap\/0\.9["']/.test(sitemap.text),'sitemap.xml is not a standard sitemap urlset');
 const locations=[...sitemap.text.matchAll(/<loc>(.*?)<\/loc>/g)].map((match)=>match[1]);
 expect(locations.length>=50,`sitemap only exposes ${locations.length} URLs; expected at least 50 curated public URLs`);
 const privateTokens=['/admin','/api','/chat','/messages','/account','/settings','/verification','/private-album','/album-privado','/perfil','/matches','/likes','/premium','/onboarding','/registro/completar'];
-for(const url of locations)for(const token of privateTokens)expect(!new URL(url).pathname.startsWith(token),`private URL leaked into sitemap: ${url}`);
+for(const url of locations){
+  const parsed=new URL(url);
+  expect(parsed.origin===productionOrigin,`non-canonical sitemap origin: ${url}`);
+  for(const token of privateTokens)expect(!parsed.pathname.startsWith(token),`private URL leaked into sitemap: ${url}`);
+}
+
+for(const url of locations){
+  const parsed=new URL(url);
+  const response=await fetch(`${base}${parsed.pathname}`,{headers:ua,redirect:'follow'});
+  expect(response.status===200,`sitemap target ${url} returned ${response.status}`);
+  expect(new URL(response.url).origin===auditOrigin,`sitemap target ${url} escaped audit origin to ${response.url}`);
+}
 
 for(const path of ['/','/lima','/guias','/help','/community-guidelines']){
   const page=await get(path);
@@ -41,6 +59,10 @@ for(const path of ['/','/lima','/guias','/help','/community-guidelines']){
   expect(lower.includes('rel="canonical"'),`${path} missing canonical`);
   expect(lower.includes('property="og:title"'),`${path} missing Open Graph title`);
   expect(lower.includes('name="twitter:card"'),`${path} missing Twitter card`);
+  if(path==='/'){
+    expect(page.text.includes('Personas cerca de ti'),'production homepage is not the current directory-first release');
+    expect(page.text.includes('data-preview-grid'),'production homepage is missing current directory grid marker');
+  }
 }
 
 for(const path of ['/admin','/perfil','/chats']){
@@ -49,4 +71,7 @@ for(const path of ['/admin','/perfil','/chats']){
   expect(robotsHeader.includes('noindex'),`${path} missing X-Robots-Tag noindex`);
 }
 
-console.log(`SEO production audit passed for ${base}: ${locations.length} public sitemap URLs, no private leakage.`);
+const missing=await get(`/seo-audit-not-found-${Date.now()}`,{redirect:'manual'});
+expect(missing.response.status===404,`unknown route returned ${missing.response.status}; expected 404`);
+
+console.log(`SEO production audit passed for ${base}: ${locations.length} public sitemap URLs, canonical XML, all targets 200, no private leakage, true 404.`);

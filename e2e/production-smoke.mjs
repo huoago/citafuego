@@ -1,5 +1,6 @@
 const base=process.env.E2E_BASE_URL||'https://citafuego.com';
-const userAgent={'user-agent':'CitaFuego-Production-Smoke/5.0'};
+const productionOrigin='https://citafuego.com';
+const userAgent={'user-agent':'CitaFuego-Production-Smoke/6.0'};
 
 const readinessResponse=await fetch(new URL('/api/auth/readiness',base),{headers:userAgent});
 if(readinessResponse.status!==200)throw new Error(`/api/auth/readiness returned ${readinessResponse.status}; expected 200`);
@@ -32,24 +33,37 @@ function requireMarker(body,path,marker){
   if(!body.includes(marker))throw new Error(`${path} missing expected state marker ${marker}`);
 }
 
+let sitemapUrls=[];
 for(const path of publicChecks){
   const r=await fetch(new URL(path,base),{redirect:'manual',headers:userAgent});
   if(r.status!==200)throw new Error(`${path} returned ${r.status}; expected 200`);
   if(path==='/api/health'){
     const body=await r.json();
     if(body?.ok!==true||body?.service!=='citafuego')throw new Error('/api/health service identity mismatch');
+    const expectedVersion=process.env.GITHUB_SHA?.slice(0,12);
+    if(expectedVersion&&body?.version!==expectedVersion)throw new Error(`/api/health version ${body?.version} does not match deploying commit ${expectedVersion}; production alias is stale`);
   }else if(path==='/manifest.webmanifest'){
     const body=await r.json();
     if(body?.name!=='CitaFuego'||body?.display!=='standalone')throw new Error('PWA manifest mismatch');
   }else if(path==='/robots.txt'){
+    const contentType=(r.headers.get('content-type')||'').toLowerCase();
+    if(!contentType.includes('text/plain'))throw new Error(`robots.txt content-type is ${contentType}; expected text/plain`);
     const body=await r.text();
-    if(!body.includes('Sitemap:')||!body.includes('/admin/')||!body.includes('/api/'))throw new Error('robots.txt missing sitemap or private exclusions');
+    if(!body.includes('Sitemap: https://citafuego.com/sitemap.xml')||!body.includes('/admin/')||!body.includes('/api/'))throw new Error('robots.txt missing canonical sitemap or private exclusions');
   }else if(path==='/sitemap.xml'){
+    const contentType=(r.headers.get('content-type')||'').toLowerCase();
+    if(!contentType.includes('xml'))throw new Error(`sitemap.xml content-type is ${contentType}; expected XML`);
     const body=await r.text();
+    if(!/<urlset\b[^>]*xmlns=["']http:\/\/www\.sitemaps\.org\/schemas\/sitemap\/0\.9["']/.test(body))throw new Error('sitemap.xml is not a standard sitemap <urlset> document');
     const urls=[...body.matchAll(/<loc>(.*?)<\/loc>/g)].map(match=>match[1]);
+    sitemapUrls=urls;
     if(urls.length<50)throw new Error(`sitemap only contains ${urls.length} URLs`);
     const privateTokens=['/admin','/api','/chat','/messages','/account','/settings','/verification','/private-album','/album-privado','/perfil','/matches','/likes','/premium','/onboarding','/registro/completar'];
-    for(const url of urls)for(const token of privateTokens)if(new URL(url).pathname.startsWith(token))throw new Error(`private URL leaked into sitemap: ${url}`);
+    for(const url of urls){
+      const parsed=new URL(url);
+      if(parsed.origin!==productionOrigin)throw new Error(`non-canonical sitemap origin: ${url}`);
+      for(const token of privateTokens)if(parsed.pathname.startsWith(token))throw new Error(`private URL leaked into sitemap: ${url}`);
+    }
   }else if(path==='/iniciar-sesion'){
     const body=await r.text();
     requireText(body,path,'Correo');
@@ -66,12 +80,26 @@ for(const path of publicChecks){
   }else if(!path.startsWith('/api/')&&!path.endsWith('.xml')&&!path.endsWith('.txt')){
     const body=await r.text();
     const lower=body.toLowerCase();
+    if(path==='/'){
+      requireText(body,path,'Personas cerca de ti');
+      if(!body.includes('data-preview-grid'))throw new Error('home is not the current directory-first release; stale homepage detected');
+    }
     if(['/','/lima','/guias','/guias/seguridad-en-citas-online'].includes(path)){
       for(const marker of ['<title','name="description"','rel="canonical"','property="og:title"','name="twitter:card"'])if(!lower.includes(marker))throw new Error(`${path} missing SEO marker ${marker}`);
     }
   }
   console.log('public',path,r.status);
 }
+
+for(const url of sitemapUrls){
+  const r=await fetch(url,{redirect:'follow',headers:userAgent});
+  if(r.status!==200)throw new Error(`sitemap target ${url} returned ${r.status}; expected 200`);
+  if(new URL(r.url).origin!==productionOrigin)throw new Error(`sitemap target ${url} escaped canonical origin to ${r.url}`);
+}
+console.log(`sitemap targets ${sitemapUrls.length}/ ${sitemapUrls.length} returned 200 on canonical origin`);
+
+const missing=await fetch(new URL(`/this-page-must-not-exist-${Date.now()}`,base),{redirect:'manual',headers:userAgent});
+if(missing.status!==404)throw new Error(`unknown route returned ${missing.status}; expected true HTTP 404`);
 
 for(const [from,to] of [['/login','/iniciar-sesion'],['/signup','/registro'],['/register','/registro']]){
   const r=await fetch(new URL(from,base),{redirect:'manual',headers:userAgent});
@@ -94,4 +122,4 @@ for(const path of protectedChecks){
   console.log('protected',path,r.status,location);
 }
 
-console.log(`CitaFuego production readiness + SEO + account auth + visual moderation (${moderationReadiness.provider}/${moderationReadiness.model}) + protected journey smoke passed`);
+console.log(`CitaFuego production readiness + current-release identity + SEO + account auth + visual moderation (${moderationReadiness.provider}/${moderationReadiness.model}) + protected journey smoke passed`);

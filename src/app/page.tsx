@@ -65,7 +65,7 @@ export default function LandingPage(){
             </div>
             <div className={styles.previewBody}>
               <div className={styles.previewName}><strong>{profile.name}, {profile.age}</strong>{profile.verified?<span title="Perfil verificado">✓</span>:null}</div>
-              <p>{profile.district} · <span data-distance-label>≤ 10 km</span></p>
+              <p style={{color:'#626b76'}}>{profile.district} · <span data-distance-label>≤ 10 km</span></p>
               <div className={styles.mediaTags}>{profile.media.map(item=><span key={item}>{item}</span>)}</div>
               <p className={styles.tagline}>{profile.tagline}</p>
               <div className={styles.previewActions}><a href="/descubrir">Ver perfiles</a><a href="/registro">Crear perfil</a></div>

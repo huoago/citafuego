@@ -20,7 +20,6 @@ import './v17-photo-review.css';
 import './v18-activation-ux.css';
 import './v19-trust-theme.css';
 import './v20-settings-personalization.css';
-import { PwaRegistrar } from '@/components/pwa-registrar';
 import { DEFAULT_DESCRIPTION, DEFAULT_TITLE, SITE_NAME, SITE_URL } from '@/lib/seo';
 
 export const metadata: Metadata = {
@@ -74,11 +73,13 @@ const organizationJsonLd={
   url:SITE_URL,
   logo:`${SITE_URL}/icon.svg`,
 };
+const serviceWorkerRegistration=`(()=>{if(!('serviceWorker'in navigator))return;const register=()=>navigator.serviceWorker.register('/sw.js',{scope:'/',updateViaCache:'none'}).then(registration=>registration.update()).catch(()=>undefined);if(document.readyState==='complete')void register();else window.addEventListener('load',()=>void register(),{once:true});})();`;
 
 export default function RootLayout({children}:Readonly<{children:React.ReactNode}>){
   return <html lang="es-PE"><body>
     <script type="application/ld+json" dangerouslySetInnerHTML={{__html:JSON.stringify(websiteJsonLd)}} />
     <script type="application/ld+json" dangerouslySetInnerHTML={{__html:JSON.stringify(organizationJsonLd)}} />
-    <PwaRegistrar/>{children}
+    <script dangerouslySetInnerHTML={{__html:serviceWorkerRegistration}} />
+    {children}
   </body></html>;
 }
