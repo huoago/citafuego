@@ -52,6 +52,23 @@ test('one confirmed referral earns a stackable seven-day city priority period',(
   assert.doesNotMatch(sql,/interval '1 day'/);
   assert.match(read('src/proxy.ts'),/cf_ref/);
   assert.match(read('src/app/api/onboarding/activate/route.ts'),/claim_referral_reward/);
-  assert.match(read('src/app/(app)/perfil/page.tsx'),/\/invitar/);
   assert.equal(existsSync('src/app/(app)/invitar/page.tsx'),true);
+});
+
+test('personal profile shows the account unique referral link directly',()=>{
+  const page=read('src/app/(app)/perfil/page.tsx');
+  assert.match(page,/get_my_referral_code/);
+  assert.match(page,/ReferralShare/);
+  assert.match(page,/registro\?ref=/);
+  assert.match(page,/Este enlace es exclusivo de tu cuenta/);
+  assert.match(page,/7 días de prioridad/);
+  assert.match(page,/amigos registrados y confirmados/);
+  assert.match(page,/referral_attributions/);
+});
+
+test('referral reward wording requires a valid registration from the invite link',()=>{
+  const invite=read('src/app/(app)/invitar/page.tsx');
+  assert.match(invite,/registro válido/);
+  assert.match(invite,/crear una cuenta nueva de adulto y activar su perfil/);
+  assert.match(invite,/registros que no hayan llegado desde tu enlace/);
 });
