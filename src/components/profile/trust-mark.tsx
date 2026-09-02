@@ -1,6 +1,8 @@
 type TrustMarkProps={
   hasPhoto:boolean;
   verified:boolean;
+  /** Legacy compatibility only. Document identity verification is disabled and this value is never rendered. */
+  identityVerified?:boolean;
   className?:string;
 };
 
