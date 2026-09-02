@@ -1,6 +1,8 @@
 const base=(process.env.SEO_AUDIT_BASE_URL||'https://citafuego.com').replace(/\/$/,'');
+const auditOrigin=new URL(base).origin;
 const productionOrigin='https://citafuego.com';
-const ua={'user-agent':'CitaFuego-SEO-Audit/2.0'};
+const isProductionAudit=auditOrigin===productionOrigin;
+const ua={'user-agent':'CitaFuego-SEO-Audit/2.1'};
 
 async function get(path,{redirect='follow'}={}){
   const response=await fetch(`${base}${path}`,{headers:ua,redirect});
@@ -13,7 +15,7 @@ const health=await get('/api/health');
 expect(health.response.status===200,`/api/health returned ${health.response.status}`);
 const healthJson=JSON.parse(health.text);
 expect(healthJson.ok===true&&healthJson.service==='citafuego','health identity mismatch');
-const expectedVersion=process.env.GITHUB_SHA?.slice(0,12);
+const expectedVersion=isProductionAudit?process.env.GITHUB_SHA?.slice(0,12):undefined;
 if(expectedVersion)expect(healthJson.version===expectedVersion,`production health version ${healthJson.version} does not match ${expectedVersion}`);
 
 for(const [from,to] of [['/login','/iniciar-sesion'],['/signup','/registro'],['/register','/registro']]){
@@ -43,9 +45,10 @@ for(const url of locations){
 }
 
 for(const url of locations){
-  const response=await fetch(url,{headers:ua,redirect:'follow'});
+  const parsed=new URL(url);
+  const response=await fetch(`${base}${parsed.pathname}`,{headers:ua,redirect:'follow'});
   expect(response.status===200,`sitemap target ${url} returned ${response.status}`);
-  expect(new URL(response.url).origin===productionOrigin,`sitemap target ${url} redirected outside canonical origin: ${response.url}`);
+  expect(new URL(response.url).origin===auditOrigin,`sitemap target ${url} escaped audit origin to ${response.url}`);
 }
 
 for(const path of ['/','/lima','/guias','/help','/community-guidelines']){
