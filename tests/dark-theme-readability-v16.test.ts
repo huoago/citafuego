@@ -36,6 +36,7 @@ test('dark form placeholders stay readable',()=>{
 test('landing and public feature pages no longer use known low-contrast greys',()=>{
   for(const legacy of ['#5f5b65','#77727d']) assert.doesNotMatch(homeCss,new RegExp(legacy,'i'));
   for(const legacy of ['#65616a','#77727d']) assert.doesNotMatch(featureCss,new RegExp(legacy,'i'));
-  assert.match(homeCss,/\.footer\{[^}]*color:#aaa3ac/);
+  assert.match(homeCss,/\.footer\{[^}]*background:#171a21;color:#c7ccd3/);
+  assert.ok(ratio('#c7ccd3','#171a21')>=4.5);
   assert.match(featureCss,/\.detail\{[^}]*color:#bbb4bd/);
 });
