@@ -5,6 +5,13 @@ import {TurnstileField} from '@/components/auth/turnstile-field';
 
 const REGISTRATION_PASSWORD_MIN_LENGTH=6;
 const PASSWORD_MAX_LENGTH=72;
+const USERNAME_PATTERN=/^[A-Za-z0-9][A-Za-z0-9._-]{3,23}$/;
+const EMAIL_PATTERN=/^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+function validAccountIdentifier(value:string){
+  const normalized=value.trim();
+  return USERNAME_PATTERN.test(normalized)||(normalized.length<=254&&EMAIL_PATTERN.test(normalized));
+}
 
 export function AccountAuthForm({mode,turnstileSiteKey=''}:{mode:'register'|'login';turnstileSiteKey?:string}){
   const[busy,setBusy]=useState(false);
@@ -17,22 +24,27 @@ export function AccountAuthForm({mode,turnstileSiteKey=''}:{mode:'register'|'log
   async function submit(event:React.FormEvent<HTMLFormElement>){
     event.preventDefault();setBusy(true);setError('');
     const form=new FormData(event.currentTarget);
+    const username=String(form.get('username')??'').trim();
     const password=String(form.get('password')??'');
+    if(!validAccountIdentifier(username)){setBusy(false);setError('Usa un nombre de cuenta de 4–24 caracteres o un correo válido.');return;}
+    if(mode==='register'&&(password.length<REGISTRATION_PASSWORD_MIN_LENGTH||password.length>PASSWORD_MAX_LENGTH)){setBusy(false);setError(`La contraseña debe tener entre ${REGISTRATION_PASSWORD_MIN_LENGTH} y ${PASSWORD_MAX_LENGTH} caracteres.`);return;}
     if(mode==='register'&&password!==String(form.get('confirmPassword')??'')){setBusy(false);setError('Las contraseñas no coinciden.');return;}
     if(turnstileSiteKey&&!challengeToken){setBusy(false);setError('Completa la verificación de seguridad.');return;}
-    const body={username:String(form.get('username')??''),password,turnstileToken:challengeToken||undefined};
+    const body={username,password,turnstileToken:challengeToken||undefined};
     const response=await fetch(`/api/auth/account/${mode}`,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(body)}).catch(()=>null);
     const data=await response?.json().catch(()=>({}))??{};
     setBusy(false);
     if(!response?.ok){
       if(turnstileSiteKey){setChallengeToken('');setChallengeKey(key=>key+1)}
       const code=String(data.error??'');
-      if(code==='account_taken')setError('Ese nombre de cuenta ya está en uso. Elige otro.');
+      if(code==='account_taken')setError('Ese nombre de cuenta o correo ya está en uso. Elige otro.');
       else if(code==='invalid_credentials')setError('Cuenta o contraseña incorrectos.');
+      else if(code==='invalid_account_identifier')setError('Usa un nombre de cuenta de 4–24 caracteres o un correo válido.');
       else if(code==='rate_limited')setError('Demasiados intentos. Espera un momento antes de volver a probar.');
       else if(code==='compromised_password')setError('Esa contraseña apareció en filtraciones conocidas. Elige una contraseña distinta y única.');
       else if(code==='password_security_unavailable')setError('La comprobación de seguridad de contraseñas no está disponible ahora. Inténtalo de nuevo.');
-      else if(code==='invalid_password'||code==='invalid_payload')setError(`La contraseña debe tener entre ${REGISTRATION_PASSWORD_MIN_LENGTH} y ${PASSWORD_MAX_LENGTH} caracteres.`);
+      else if(code==='invalid_password')setError(`La contraseña debe tener entre ${REGISTRATION_PASSWORD_MIN_LENGTH} y ${PASSWORD_MAX_LENGTH} caracteres.`);
+      else if(code==='invalid_payload')setError('Revisa el nombre de cuenta o correo y la contraseña e inténtalo de nuevo.');
       else if(code.startsWith('challenge_'))setError('No pudimos validar la verificación de seguridad. Inténtalo de nuevo.');
       else setError(mode==='register'?'No pudimos crear la cuenta ahora. Revisa los datos e inténtalo de nuevo.':'No pudimos iniciar sesión ahora. Inténtalo de nuevo.');
       return;
@@ -41,8 +53,8 @@ export function AccountAuthForm({mode,turnstileSiteKey=''}:{mode:'register'|'log
   }
 
   return <form className="formStack registrationForm accountAuthForm" onSubmit={submit}>
-    <div className="authStepHeader"><span className="authStepBadge">{mode==='register'?'1':'✓'}</span><div><strong>{mode==='register'?'Crea tu cuenta':'Entra con tu cuenta'}</strong><small>{mode==='register'?'El correo y el celular se pueden vincular después.':'Usa el nombre de cuenta que elegiste al registrarte.'}</small></div></div>
-    <label>Nombre de cuenta<input name="username" autoComplete="username" inputMode="text" minLength={4} maxLength={24} pattern="[A-Za-z0-9][A-Za-z0-9._-]{3,23}" placeholder="ej. fuego_lima" required/><small className="fieldHelp">4–24 caracteres: letras, números, punto, guion o guion bajo.</small></label>
+    <div className="authStepHeader"><span className="authStepBadge">{mode==='register'?'1':'✓'}</span><div><strong>{mode==='register'?'Crea tu cuenta':'Entra con tu cuenta'}</strong><small>{mode==='register'?'Puedes usar un nombre de cuenta o tu correo. El celular se puede vincular después.':'Usa el nombre de cuenta o correo que elegiste al registrarte.'}</small></div></div>
+    <label>Nombre de cuenta o correo<input name="username" autoComplete="username" inputMode="email" minLength={4} maxLength={254} placeholder="ej. fuego_lima o correo@ejemplo.com" required/><small className="fieldHelp">Nombre: 4–24 caracteres con letras, números, punto, guion o guion bajo. También puedes usar un correo válido.</small></label>
     <div className="passwordFieldGroup">
       <label htmlFor="account-password">Contraseña</label>
       <div className="passwordInputWrap">
@@ -60,7 +72,7 @@ export function AccountAuthForm({mode,turnstileSiteKey=''}:{mode:'register'|'log
     </div>:null}
     {turnstileSiteKey?<TurnstileField key={challengeKey} siteKey={turnstileSiteKey} onToken={setChallengeToken} action={mode}/>:null}
     <button className="ctaButton fullWidth" disabled={busy||(Boolean(turnstileSiteKey)&&!challengeToken)}>{busy?(mode==='register'?'Creando…':'Entrando…'):(mode==='register'?'Crear cuenta':'Iniciar sesión')}</button>
-    {mode==='register'?<p className="authPrivacyHint">Después confirmarás que tienes 18+ y podrás vincular correo o celular de forma opcional.</p>:null}
+    {mode==='register'?<p className="authPrivacyHint">Después confirmarás que tienes 18+ y podrás vincular un correo o celular de recuperación de forma opcional.</p>:null}
     {error?<p className="formError" role="alert">{error}</p>:null}
   </form>;
 }
