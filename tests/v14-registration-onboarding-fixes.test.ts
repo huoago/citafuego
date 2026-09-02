@@ -3,16 +3,16 @@ import test from 'node:test';
 import {readFileSync} from 'node:fs';
 const read=(path:string)=>readFileSync(path,'utf8');
 
-test('account passwords use a 10-character floor without composition rules and reject compromised passwords',()=>{
+test('account passwords use a 6-character floor without composition rules and reject compromised passwords',()=>{
   const form=read('src/components/auth/account-auth-form.tsx');
   const route=read('src/app/api/auth/account/register/route.ts');
   const edge=read('supabase/functions/account-auth-v12/index.ts');
-  assert.match(form,/minLength=\{mode==='register'\?10:1\}/);
-  assert.match(form,/10–72 caracteres/);
-  assert.match(form,/contraseña única/);
-  assert.match(route,/password:z\.string\(\)\.min\(10\)\.max\(72\)/);
+  assert.match(form,/REGISTRATION_PASSWORD_MIN_LENGTH=6/);
+  assert.match(form,/minLength=\{mode==='register'\?REGISTRATION_PASSWORD_MIN_LENGTH:1\}/);
+  assert.match(form,/contraseñas conocidas por filtraciones públicas/);
+  assert.match(route,/password:z\.string\(\)\.min\(6\)\.max\(72\)/);
   assert.doesNotMatch(route,/regex\(\/\[A-Za-z\]\//);
-  assert.match(edge,/function validPassword\(value:string\)\{return value\.length>=10&&value\.length<=72\}/);
+  assert.match(edge,/function validPassword\(value:string\)\{return value\.length>=6&&value\.length<=72\}/);
   assert.match(edge,/compromised_password/);
   assert.match(edge,/pwnedpasswords\.com\/range/);
   assert.doesNotMatch(edge,/validPassword.*A-Za-z/);
