@@ -38,7 +38,7 @@ export function DiscoverDeck({initialProfiles,initialHasMore}:{initialProfiles:D
     visible.slice(0,12).forEach(profile=>{
       void fetch('/api/analytics',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({eventName:'profile_impression',properties:{targetUserId:profile.id,score:profile.chemistryScore,online:profile.isOnline,boosted:profile.isBoosted}})}).catch(()=>undefined);
     });
-  },[profiles]);
+  },[visible]);
 
   async function decide(profile:DiscoverProfile,action:'pass'|'like'){
     if(busyId||match)return;
