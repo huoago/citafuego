@@ -40,7 +40,7 @@ export default async function Page(){
   const id=await getAuthenticatedUserId();if(!id)redirect('/iniciar-sesion');
   const supabase=await createClient();
   const[{data:profile},{data:photo},{data:boost},{data:prefs},social]=await Promise.all([
-    supabase.from('profiles').select('display_name,district,city,verification_badge,identity_verification_badge,profile_completion,bio,intent,last_active_at').eq('id',id).maybeSingle(),
+    supabase.from('profiles').select('display_name,district,city,verification_badge,profile_completion,bio,intent,last_active_at').eq('id',id).maybeSingle(),
     supabase.from('profile_photos').select('storage_path').eq('user_id',id).eq('status','approved').order('is_primary',{ascending:false}).order('position').limit(1).maybeSingle(),
     supabase.rpc('get_my_boost_status'),
     supabase.from('user_ui_preferences').select('module_layout').eq('user_id',id).maybeSingle(),
@@ -51,8 +51,7 @@ export default async function Page(){
   if(photo?.storage_path){const{data}=await supabase.storage.from('profile-photos').createSignedUrl(photo.storage_path,600);imageUrl=data?.signedUrl??null}
   const hasPhoto=Boolean(imageUrl);
   const verified=Boolean(profile.verification_badge);
-  const identityVerified=Boolean(profile.identity_verification_badge);
-  const trustLabel=identityVerified?'Identidad verificada':hasPhoto&&verified?'Confianza avanzada':verified?'Perfil verificado':hasPhoto?'Fotos aprobadas':'Perfil estándar';
+  const trustLabel=hasPhoto&&verified?'Foto real verificada':verified?'Foto real verificada':hasPhoto?'Fotos aprobadas':'Perfil estándar';
   const boostStatus=(boost??{}) as {active?:boolean};
   const layout=normalizeLayout(prefs?.module_layout);
   const modules:Record<ModuleId,ReactNode>={
@@ -63,7 +62,7 @@ export default async function Page(){
     shortcuts:<div className="profileSettingsGroups">
       <section className="settingsSection"><header><div><h2>Mi perfil</h2><p>Lo que otras personas ven y cómo quieres conectar.</p></div></header><div className="settingsList"><SettingLink href="/onboarding?edit=1">Editar perfil y preferencias</SettingLink><SettingLink href="/perfil/identidad">Identidad y deseos</SettingLink><SettingLink href="/perfil/fotos">Fotos y foto principal</SettingLink><SettingLink href="/perfil/prompts">Preguntas de perfil</SettingLink><SettingLink href="/perfil/whatsapp">WhatsApp · número y visibilidad</SettingLink></div></section>
       <section className="settingsSection"><header><div><h2>Contenido y social</h2><p>Tu actividad, publicaciones y contenido privado.</p></div></header><div className="settingsList"><SettingLink href="/stories">Stories de 24 horas</SettingLink><SettingLink href="/stories/nuevo">Crear Story</SettingLink><SettingLink href="/blog/mio">Mi blog</SettingLink><SettingLink href="/guardados">Publicaciones guardadas</SettingLink><SettingLink href="/albumes">Álbumes privados</SettingLink></div></section>
-      <section className="settingsSection"><header><div><h2>Seguridad y privacidad</h2><p>Las verificaciones son opcionales y añaden señales de confianza.</p></div></header><div className="settingsList"><SettingLink href="/perfil/verificacion-identidad">✓✓ Verificación de identidad</SettingLink><SettingLink href="/perfil/verificacion-telefono">☎ Verificación de teléfono</SettingLink><SettingLink href="/citas">⌖ Seguridad para citas</SettingLink><SettingLink href="/blog/configuracion">Privacidad del blog</SettingLink><SettingLink href="/notificaciones">Notificaciones</SettingLink><SettingLink href="/seguridad">Seguridad y verificación</SettingLink></div></section>
+      <section className="settingsSection"><header><div><h2>Seguridad y privacidad</h2><p>La verificación de foto real es opcional y añade una señal de confianza. La selfie se revisa de forma privada y nunca entra en tus álbumes.</p></div></header><div className="settingsList"><SettingLink href="/perfil/verificacion-foto">✓ Verificación de foto real</SettingLink><SettingLink href="/perfil/verificacion-telefono">☎ Verificación de teléfono</SettingLink><SettingLink href="/citas">⌖ Seguridad para citas</SettingLink><SettingLink href="/blog/configuracion">Privacidad del blog</SettingLink><SettingLink href="/notificaciones">Notificaciones</SettingLink><SettingLink href="/seguridad">Seguridad y verificación</SettingLink></div></section>
       <div className="settingsList profileMoreLink"><SettingLink href="/perfil/mas">Más ajustes y herramientas</SettingLink></div>
     </div>,
   };
@@ -73,7 +72,7 @@ export default async function Page(){
     <div className="profileSummary">
       <span className="profileAvatarWrap">
         {imageUrl?<span className="profileAvatar"><Image src={imageUrl} alt={profile.display_name} fill sizes="76px"/></span>:<span className="avatarPlaceholder large">{profile.display_name.slice(0,1)}</span>}
-        <TrustMark hasPhoto={hasPhoto} verified={verified} identityVerified={identityVerified} className="avatarTrustMark"/>
+        <TrustMark hasPhoto={hasPhoto} verified={verified} className="avatarTrustMark"/>
       </span>
       <div><h2>{profile.display_name}</h2><p>{profile.district??profile.city} · Lima</p><small className="trustCaption">{trustLabel}</small>{social?.handle?<small>@{social.handle}</small>:null}{boostStatus.active?<small className="boostInline">⚡ Boost activo</small>:null}</div>
       <Link className="completionBadge completionAction" href="/onboarding?edit=1" aria-label={`Perfil completado al ${profile.profile_completion} por ciento`}>{profile.profile_completion}%</Link>
