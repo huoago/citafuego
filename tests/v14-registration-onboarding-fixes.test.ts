@@ -12,7 +12,9 @@ test('account passwords use a 6-character floor without composition rules and re
   assert.match(form,/contraseñas conocidas por filtraciones públicas/);
   assert.match(route,/password:z\.string\(\)\.min\(6\)\.max\(72\)/);
   assert.doesNotMatch(route,/regex\(\/\[A-Za-z\]\//);
-  assert.match(edge,/function validPassword\(value:string\)\{return value\.length>=6&&value\.length<=72\}/);
+  assert.match(edge,/const passwordMinLength=6;/);
+  assert.match(edge,/const passwordMaxLength=72;/);
+  assert.match(edge,/function validPassword\(value:string\)\{return value\.length>=passwordMinLength&&value\.length<=passwordMaxLength\}/);
   assert.match(edge,/compromised_password/);
   assert.match(edge,/pwnedpasswords\.com\/range/);
   assert.doesNotMatch(edge,/validPassword.*A-Za-z/);
