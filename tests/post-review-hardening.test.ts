@@ -21,10 +21,12 @@ test('private album viewer storage access requires atomic consume then service-s
   assert.doesNotMatch(migration,/public\.can_read_private_album_object\(name,auth\.uid\(\)\)/);
 });
 
-test('Veriff provider sessions are persisted through server service role',()=>{
+test('document identity provider start route is disabled and redirects users to private selfie verification',()=>{
   const route=read('src/app/api/identity/veriff/start/route.ts');
-  assert.match(route,/createServiceClient/);
-  assert.match(route,/admin\.from\('verification_sessions'\)\.insert/);
+  assert.match(route,/document_identity_verification_disabled/);
+  assert.match(route,/\/perfil\/verificacion-foto/);
+  assert.match(route,/status:410/);
+  assert.doesNotMatch(route,/createVeriffSession|verification_sessions.*insert|createServiceClient/);
 });
 
 test('phone verification timestamp is derived from Auth and synchronized by server role',()=>{
