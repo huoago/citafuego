@@ -13,18 +13,23 @@ test('V5 keeps one semantic job per global navigation control',()=>{
   assert.match(nav,/<svg/);
 });
 
-test('V5 restores vertical scrolling and limits card gestures to horizontal decisions',()=>{
+test('directory discovery preserves vertical browsing and removes gesture-only decisions',()=>{
   const deck=read('src/components/discover-deck.tsx');
-  const css=read('src/app/auth-safety-v3.css');
-  assert.match(deck,/Math\.abs\(dx\)>=72/);
-  assert.doesNotMatch(deck,/dy<=-76|dy>=76/);
-  assert.match(css,/immersiveProfileMedia\{touch-action:pan-y\}/);
+  const css=read('src/components/discover-directory.module.css');
+  assert.match(deck,/view==='grid'/);
+  assert.match(deck,/view==='list'/);
+  assert.match(deck,/Buscar por nombre, distrito o interés/);
+  assert.match(deck,/decide\(profile,'pass'\)/);
+  assert.match(deck,/decide\(profile,'like'\)/);
+  assert.doesNotMatch(deck,/onPointerDown|Math\.abs\(dx\)>=72|dy<=-76|dy>=76/);
+  assert.match(css,/\.grid\{display:grid/);
+  assert.match(css,/\.list\{display:grid/);
 });
 
 test('V5 never forces chat navigation immediately after a Match',()=>{
   const deck=read('src/components/discover-deck.tsx');
   assert.match(deck,/setMatch\(/);
-  assert.match(deck,/Seguir descubriendo/);
+  assert.match(deck,/Seguir explorando/);
   assert.match(deck,/Enviar mensaje/);
   assert.doesNotMatch(deck,/setTimeout\(\(\)=>router\.push/);
 });
