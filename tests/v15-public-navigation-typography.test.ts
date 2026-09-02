@@ -30,15 +30,17 @@ test('V15 how-it-works leaves the legacy bright marketing surface',()=>{
   assert.match(css,/\.v15StepCard\{[^}]*background:#101015/);
 });
 
-test('V15 reduces oversized headings on home and public feature detail pages',()=>{
+test('directory home uses compact headings while public feature detail pages retain bounded typography',()=>{
   const home=read('src/app/page.tsx');
+  const homeCss=read('src/app/home.module.css');
   const feature=read('src/components/public/PublicFeaturePage.tsx');
   const css=read('src/app/v15-public-polish.css');
-  assert.match(home,/v15HomeHero/);
+  assert.match(home,/HomeDirectoryControls/);
+  assert.doesNotMatch(home,/v15HomeHero/);
+  assert.match(homeCss,/\.directoryHeader h1\{[^}]*font-size:30px/);
+  assert.match(homeCss,/@media\(max-width:760px\)[\s\S]*\.directoryHeader h1\{font-size:25px/);
   assert.match(feature,/v15PublicFeatureHero/);
-  assert.match(css,/v15HomeHero h1\{font-size:clamp\(42px,5vw,66px\)!important/);
   assert.match(css,/v15PublicFeatureHero h1\{font-size:clamp\(34px,4\.5vw,58px\)!important/);
-  assert.match(css,/@media\(max-width:760px\)[\s\S]*v15HomeHero h1\{font-size:36px!important/);
   assert.match(css,/@media\(max-width:760px\)[\s\S]*v15PublicFeatureHero h1\{font-size:34px!important/);
 });
 
