@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-html-link-for-pages */
 import styles from '@/app/home.module.css';
 
 const districts=['Lima Metropolitana','Miraflores','Surco','San Borja','Barranco','Lince','La Molina','Jesús María'];
