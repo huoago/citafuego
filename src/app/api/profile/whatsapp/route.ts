@@ -28,10 +28,13 @@ export async function POST(request:Request){
 
   const supabase=await createClient();
   const{data,error}=await supabase.from('user_private')
-    .update({whatsapp_e164:number,whatsapp_public:parsed.data.visibility==='public',updated_at:new Date().toISOString()})
+    .update({whatsapp_e164:number,whatsapp_public:Boolean(number)&&parsed.data.visibility==='public',updated_at:new Date().toISOString()})
     .eq('user_id',userId)
     .select('whatsapp_e164,whatsapp_public')
-    .maybeSingle();
-  if(error||!data)return Response.json({error:'save_failed'},{status:400});
-  return Response.json({number:data.whatsapp_e164??null,visibility:data.whatsapp_public?'public':'hidden'});
+    .single();
+  if(error||!data){
+    console.error('whatsapp_profile_save_failed',{code:error?.code??'missing_row'});
+    return Response.json({error:'save_failed',message:'No pudimos guardar tu WhatsApp. Inténtalo de nuevo.'},{status:500});
+  }
+  return Response.json({number:data.whatsapp_e164??null,visibility:data.whatsapp_public?'public':'hidden',saved:true});
 }
