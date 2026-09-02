@@ -38,7 +38,14 @@ const privateRoutePatterns=[
   '/albumes/:path*',
   '/premium/:path*',
   '/onboarding/:path*',
-  '/registro/completar/:path*',
+  '/registro/:path*',
+  '/iniciar-sesion',
+  '/recuperar/:path*',
+  '/verificar-email/:path*',
+  '/bloqueados/:path*',
+  '/reportes/:path*',
+  '/usuario/:path*',
+  '/citas/:path*',
 ];
 
 const nextConfig:NextConfig={
