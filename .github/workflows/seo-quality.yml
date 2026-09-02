@@ -44,14 +44,38 @@ jobs:
       - name: Lighthouse audits
         shell: bash
         run: |
+          set -euo pipefail
           mkdir -p lighthouse
+          CHROME_PATH="$(command -v google-chrome || command -v google-chrome-stable || command -v chromium || command -v chromium-browser || true)"
+          if [ -z "$CHROME_PATH" ]; then
+            echo 'Chrome/Chromium not found on runner' >&2
+            exit 1
+          fi
+          export CHROME_PATH
+          echo "Using Chrome at $CHROME_PATH"
           for target in home lima guide; do
             case "$target" in
               home) url='http://127.0.0.1:3000/' ;;
               lima) url='http://127.0.0.1:3000/lima' ;;
               guide) url='http://127.0.0.1:3000/guias/seguridad-en-citas-online' ;;
             esac
-            npx --yes lighthouse@latest "$url" --quiet --chrome-flags='--headless --no-sandbox' --output=json --output-path="lighthouse/${target}.json"
+            success=0
+            for attempt in 1 2 3; do
+              rm -f "lighthouse/${target}.json"
+              if npx --yes lighthouse@latest "$url" --quiet \
+                --chrome-path="$CHROME_PATH" \
+                --chrome-flags='--headless=new --no-sandbox --disable-dev-shm-usage --disable-gpu' \
+                --output=json --output-path="lighthouse/${target}.json"; then
+                success=1
+                break
+              fi
+              echo "Lighthouse ${target} attempt ${attempt} failed; retrying..." >&2
+              sleep 2
+            done
+            if [ "$success" -ne 1 ] || [ ! -s "lighthouse/${target}.json" ]; then
+              echo "Lighthouse failed for ${target} after retries" >&2
+              exit 1
+            fi
           done
       - name: Enforce Lighthouse thresholds
         shell: bash
