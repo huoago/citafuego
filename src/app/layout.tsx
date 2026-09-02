@@ -21,14 +21,64 @@ import './v18-activation-ux.css';
 import './v19-trust-theme.css';
 import './v20-settings-personalization.css';
 import { PwaRegistrar } from '@/components/pwa-registrar';
+import { DEFAULT_DESCRIPTION, DEFAULT_TITLE, SITE_NAME, SITE_URL } from '@/lib/seo';
 
 export const metadata: Metadata = {
-  title: { default: 'CitaFuego — Personas reales. Citas reales.', template: '%s · CitaFuego' },
-  description: 'Conoce personas reales cerca de ti y convierte una conexión en una cita real.',
-  applicationName:'CitaFuego',
+  metadataBase:new URL(SITE_URL),
+  title:{default:DEFAULT_TITLE,template:'%s · CitaFuego'},
+  description:DEFAULT_DESCRIPTION,
+  applicationName:SITE_NAME,
+  alternates:{canonical:'/'},
+  openGraph:{
+    type:'website',
+    url:SITE_URL,
+    siteName:SITE_NAME,
+    locale:'es_PE',
+    title:DEFAULT_TITLE,
+    description:DEFAULT_DESCRIPTION,
+    images:[{url:'/opengraph-image',width:1200,height:630,alt:'CitaFuego — personas reales y citas reales en Lima'}],
+  },
+  twitter:{
+    card:'summary_large_image',
+    title:DEFAULT_TITLE,
+    description:DEFAULT_DESCRIPTION,
+    images:['/twitter-image'],
+  },
+  verification:{
+    google:process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION || undefined,
+    other:{
+      'msvalidate.01':process.env.NEXT_PUBLIC_BING_SITE_VERIFICATION || '',
+    },
+  },
   manifest:'/manifest.webmanifest',
   icons:{icon:'/icon.svg'},
   appleWebApp:{capable:true,title:'CitaFuego',statusBarStyle:'black-translucent'},
 };
-export const viewport: Viewport = { width: 'device-width', initialScale: 1, viewportFit:'cover', themeColor: '#08080b' };
-export default function RootLayout({children}:Readonly<{children:React.ReactNode}>){return <html lang="es"><body><PwaRegistrar/>{children}</body></html>}
+
+export const viewport:Viewport={width:'device-width',initialScale:1,viewportFit:'cover',themeColor:'#08080b'};
+
+const websiteJsonLd={
+  '@context':'https://schema.org',
+  '@type':'WebSite',
+  '@id':`${SITE_URL}/#website`,
+  url:SITE_URL,
+  name:SITE_NAME,
+  inLanguage:'es-PE',
+  description:DEFAULT_DESCRIPTION,
+};
+const organizationJsonLd={
+  '@context':'https://schema.org',
+  '@type':'Organization',
+  '@id':`${SITE_URL}/#organization`,
+  name:SITE_NAME,
+  url:SITE_URL,
+  logo:`${SITE_URL}/icon.svg`,
+};
+
+export default function RootLayout({children}:Readonly<{children:React.ReactNode}>){
+  return <html lang="es-PE"><body>
+    <script type="application/ld+json" dangerouslySetInnerHTML={{__html:JSON.stringify(websiteJsonLd)}} />
+    <script type="application/ld+json" dangerouslySetInnerHTML={{__html:JSON.stringify(organizationJsonLd)}} />
+    <PwaRegistrar/>{children}
+  </body></html>;
+}
