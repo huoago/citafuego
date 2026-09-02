@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-html-link-for-pages */
 import {HomeDirectoryEnhancements} from '@/components/public/HomeDirectoryEnhancements';
 import styles from './home.module.css';
 
