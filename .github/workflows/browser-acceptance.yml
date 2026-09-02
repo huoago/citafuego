@@ -1,0 +1,46 @@
+name: Playwright Browser Acceptance
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: npm
+      - name: Install application
+        run: npm ci
+      - name: Build
+        run: npm run build
+        env:
+          NEXT_PUBLIC_APP_URL: http://127.0.0.1:3000
+          NEXT_PUBLIC_SUPABASE_URL: https://stfbybkutnoqoxhqxyou.supabase.co
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: sb_publishable_ci_placeholder
+      - name: Install Playwright runner
+        run: |
+          npm install --no-save --package-lock=false playwright@latest
+          npx playwright install --with-deps chromium
+      - name: Start app
+        shell: bash
+        run: |
+          npm run start >/tmp/citafuego-browser.log 2>&1 &
+          for i in {1..45}; do
+            if curl -fsS http://127.0.0.1:3000/api/health >/dev/null; then exit 0; fi
+            sleep 2
+          done
+          cat /tmp/citafuego-browser.log
+          exit 1
+      - name: Desktop and mobile acceptance
+        env:
+          E2E_BASE_URL: http://127.0.0.1:3000
+        run: node e2e/browser-smoke.mjs
