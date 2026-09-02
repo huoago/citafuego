@@ -8,6 +8,7 @@ on:
     branches: [main]
     paths:
       - '.github/workflows/daily-health.yml'
+      - 'scripts/production-seo-audit.mjs'
 
 permissions:
   contents: read
@@ -23,6 +24,12 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 45
     steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+
       - name: Initial production inspection
         id: initial
         shell: bash
@@ -50,13 +57,27 @@ jobs:
             rm -f "$body"
           done
 
-          for path in / /login /signup /terms /privacy /safety /community-guidelines /help; do
+          ready_body=$(mktemp)
+          ready_code=$(curl -sS -L --max-time 30 -o "$ready_body" -w '%{http_code}' https://citafuego.com/api/ready || true)
+          if [ "$ready_code" != 200 ] || ! grep -Eq '"ready"[[:space:]]*:[[:space:]]*true' "$ready_body"; then
+            failed=1
+            report+="- Readiness: citafuego.com/api/ready failed (${ready_code:-000})\\n"
+          fi
+          rm -f "$ready_body"
+
+          for path in / /iniciar-sesion /registro /terminos /privacidad /safety /community-guidelines /help /robots.txt /sitemap.xml /lima /guias; do
             code=$(curl -sS -L --max-time 25 -o /dev/null -w '%{http_code}' "https://citafuego.com${path}" || true)
             if [[ "$code" != 2* && "$code" != 3* ]]; then
               failed=1
               report+="- HTTP: https://citafuego.com${path} returned ${code:-000}\\n"
             fi
           done
+
+          if ! SEO_AUDIT_BASE_URL=https://citafuego.com node scripts/production-seo-audit.mjs >/tmp/seo-audit.log 2>&1; then
+            failed=1
+            report+="- SEO/privacy production audit failed\\n"
+            cat /tmp/seo-audit.log
+          fi
 
           echo "failed=$failed" >> "$GITHUB_OUTPUT"
           {
@@ -126,6 +147,15 @@ jobs:
             fi
             rm -f "$body"
           done
+          if ! curl -fsS --max-time 30 https://citafuego.com/api/ready | grep -Eq '"ready"[[:space:]]*:[[:space:]]*true'; then
+            failed=1
+            report+="- Production readiness remains unhealthy\\n"
+          fi
+          if ! SEO_AUDIT_BASE_URL=https://citafuego.com node scripts/production-seo-audit.mjs >/tmp/final-seo-audit.log 2>&1; then
+            failed=1
+            report+="- SEO/privacy production audit remains unhealthy\\n"
+            cat /tmp/final-seo-audit.log
+          fi
           echo "failed=$failed" >> "$GITHUB_OUTPUT"
           {
             echo 'report<<EOF'
@@ -141,7 +171,7 @@ jobs:
           script: |
             const { data: issues } = await github.rest.issues.listForRepo({ owner: context.repo.owner, repo: context.repo.repo, state: 'open', per_page: 100 });
             for (const issue of issues.filter(i => i.title.startsWith('[Health] CitaFuego production unrecovered') || i.title.startsWith('[Health] Production endpoint failure'))) {
-              await github.rest.issues.createComment({ owner: context.repo.owner, repo: context.repo.repo, issue_number: issue.number, body: 'Automated health check confirms CitaFuego production is healthy again. Closing this incident.' });
+              await github.rest.issues.createComment({ owner: context.repo.owner, repo: context.repo.repo, issue_number: issue.number, body: 'Automated health check confirms CitaFuego production is healthy again, including readiness and SEO/privacy gates. Closing this incident.' });
               await github.rest.issues.update({ owner: context.repo.owner, repo: context.repo.repo, issue_number: issue.number, state: 'closed' });
             }
 
@@ -155,7 +185,7 @@ jobs:
           script: |
             const date = new Date().toISOString().slice(0,10);
             const title = `[Health] CitaFuego production unrecovered ${date}`;
-            const body = `Daily self-healing detected a production failure and automatic repair did not fully recover it.\n\n### Initial\n${process.env.INITIAL_REPORT || '- No detail'}\n\n### Final\n${process.env.FINAL_REPORT || '- No detail'}\n\nAttempted: domain/Vercel repair, Alibaba Cloud DNS repair, HTTPS re-verification, and clean tested production redeploy.`;
+            const body = `Daily self-healing detected a production failure and automatic repair did not fully recover it.\n\n### Initial\n${process.env.INITIAL_REPORT || '- No detail'}\n\n### Final\n${process.env.FINAL_REPORT || '- No detail'}\n\nAttempted: domain/Vercel repair, Alibaba Cloud DNS repair, HTTPS re-verification, clean tested production redeploy, readiness verification, and SEO/privacy audit.`;
             const { data: issues } = await github.rest.issues.listForRepo({ owner: context.repo.owner, repo: context.repo.repo, state: 'open', per_page: 100 });
             const existing = issues.find(i => i.title === title);
             if (existing) await github.rest.issues.createComment({ owner: context.repo.owner, repo: context.repo.repo, issue_number: existing.number, body });
