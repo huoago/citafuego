@@ -5,15 +5,21 @@ import {join} from 'node:path';
 
 const read=(path:string)=>readFileSync(join(process.cwd(),path),'utf8');
 
-test('V6 public navigation reduces choices without deleting feature routes',()=>{
+test('V6 public navigation reduces choices while homepage exposes directory-first actions',()=>{
   const nav=read('src/components/public/PublicFeatureNav.tsx');
   const home=read('src/app/page.tsx');
+  const controls=read('src/components/public/HomeDirectoryControls.tsx');
   assert.match(nav,/Cómo funciona/);
   assert.match(nav,/Seguridad/);
   assert.match(nav,/Comunidad/);
   assert.doesNotMatch(nav,/publicFeatures\.map/);
-  assert.match(home,/essentialSlugs/);
-  assert.match(home,/Lo esencial para conectar/);
+  assert.match(home,/HomeDirectoryControls/);
+  assert.match(home,/\+ Crear perfil/);
+  assert.match(home,/Cómo funciona/);
+  assert.match(home,/Seguridad/);
+  assert.match(controls,/Conexión:/);
+  assert.match(controls,/Quiero conocer:/);
+  assert.match(controls,/Cerca de mí/);
 });
 
 test('V11 registration explains only currently usable paths without provider jargon',()=>{
