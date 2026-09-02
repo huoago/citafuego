@@ -19,17 +19,21 @@ test('admin role registry includes production operational roles',()=>{
 });
 
 test('dashboard and users expose explicit 90-day inactivity controls',()=>{
+  const users=read('src/app/admin/users/page.tsx');
   assert.match(read('src/app/admin/page.tsx'),/3 meses sin iniciar sesión/);
-  assert.match(read('src/app/admin/users/page.tsx'),/inactive=90/);
+  assert.match(users,/name="inactive"/);
+  assert.match(users,/<option value="90">Sin login 3 meses<\/option>/);
+  assert.match(users,/inactive===90/);
   assert.match(read(lifecycle),/inactive_user_days/);
   assert.match(read(lifecycle),/inactive90d/);
 });
 
 test('inactive users can never be auto-deleted by an operations toggle',()=>{
-  const sql=read(lifecycle);
+  const sql=read(lifecycle);const operations=read('src/app/admin/operations/page.tsx');
   assert.match(sql,/auto_delete_inactive_users/);
   assert.match(sql,/automatic_inactive_deletion_not_allowed/);
-  assert.match(read('src/app/admin/operations/page.tsx'),/no elimina automáticamente usuarios inactivos/);
+  assert.match(operations,/eliminación automática de usuarios inactivos está bloqueada por servidor/i);
+  assert.match(operations,/locked=s\.key==='auto_delete_inactive_users'/);
 });
 
 test('account deletion is two-stage, confirmed and audited',()=>{
