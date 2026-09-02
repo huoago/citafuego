@@ -1,6 +1,18 @@
-import Link from 'next/link';
-import {HomeDirectoryControls} from '@/components/public/HomeDirectoryControls';
+import {HomeDirectoryEnhancements} from '@/components/public/HomeDirectoryEnhancements';
 import styles from './home.module.css';
+
+type PreviewProfile={id:string;name:string;age:number;district:string;gender:'mujer'|'hombre';connection:'citas'|'amistad'|'video';tagline:string;verified:boolean;online:boolean;media:string[]};
+
+const previewProfiles:PreviewProfile[]=[
+  {id:'p1',name:'Lucía',age:27,district:'Miraflores',gender:'mujer',connection:'citas',tagline:'Café, viajes y conversaciones sin prisa.',verified:true,online:true,media:['2 fotos','audio']},
+  {id:'p2',name:'Mateo',age:31,district:'Barranco',gender:'hombre',connection:'amistad',tagline:'Música, fotografía y planes de fin de semana.',verified:true,online:false,media:['3 fotos']},
+  {id:'p3',name:'Valeria',age:29,district:'Surco',gender:'mujer',connection:'video',tagline:'Primero conversar, luego vemos qué surge.',verified:true,online:true,media:['video','2 fotos']},
+  {id:'p4',name:'Diego',age:33,district:'San Borja',gender:'hombre',connection:'citas',tagline:'Cocina, running y escapadas fuera de Lima.',verified:false,online:true,media:['2 fotos']},
+  {id:'p5',name:'Camila',age:26,district:'Lince',gender:'mujer',connection:'amistad',tagline:'Arte, perros y descubrir lugares nuevos.',verified:true,online:false,media:['4 fotos']},
+  {id:'p6',name:'Andrés',age:35,district:'La Molina',gender:'hombre',connection:'video',tagline:'Conversaciones claras y conexiones reales.',verified:true,online:false,media:['audio','2 fotos']},
+  {id:'p7',name:'Sofía',age:30,district:'Jesús María',gender:'mujer',connection:'citas',tagline:'Libros, gastronomía y una buena primera cita.',verified:true,online:true,media:['3 fotos']},
+  {id:'p8',name:'Nicolás',age:28,district:'Miraflores',gender:'hombre',connection:'amistad',tagline:'Viajes, cine y conocer gente nueva.',verified:false,online:false,media:['2 fotos']},
+];
 
 const districtLinks=[
   ['Miraflores','/lima/miraflores'],['Surco','/lima/santiago-de-surco'],['San Borja','/lima/san-borja'],['Barranco','/lima/barranco'],
@@ -12,25 +24,56 @@ export default function LandingPage(){
     <div className={styles.trustStrip}>🔥 CitaFuego · Solo adultos 18+ · perfiles y contenido sujetos a controles de seguridad y moderación</div>
 
     <header className={styles.header}>
-      <Link className={styles.brand} href="/" aria-label="CitaFuego inicio"><span>🔥</span><strong>CitaFuego</strong></Link>
+      <a className={styles.brand} href="/" aria-label="CitaFuego inicio"><span>🔥</span><strong>CitaFuego</strong></a>
       <nav className={styles.headerActions} aria-label="Acciones principales">
-        <Link href="/guardados" className={styles.headerIcon} aria-label="Guardados" title="Guardados">♡</Link>
-        <Link href="/registro" className={styles.publishButton}>+ Crear perfil</Link>
+        <a href="/guardados" className={styles.headerIcon} aria-label="Guardados" title="Guardados">♡</a>
+        <a href="/registro" className={styles.publishButton}>+ Crear perfil</a>
         <details className={styles.menu}>
           <summary aria-label="Abrir menú">☰</summary>
           <div className={styles.menuPanel}>
-            <Link href="/iniciar-sesion">Iniciar sesión</Link>
-            <Link href="/registro">Crear perfil</Link>
-            <Link href="/como-funciona">Cómo funciona</Link>
-            <Link href="/safety">Seguridad</Link>
-            <Link href="/help">Ayuda</Link>
+            <a href="/iniciar-sesion">Iniciar sesión</a>
+            <a href="/registro">Crear perfil</a>
+            <a href="/como-funciona">Cómo funciona</a>
+            <a href="/safety">Seguridad</a>
+            <a href="/help">Ayuda</a>
           </div>
         </details>
       </nav>
     </header>
 
     <div className={styles.shell}>
-      <HomeDirectoryControls/>
+      <HomeDirectoryEnhancements/>
+
+      <section className={styles.directorySection} aria-label="Vista previa de perfiles">
+        <div data-preview-grid data-grid-class={styles.profileGrid} data-list-class={styles.profileList} className={styles.profileGrid}>
+          {previewProfiles.map((profile,index)=><article
+            className={styles.profilePreview}
+            key={profile.id}
+            data-preview-profile
+            data-connection={profile.connection}
+            data-gender={profile.gender}
+            data-district={profile.district}
+            data-verified={String(profile.verified)}
+            data-online={String(profile.online)}
+            data-search={`${profile.name} ${profile.district} ${profile.tagline}`.toLowerCase()}
+          >
+            <div className={`${styles.previewPhoto} ${styles[`previewTone${(index%4)+1}`]}`}>
+              <span className={styles.previewBadge}>Vista previa</span>
+              {profile.online?<span className={styles.onlineBadge}>● Activo ahora</span>:null}
+              <div className={styles.previewSilhouette} aria-hidden="true"><span>●</span><b>●</b></div>
+            </div>
+            <div className={styles.previewBody}>
+              <div className={styles.previewName}><strong>{profile.name}, {profile.age}</strong>{profile.verified?<span title="Perfil verificado">✓</span>:null}</div>
+              <p>{profile.district} · <span data-distance-label>≤ 10 km</span></p>
+              <div className={styles.mediaTags}>{profile.media.map(item=><span key={item}>{item}</span>)}</div>
+              <p className={styles.tagline}>{profile.tagline}</p>
+              <div className={styles.previewActions}><a href="/descubrir">Ver perfiles</a><a href="/registro">Crear perfil</a></div>
+            </div>
+          </article>)}
+        </div>
+        <div className={styles.noResults} data-preview-empty hidden><strong>No hay vistas previas con esos filtros.</strong><button type="button" data-reset-preview>Restablecer filtros</button></div>
+        <div className={styles.directoryCta}><a className={styles.primaryCta} href="/registro">Crear mi perfil</a><a className={styles.secondaryCta} href="/iniciar-sesion">Ya tengo cuenta</a></div>
+      </section>
 
       <section className={styles.explainer} aria-labelledby="citas-lima">
         <p className={styles.eyebrow}>CitaFuego en Lima</p>
@@ -45,25 +88,25 @@ export default function LandingPage(){
 
       <section className={styles.linkSection} aria-label="Distritos de Lima">
         <h2>Distritos principales de Lima</h2>
-        <div className={styles.linkCloud}>{districtLinks.map(([label,href])=><Link href={href} key={href}>{label}</Link>)}<Link href="/lima">+ Ver todos</Link></div>
+        <div className={styles.linkCloud}>{districtLinks.map(([label,href])=><a href={href} key={href}>{label}</a>)}<a href="/lima">+ Ver todos</a></div>
       </section>
 
       <section className={styles.linkSection} aria-label="Funciones más usadas">
         <h2>Lo más usado en CitaFuego</h2>
         <div className={styles.linkCloud}>
-          <Link href="/verificacion">Perfiles verificados</Link>
-          <Link href="/como-funciona">Cómo funciona</Link>
-          <Link href="/seguridad-privacidad">Privacidad</Link>
-          <Link href="/safety">Consejos de seguridad</Link>
-          <Link href="/guias">Guías para citas</Link>
-          <Link href="/registro">Crear perfil</Link>
+          <a href="/verificacion">Perfiles verificados</a>
+          <a href="/como-funciona">Cómo funciona</a>
+          <a href="/seguridad-privacidad">Privacidad</a>
+          <a href="/safety">Consejos de seguridad</a>
+          <a href="/guias">Guías para citas</a>
+          <a href="/registro">Crear perfil</a>
         </div>
       </section>
     </div>
 
     <footer className={styles.footer}>
       <div><strong>🔥 CitaFuego</strong><span>Contenido y comunidad solo para mayores de 18 años.</span></div>
-      <nav><Link href="/terminos">Términos</Link><Link href="/privacidad">Privacidad</Link><Link href="/community-guidelines">Comunidad</Link><Link href="/safety">Seguridad</Link><Link href="/help">Ayuda</Link></nav>
+      <nav><a href="/terminos">Términos</a><a href="/privacidad">Privacidad</a><a href="/community-guidelines">Comunidad</a><a href="/safety">Seguridad</a><a href="/help">Ayuda</a></nav>
     </footer>
   </main>;
 }
