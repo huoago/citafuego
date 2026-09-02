@@ -7,14 +7,16 @@ import { createClient } from '@/lib/supabase/server';
 import { getSocialProfile } from '@/lib/social/server';
 import { HandleForm } from '@/components/social/handle-form';
 import { TrustMark } from '@/components/profile/trust-mark';
+import { ReferralShare } from '@/components/growth/referral-share';
 
 export const dynamic='force-dynamic';
 const SettingLink=({href,children}:{href:string;children:React.ReactNode})=><Link href={href}>{children}<span aria-hidden="true">›</span></Link>;
-type ModuleId='completion'|'social'|'bio'|'handle'|'shortcuts';
+type ModuleId='completion'|'social'|'referral'|'bio'|'handle'|'shortcuts';
 type ModuleConfig={id:ModuleId;colSpan:1|2;rowSpan:1|2;visible:boolean};
 const defaults:ModuleConfig[]=[
   {id:'completion',colSpan:2,rowSpan:1,visible:true},
   {id:'social',colSpan:2,rowSpan:1,visible:true},
+  {id:'referral',colSpan:2,rowSpan:1,visible:true},
   {id:'bio',colSpan:2,rowSpan:1,visible:true},
   {id:'handle',colSpan:1,rowSpan:1,visible:true},
   {id:'shortcuts',colSpan:1,rowSpan:2,visible:true},
@@ -39,12 +41,14 @@ function Module({config,children}:{config:ModuleConfig;children:ReactNode}){
 export default async function Page(){
   const id=await getAuthenticatedUserId();if(!id)redirect('/iniciar-sesion');
   const supabase=await createClient();
-  const[{data:profile},{data:photo},{data:boost},{data:prefs},social]=await Promise.all([
+  const[{data:profile},{data:photo},{data:boost},{data:prefs},social,{data:referralCode},{count:referralCount}]=await Promise.all([
     supabase.from('profiles').select('display_name,district,city,verification_badge,profile_completion,bio,intent,last_active_at').eq('id',id).maybeSingle(),
     supabase.from('profile_photos').select('storage_path').eq('user_id',id).eq('status','approved').order('is_primary',{ascending:false}).order('position').limit(1).maybeSingle(),
     supabase.rpc('get_my_boost_status'),
     supabase.from('user_ui_preferences').select('module_layout').eq('user_id',id).maybeSingle(),
     getSocialProfile(id),
+    supabase.rpc('get_my_referral_code'),
+    supabase.from('referral_attributions').select('invited_user_id',{count:'exact',head:true}).eq('inviter_user_id',id).not('rewarded_at','is',null),
   ]);
   if(!profile)redirect('/onboarding');
   let imageUrl:string|null=null;
@@ -54,9 +58,12 @@ export default async function Page(){
   const trustLabel=hasPhoto&&verified?'Foto real verificada':verified?'Foto real verificada':hasPhoto?'Fotos aprobadas':'Perfil estándar';
   const boostStatus=(boost??{}) as {active?:boolean};
   const layout=normalizeLayout(prefs?.module_layout);
+  const referralUrl=typeof referralCode==='string'?`https://citafuego.com/registro?ref=${encodeURIComponent(referralCode)}`:null;
+  const currentCity=profile.district??profile.city??'tu ciudad';
   const modules:Record<ModuleId,ReactNode>={
     completion:profile.profile_completion<100?<div className="profileCompletionPrompt"><div><strong>Tu perfil está al {profile.profile_completion}%</strong><span>Completarlo mejora la calidad de las recomendaciones, pero puedes usar Descubrir sin terminarlo.</span></div><Link className="ghostButton" href="/onboarding?edit=1">Completar perfil</Link></div>:<div className="softPanel"><strong>Perfil completo</strong><p>Tus datos principales están completos. Puedes modificarlos cuando quieras.</p></div>,
     social:social?<div className="socialStats"><Link href={`/perfil/${id}/seguidores`}><strong>{social.followers}</strong><span>Seguidores</span></Link><Link href={`/perfil/${id}/seguidos`}><strong>{social.following}</strong><span>Siguiendo</span></Link><Link href="/stories"><strong>{social.activeStories}</strong><span>Stories</span></Link></div>:<div className="softPanel"><strong>Actividad social</strong><p>Tu actividad aparecerá aquí.</p></div>,
+    referral:referralUrl?<section className="referralPage profileReferralModule"><div className="pageHeader"><p className="eyebrow">Tu enlace personal</p><h2>Invita amigos y gana prioridad</h2><p className="muted">Este enlace es exclusivo de tu cuenta. Cuando un amigo entre por él y complete un registro válido, recibirás <strong>7 días de prioridad</strong> en {currentCity}. Cada registro válido suma 7 días adicionales.</p></div><ReferralShare url={referralUrl}/><div className="referralRewardPanel"><strong>{referralCount??0}</strong><span>amigos registrados y confirmados</span><p>Solo cuentan registros nuevos realizados desde tu enlace. No cuentan auto-invitaciones ni cuentas repetidas.</p></div></section>:<div className="softPanel"><strong>Invitar amigos</strong><p>No pudimos preparar tu enlace personal en este momento.</p><Link className="ghostButton" href="/invitar">Reintentar</Link></div>,
     bio:<div className="softPanel"><strong>Tu bio</strong><p>{profile.bio||'Puedes añadir una bio cuando quieras.'}</p></div>,
     handle:social?<HandleForm initial={social.handle}/>:<div className="softPanel"><strong>Nombre de usuario</strong><p>Disponible cuando completes tus datos básicos.</p></div>,
     shortcuts:<div className="profileSettingsGroups">
