@@ -35,8 +35,8 @@ test('directory home uses compact headings while public feature detail pages ret
   const homeCss=read('src/app/home.module.css');
   const feature=read('src/components/public/PublicFeaturePage.tsx');
   const css=read('src/app/v15-public-polish.css');
-  assert.match(home,/HomeDirectoryControls/);
-  assert.doesNotMatch(home,/v15HomeHero/);
+  assert.match(home,/HomeDirectoryEnhancements/);
+  assert.doesNotMatch(home,/HomeDirectoryControls|v15HomeHero/);
   assert.match(homeCss,/\.directoryHeader h1\{[^}]*font-size:30px/);
   assert.match(homeCss,/@media\(max-width:760px\)[\s\S]*\.directoryHeader h1\{font-size:25px/);
   assert.match(feature,/v15PublicFeatureHero/);
