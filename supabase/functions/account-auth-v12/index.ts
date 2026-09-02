@@ -17,9 +17,9 @@ const passwordMaxLength=72;
 
 function response(body:Record<string,unknown>,status=200){return new Response(JSON.stringify(body),{status,headers:jsonHeaders})}
 function normalize(value:string){return value.trim().toLowerCase()}
-function validUsername(value:string){const v=normalize(value);return /^[a-z0-9][a-z0-9._-]{3,23}$/.test(v)&&!reserved.has(v)}
 function validPassword(value:string){return value.length>=passwordMinLength&&value.length<=passwordMaxLength}
 function validEmail(value:string){const v=value.trim().toLowerCase();return v.length<=254&&/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)&&!v.endsWith('@accounts.citafuego.invalid')}
+function validUsername(value:string){const v=normalize(value);return (/^[a-z0-9][a-z0-9._-]{3,23}$/.test(v)&&!reserved.has(v))||validEmail(v)}
 
 function parseNamedKey(name:string,legacyName:string){
   try{const parsed=JSON.parse(Deno.env.get(name)??'{}');if(typeof parsed.default==='string'&&parsed.default)return parsed.default as string}catch{}
@@ -66,7 +66,7 @@ Deno.serve(async(req)=>{
   if(!(await verifyVercelIdentity(req)))return response({error:'unauthorized_backend'},401);
   if(!url||!secretKey||!publishableKey)return response({error:'service_unavailable'},503);
   let payload:Payload={};try{payload=await req.json()}catch{return response({error:'invalid_payload'},400)}
-  if(payload.action==='health')return response({ready:true,version:'v12.4',passwordMinLength,passwordMaxLength,recovery:true,compromisedPasswordCheck:'hibp_k_anonymity'});
+  if(payload.action==='health')return response({ready:true,version:'v12.5',passwordMinLength,passwordMaxLength,recovery:true,accountIdentifier:'username_or_email',compromisedPasswordCheck:'hibp_k_anonymity'});
 
   const trustedFingerprint=req.headers.get('x-citafuego-client-fingerprint')??'';
   if(!/^[a-f0-9]{64}$/.test(trustedFingerprint))return response({error:'invalid_fingerprint'},400);
@@ -115,7 +115,7 @@ Deno.serve(async(req)=>{
   }
 
   const password=typeof payload.password==='string'?payload.password:'';
-  if((action!=='register'&&action!=='login')||!validUsername(username)||password.length<1||password.length>passwordMaxLength)return response({error:action==='login'?'invalid_credentials':'invalid_payload'},action==='login'?401:400);
+  if((action!=='register'&&action!=='login')||!validUsername(username)||password.length<1||password.length>passwordMaxLength)return response({error:action==='login'?'invalid_credentials':'invalid_account_identifier'},action==='login'?401:400);
 
   if(action==='register'){
     const safe=await enforceSafePassword(password);if(!safe.ok)return response({error:safe.error},safe.status);
