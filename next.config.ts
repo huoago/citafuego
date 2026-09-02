@@ -34,6 +34,8 @@ const privateRoutePatterns=[
   '/likes/:path*',
   '/para-ti/:path*',
   '/descubrir/:path*',
+  '/stories/:path*',
+  '/blog/:path*',
   '/guardados/:path*',
   '/albumes/:path*',
   '/premium/:path*',
