@@ -15,7 +15,7 @@ const routes=['swipe','verificacion','chat-privado','random-connect','para-ti-in
 test('homepage is a compact directory-first dating hub instead of a long marketing catalogue',()=>{
   assert.match(page,/CitaFuego en Lima/);
   assert.match(page,/Conoce personas reales con más contexto antes de conversar/);
-  assert.match(page,/no convertimos los perfiles en anuncios de servicios/);
+  assert.match(page,/ni convertimos los perfiles en anuncios de servicios/);
   assert.match(page,/HomeDirectoryControls/);
   assert.doesNotMatch(page,/publicFeatures\.map/);
   for(const oldSection of ['chatSection','randomSection','socialSection','albumSection','algorithmSection','premiumSection','privacyBanner','v15HomeHero']) {
