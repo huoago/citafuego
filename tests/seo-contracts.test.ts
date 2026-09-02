@@ -54,6 +54,13 @@ test('legacy auth links permanently redirect to Spanish canonical routes',()=>{
   assert.match(source,/permanent:true/);
 });
 
+test('www production traffic is permanently normalized to the apex canonical domain',()=>{
+  const source=read('src/proxy.ts');
+  assert.match(source,/www\.citafuego\.com/);
+  assert.match(source,/hostname='citafuego\.com'/);
+  assert.match(source,/NextResponse\.redirect\(url,308\)/);
+});
+
 test('global metadata includes canonical, social cards and verification hooks',()=>{
   const source=read('src/app/layout.tsx');
   for(const token of ['metadataBase','alternates','openGraph','twitter','verification','WebSite','Organization'])assert.match(source,new RegExp(token));
