@@ -5,14 +5,18 @@ import {isAllowedAccountUsername} from '@/lib/auth/account-identity';
 import {verifyTurnstile} from '@/lib/security/turnstile';
 
 const schema=z.object({
-  username:z.string().trim().min(4).max(24),
+  username:z.string().trim().min(4).max(254),
   password:z.string().min(6).max(72),
   turnstileToken:z.string().max(2048).optional(),
 });
 
 export async function POST(request:Request){
   const parsed=schema.safeParse(await request.json().catch(()=>null));
-  if(!parsed.success||!isAllowedAccountUsername(parsed.data.username))return Response.json({error:'invalid_payload'},{status:400});
+  if(!parsed.success){
+    const hasPasswordIssue=parsed.error.issues.some(issue=>issue.path[0]==='password');
+    return Response.json({error:hasPasswordIssue?'invalid_password':'invalid_account_identifier'},{status:400});
+  }
+  if(!isAllowedAccountUsername(parsed.data.username))return Response.json({error:'invalid_account_identifier'},{status:400});
   const challenge=await verifyTurnstile(request,parsed.data.turnstileToken,'register');
   if(!challenge.ok)return Response.json({error:challenge.error??'challenge_failed'},{status:403});
 
