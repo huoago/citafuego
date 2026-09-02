@@ -8,18 +8,20 @@ const read=(path:string)=>readFileSync(join(process.cwd(),path),'utf8');
 test('V6 public navigation reduces choices while homepage exposes directory-first actions',()=>{
   const nav=read('src/components/public/PublicFeatureNav.tsx');
   const home=read('src/app/page.tsx');
-  const controls=read('src/components/public/HomeDirectoryControls.tsx');
+  const controls=read('src/components/public/HomeDirectoryEnhancements.tsx');
   assert.match(nav,/Cómo funciona/);
   assert.match(nav,/Seguridad/);
   assert.match(nav,/Comunidad/);
   assert.doesNotMatch(nav,/publicFeatures\.map/);
-  assert.match(home,/HomeDirectoryControls/);
+  assert.match(home,/HomeDirectoryEnhancements/);
+  assert.doesNotMatch(home,/HomeDirectoryControls/);
   assert.match(home,/\+ Crear perfil/);
   assert.match(home,/Cómo funciona/);
   assert.match(home,/Seguridad/);
   assert.match(controls,/Conexión:/);
   assert.match(controls,/Quiero conocer:/);
   assert.match(controls,/Cerca de mí/);
+  assert.match(controls,/data-preview-query/);
 });
 
 test('V11 registration explains only currently usable paths without provider jargon',()=>{
