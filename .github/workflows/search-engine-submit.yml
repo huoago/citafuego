@@ -1,0 +1,38 @@
+name: Search engine submission
+
+on:
+  workflow_run:
+    workflows: ['Production deploy']
+    types: [completed]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  submit:
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      SEARCH_CONSOLE_SITE_URL: https://citafuego.com/
+      GOOGLE_SEARCH_CONSOLE_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_SEARCH_CONSOLE_SERVICE_ACCOUNT_JSON }}
+      BING_WEBMASTER_API_KEY: ${{ secrets.BING_WEBMASTER_API_KEY }}
+      INDEXNOW_KEY: ${{ secrets.INDEXNOW_KEY }}
+      INDEXNOW_HOST: citafuego.com
+      INDEXNOW_KEY_LOCATION: https://citafuego.com/indexnow-key.txt
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+      - name: Wait for production sitemap
+        shell: bash
+        run: |
+          for i in {1..30}; do
+            if curl -fsS https://citafuego.com/sitemap.xml | grep -q '<urlset'; then exit 0; fi
+            sleep 10
+          done
+          exit 1
+      - name: Submit verified public sitemap and URLs
+        run: node scripts/search-engine-submit.mjs
