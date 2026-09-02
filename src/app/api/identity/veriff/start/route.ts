@@ -1,5 +1,7 @@
-import { getAuthenticatedUserId } from '@/lib/auth/server';
-import { createClient } from '@/lib/supabase/server';
-import { createServiceClient } from '@/lib/supabase/service';
-import { createVeriffSession,isVeriffConfigured } from '@/lib/providers/veriff';
-export async function POST(request:Request){const userId=await getAuthenticatedUserId();if(!userId)return Response.json({error:'unauthorized'},{status:401});if(!isVeriffConfigured())return Response.json({error:'identity_provider_not_configured'},{status:503});const s=await createClient();const[{data:profile},{data:latest}]=await Promise.all([s.from('profiles').select('identity_verification_badge').eq('id',userId).maybeSingle(),s.from('verification_sessions').select('id,status,started_at').eq('user_id',userId).eq('provider','veriff').order('started_at',{ascending:false}).limit(1).maybeSingle()]);if(profile?.identity_verification_badge)return Response.json({verified:true});if(latest?.status==='pending'&&Date.now()-new Date(latest.started_at).getTime()<10*60*1000)return Response.json({error:'verification_already_started'},{status:429});const appUrl=(process.env.NEXT_PUBLIC_APP_URL??new URL(request.url).origin).replace(/\/$/,'');try{const session=await createVeriffSession({userId,callbackUrl:`${appUrl}/perfil/verificacion-identidad?return=1`});const admin=createServiceClient();const{error}=await admin.from('verification_sessions').insert({user_id:userId,provider:'veriff',provider_session_id:session.id,status:'pending',metadata:{kind:'document_selfie',source:'hosted_veriff'}});if(error)return Response.json({error:'verification_session_store_failed'},{status:500});return Response.json({url:session.url,sessionId:session.id});}catch{return Response.json({error:'identity_provider_unavailable'},{status:503});}}
+import {getAuthenticatedUserId} from '@/lib/auth/server';
+
+export async function POST(){
+  const userId=await getAuthenticatedUserId();
+  if(!userId)return Response.json({error:'unauthorized'},{status:401});
+  return Response.json({error:'document_identity_verification_disabled',next:'/perfil/verificacion-foto'},{status:410});
+}
