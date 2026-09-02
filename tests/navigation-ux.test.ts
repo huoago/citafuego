@@ -62,16 +62,25 @@ test('subscription membership is hidden while its backend stays feature-flagged'
   assert.match(checkout,/feature_unavailable/);
 });
 
-test('discovery uses horizontal decisions only and lets the user choose after a Match',()=>{
+test('discovery uses searchable directory controls and lets the user choose after a Match',()=>{
   const source=read('src/components/discover-deck.tsx');
-  for(const action of ["rewind()","decide('pass')","decide('like')"]) assert.equal(source.includes(action),true,`missing interaction ${action}`);
-  assert.doesNotMatch(source,/decide\('superfuego'\)/);
-  assert.doesNotMatch(source,/Fuego Plus|Fuego Gold/);
-  assert.doesNotMatch(source,/dy<=-76|dy>=76/);
-  assert.match(source,/Math\.abs\(dx\)>=72/);
-  assert.match(source,/Seguir descubriendo/);
+  const css=read('src/components/discover-directory.module.css');
+  assert.match(source,/Buscar por nombre, distrito o interés/);
+  assert.match(source,/Todos los distritos/);
+  assert.match(source,/Todas las intenciones/);
+  assert.match(source,/Verificados/);
+  assert.match(source,/Activos ahora/);
+  assert.match(source,/view==='grid'/);
+  assert.match(source,/\/api\/interactions/);
+  assert.match(source,/decide\(profile,'pass'\)/);
+  assert.match(source,/decide\(profile,'like'\)/);
+  assert.doesNotMatch(source,/decide\([^)]*'superfuego'/);
+  assert.doesNotMatch(source,/onPointerDown|Math\.abs\(dx\)>=72/);
+  assert.match(source,/Seguir explorando/);
   assert.match(source,/Enviar mensaje/);
-  assert.match(source,/Ver perfil completo/);
+  assert.match(source,/Ver perfil/);
+  assert.match(css,/\.grid\{display:grid/);
+  assert.match(css,/\.list\{display:grid/);
 });
 
 test('main profile keeps commercial tools in a secondary screen',()=>{
