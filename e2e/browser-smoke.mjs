@@ -13,10 +13,21 @@ try{
   expect(await page.locator('link[rel="canonical"]').count()===1,'home canonical missing');
   expect(await page.locator('meta[property="og:title"]').count()===1,'home Open Graph title missing');
   expect(await page.locator('meta[name="twitter:card"]').count()===1,'home Twitter card missing');
+  expect(await page.locator('[data-preview-profile]').count()===8,'directory preview cards missing');
+
+  await page.getByRole('button',{name:'Mujeres',exact:true}).click();
+  expect(await page.locator('[data-preview-profile]:visible').count()===4,'gender directory filter failed');
+  await page.getByRole('button',{name:'Todos',exact:true}).click();
+  await page.locator('[data-preview-query]').fill('Barranco');
+  expect(await page.locator('[data-preview-profile]:visible').count()===1,'keyword directory filter failed');
+  await page.locator('[data-preview-query]').fill('');
+  const gridClass=await page.locator('[data-preview-grid]').getAttribute('class');
+  await page.getByRole('button',{name:'Vista en lista'}).click();
+  expect((await page.locator('[data-preview-grid]').getAttribute('class'))!==gridClass,'list view toggle failed');
 
   await page.goto(`${base}/login`,{waitUntil:'domcontentloaded'});
   expect(new URL(page.url()).pathname==='/iniciar-sesion','/login did not resolve to /iniciar-sesion');
-  expect(await page.getByRole('heading',{name:/inicia sesión/i}).count()>=1,'login heading missing');
+  expect(await page.getByRole('heading',{name:/bienvenido de nuevo/i}).count()>=1,'login heading missing');
 
   await page.goto(`${base}/register`,{waitUntil:'domcontentloaded'});
   expect(new URL(page.url()).pathname==='/registro','/register did not resolve to /registro');
@@ -53,7 +64,7 @@ try{
   expect(await mobilePage.getByRole('heading',{name:'Citas en Lima'}).count()===1,'mobile Lima hub missing');
   await mobile.close();
 
-  console.log('Playwright browser acceptance passed for desktop + mobile SEO/auth/privacy routes.');
+  console.log('Playwright browser acceptance passed for desktop + mobile directory/SEO/auth/privacy routes.');
 }finally{
   await browser.close();
 }
