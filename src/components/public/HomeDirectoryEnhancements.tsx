@@ -73,7 +73,7 @@ const enhancementScript=String.raw`(()=>{
       recognition.start();
     });
 
-    root.querySelector('[data-reset-preview]')?.addEventListener('click',()=>{
+    document.querySelector('[data-reset-preview]')?.addEventListener('click',()=>{
       Object.assign(state,{connection:'todos',gender:'todos',district:'Lima Metropolitana',query:'',verifiedOnly:false,onlineOnly:false,distance:'10'});
       syncActive('connection','todos');syncActive('gender','todos');syncActive('district','Lima Metropolitana');
       if(queryInput)queryInput.value='';if(distanceSelect)distanceSelect.value='10';
