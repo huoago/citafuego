@@ -1,6 +1,6 @@
 const key=process.env.INDEXNOW_KEY;
 const host=process.env.INDEXNOW_HOST||'citafuego.com';
-const keyLocation=process.env.INDEXNOW_KEY_LOCATION||`https://${host}/${key}.txt`;
+const keyLocation=process.env.INDEXNOW_KEY_LOCATION||`https://${host}/indexnow-key.txt`;
 const urls=process.argv.slice(2).filter((url)=>url.startsWith(`https://${host}/`));
 
 if(!key){console.log('INDEXNOW_KEY is not configured; skipping IndexNow submission.');process.exit(0);}
