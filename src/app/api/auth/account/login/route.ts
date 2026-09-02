@@ -5,7 +5,7 @@ import {isAllowedAccountUsername} from '@/lib/auth/account-identity';
 import {verifyTurnstile} from '@/lib/security/turnstile';
 
 const schema=z.object({
-  username:z.string().trim().min(4).max(24),
+  username:z.string().trim().min(4).max(254),
   password:z.string().min(1).max(72),
   turnstileToken:z.string().max(2048).optional(),
 });
