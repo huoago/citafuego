@@ -14,7 +14,7 @@ export function MobileShell({children,unreadNotifications=0,unreadChats=0}:{chil
     <PresenceHeartbeat/>
     <UiPreferencesBootstrap/>
     <header className="appHeader iosAppHeader">
-      <Link href="/descubrir" className="brandMini" aria-label="CitaFuego Descubrir"><span className="brandMark">🔥</span><span>CitaFuego</span></Link>
+      <Link href="/" className="brandMini" aria-label="CitaFuego Inicio"><span className="brandMark">🔥</span><span>CitaFuego</span></Link>
       <div className="appHeaderActions">
         <Link className="headerIconButton" href="/ajustes" aria-label="Configuración"><GearIcon/></Link>
         <Link className="headerIconButton notificationButton" href="/notificaciones" aria-label={`${unreadNotifications} notificaciones sin leer`}><BellIcon/>{unreadNotifications>0?<b>{Math.min(unreadNotifications,99)}</b>:null}</Link>

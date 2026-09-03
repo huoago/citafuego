@@ -32,13 +32,14 @@ test('community guidelines exposes a safe back control',()=>{
   assert.match(page,/label="Volver"/);
 });
 
-test('social profile is image-first and makes explicitly shared contact prominent',()=>{
+test('social profile is media-first and makes explicitly shared contact prominent',()=>{
   const page=read('src/app/(app)/perfil/[userId]/page.tsx');
-  assert.match(page,/directoryProfileLeadMedia/);
-  assert.match(page,/Contacto/);
+  assert.match(page,/DirectoryProfileGallery/);
+  assert.match(page,/pkProfileHero/);
+  assert.match(page,/pkContact/);
   assert.match(page,/bundle\.whatsapp\?/);
-  assert.match(page,/Contacto compartido por esta persona/);
-  assert.match(page,/no comparte un contacto público/);
+  assert.match(page,/Número publicado voluntariamente por esta persona/);
+  assert.match(page,/no comparte WhatsApp públicamente/);
   assert.doesNotMatch(page,/auth\.users|phone_e164|email/i);
 });
 

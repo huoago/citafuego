@@ -5,17 +5,18 @@ import {join} from 'node:path';
 
 const read=(path:string)=>readFileSync(join(process.cwd(),path),'utf8');
 
-test('V6 public navigation reduces choices while homepage exposes directory-first actions',()=>{
-  const nav=read('src/components/public/PublicFeatureNav.tsx');
+test('V22 public navigation reduces choices while homepage exposes directory-first actions',()=>{
+  const nav=read('src/components/global-site-nav.tsx');
   const home=read('src/app/page.tsx');
   const controls=read('src/components/public/HomeDirectoryEnhancements.tsx');
   assert.match(nav,/Cómo funciona/);
   assert.match(nav,/Seguridad/);
-  assert.match(nav,/Comunidad/);
-  assert.doesNotMatch(nav,/publicFeatures\.map/);
+  assert.match(nav,/Ayuda/);
+  assert.match(nav,/\+ Crear perfil/);
+  assert.match(nav,/href="\/"/);
   assert.match(home,/HomeDirectoryEnhancements/);
   assert.doesNotMatch(home,/HomeDirectoryControls/);
-  assert.match(home,/\+ Crear perfil/);
+  assert.match(home,/Crear mi perfil/);
   assert.match(home,/Cómo funciona/);
   assert.match(home,/Seguridad/);
   assert.match(controls,/Conexión:/);

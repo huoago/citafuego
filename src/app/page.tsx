@@ -21,26 +21,8 @@ const districtLinks=[
 ] as const;
 
 export default function LandingPage(){
-  return <main className={styles.page}>
+  return <main className={styles.page} data-home-page>
     <div className={styles.trustStrip}>🔥 CitaFuego · Solo adultos 18+ · perfiles y contenido sujetos a controles de seguridad y moderación</div>
-
-    <header className={styles.header}>
-      <a className={styles.brand} href="/" aria-label="CitaFuego inicio"><span>🔥</span><strong>CitaFuego</strong></a>
-      <nav className={styles.headerActions} aria-label="Acciones principales">
-        <a href="/guardados" className={styles.headerIcon} aria-label="Guardados" title="Guardados">♡</a>
-        <a href="/registro" className={styles.publishButton}>+ Crear perfil</a>
-        <details className={styles.menu}>
-          <summary aria-label="Abrir menú">☰</summary>
-          <div className={styles.menuPanel}>
-            <a href="/iniciar-sesion">Iniciar sesión</a>
-            <a href="/registro">Crear perfil</a>
-            <a href="/como-funciona">Cómo funciona</a>
-            <a href="/safety">Seguridad</a>
-            <a href="/help">Ayuda</a>
-          </div>
-        </details>
-      </nav>
-    </header>
 
     <div className={styles.shell}>
       <HomeDirectoryEnhancements/>

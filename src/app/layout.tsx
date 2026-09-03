@@ -20,6 +20,9 @@ import './v17-photo-review.css';
 import './v18-activation-ux.css';
 import './v19-trust-theme.css';
 import './v20-settings-personalization.css';
+import './v22-global-navigation-profile.css';
+import './v22-sticky-offsets.css';
+import { GlobalSiteNav } from '@/components/global-site-nav';
 import { DEFAULT_DESCRIPTION, DEFAULT_TITLE, SITE_NAME, SITE_URL } from '@/lib/seo';
 
 export const metadata: Metadata = {
@@ -80,6 +83,7 @@ export default function RootLayout({children}:Readonly<{children:React.ReactNode
     <script type="application/ld+json" dangerouslySetInnerHTML={{__html:JSON.stringify(websiteJsonLd)}} />
     <script type="application/ld+json" dangerouslySetInnerHTML={{__html:JSON.stringify(organizationJsonLd)}} />
     <script dangerouslySetInnerHTML={{__html:serviceWorkerRegistration}} />
+    <GlobalSiteNav/>
     {children}
   </body></html>;
 }
