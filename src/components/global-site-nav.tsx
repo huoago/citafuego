@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-html-link-for-pages */
 const primary=[
   {href:'/',label:'Inicio'},
   {href:'/explorar',label:'Explorar'},
