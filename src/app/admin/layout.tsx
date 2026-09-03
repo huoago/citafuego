@@ -7,6 +7,7 @@ import {AdminFormMode} from '@/components/admin/admin-form-mode';
 import {AdminContextControls} from '@/components/admin/admin-context-controls';
 import {ALL_ADMIN_ROLES,getAdminAccess} from '@/lib/admin/auth';
 import './admin-backoffice.css';
+import './admin-v3.css';
 
 export const dynamic='force-dynamic';
 
