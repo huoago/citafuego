@@ -1,7 +1,4 @@
-'use client';
-
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
 
 const primary=[
   {href:'/',label:'Inicio'},
@@ -12,18 +9,13 @@ const primary=[
 ];
 
 export function GlobalSiteNav(){
-  const pathname=usePathname();
-  const home=pathname==='/';
-  return <header className={`globalSiteNav${home?' globalSiteNavLight':''}`} data-global-site-nav>
+  return <header className="globalSiteNav" data-global-site-nav>
     <div className="globalSiteNavInner">
       <Link href="/" className="globalSiteBrand" aria-label="CitaFuego · volver al inicio" data-home-link>
         <span className="globalSiteBrandMark" aria-hidden="true">🔥</span><strong>CitaFuego</strong>
       </Link>
       <nav className="globalSitePrimary" aria-label="Navegación principal">
-        {primary.map(item=>{
-          const active=item.href==='/'?pathname==='/':pathname===item.href||pathname.startsWith(`${item.href}/`);
-          return <Link key={item.href} href={item.href} className={active?'active':''} aria-current={active?'page':undefined}>{item.label}</Link>;
-        })}
+        {primary.map(item=><Link key={item.href} href={item.href}>{item.label}</Link>)}
       </nav>
       <nav className="globalSiteActions" aria-label="Acciones de cuenta">
         <Link href="/guardados" className="globalSiteIconButton" aria-label="Guardados" title="Guardados">♡</Link>
