@@ -3,7 +3,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import {usePathname} from 'next/navigation';
-import {useEffect,useMemo,useState} from 'react';
+import {useMemo,useState} from 'react';
 
 type NavItem={href:string;label:string;roles?:string[]};
 type NavGroup={id:string;label:string;icon:string;items:NavItem[]};
@@ -51,15 +51,15 @@ export function AdminNav({roles}:{roles:string[]}){
   const pathname=usePathname();
   const visibleGroups=useMemo(()=>groups.map(group=>({...group,items:group.items.filter(item=>!item.roles||item.roles.some(role=>roles.includes(role)))})).filter(group=>group.items.length),[roles]);
   const currentGroup=visibleGroups.find(group=>group.items.some(item=>item.href==='/admin'?pathname==='/admin':pathname.startsWith(item.href)))?.id??visibleGroups[0]?.id??'';
-  const [open,setOpen]=useState<Set<string>>(new Set(currentGroup?[currentGroup]:[]));
-  useEffect(()=>{if(currentGroup)setOpen(prev=>prev.has(currentGroup)?prev:new Set([...prev,currentGroup]));},[currentGroup]);
-  const toggle=(id:string)=>setOpen(prev=>{const next=new Set(prev);if(next.has(id))next.delete(id);else next.add(id);return next;});
+  const [overrides,setOverrides]=useState<Record<string,boolean>>({});
+  const expandedFor=(id:string)=>overrides[id]??(id===currentGroup);
+  const toggle=(id:string)=>setOverrides(prev=>({...prev,[id]:!(prev[id]??(id===currentGroup))}));
   return <aside className="adminSidebar" aria-label="Navegación del backoffice">
     <Link href="/admin" className="adminSidebarBrand" aria-label="CitaFuego Admin">
       <Image src="/mascot-logo.svg" alt="" width={42} height={42} className="adminMascotLogo"/><span><b>CitaFuego</b><small>Admin</small></span>
     </Link>
     <nav className="adminNav">
-      {visibleGroups.map(group=>{const expanded=open.has(group.id);return <section className="adminNavGroup" key={group.id}>
+      {visibleGroups.map(group=>{const expanded=expandedFor(group.id);return <section className="adminNavGroup" key={group.id}>
         <button type="button" className={`adminNavGroupButton ${currentGroup===group.id?'current':''}`} onClick={()=>toggle(group.id)} aria-expanded={expanded} aria-controls={`admin-nav-${group.id}`}>
           <span className="adminNavGroupIcon" aria-hidden="true">{group.icon}</span><span>{group.label}</span><span className="adminNavChevron" aria-hidden="true">{expanded?'−':'+'}</span>
         </button>
