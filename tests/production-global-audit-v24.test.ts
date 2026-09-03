@@ -85,3 +85,17 @@ test('admin billing maps commercialization provider status instead of removed co
   assert.match(migration,/'enabled',status='live','mode',status/);
   assert.doesNotMatch(migration,/provider_slug,'enabled',enabled,'mode',mode/);
 });
+
+test('admin verification queue sorts by the real session timestamp',()=>{
+  const migration=read('supabase/migrations/20260903151500_fix_admin_verification_queue_timestamp.sql');
+  assert.match(migration,/order by started_at desc/);
+  assert.doesNotMatch(migration,/order by created_at desc/);
+});
+
+test('admin operations metrics use current event and match timestamp columns',()=>{
+  const migration=read('supabase/migrations/20260903153000_fix_admin_operations_metric_timestamps.sql');
+  assert.match(migration,/public\.matches where matched_at>=/);
+  assert.match(migration,/public\.analytics_events where occurred_at>=/);
+  assert.doesNotMatch(migration,/public\.matches where created_at>=/);
+  assert.doesNotMatch(migration,/public\.analytics_events where created_at>=/);
+});
