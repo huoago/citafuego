@@ -38,13 +38,15 @@ test('community guidelines no longer contain the removed paid-sex prohibition',(
   assert.match(page,/BackButton/);
 });
 
-test('social profile uses media-first directory detail layout and public contact',()=>{
+test('social profile uses media-first directory detail layout and privacy-safe contact',()=>{
   const page=read('src/app/(app)/perfil/[userId]/page.tsx');
   assert.match(page,/DirectoryProfileGallery/);
   assert.match(page,/pkProfileHero/);
   assert.match(page,/pkProfileCard/);
   assert.match(page,/Contacto compartido/);
-  assert.match(page,/Abrir WhatsApp/);
+  assert.match(page,/bundle\.whatsapp\?/);
+  assert.match(page,/Número publicado voluntariamente por esta persona/);
+  assert.match(page,/pkMobileActions/);
   assert.match(page,/Datos principales/);
   assert.match(page,/Galería/);
 });
@@ -59,13 +61,16 @@ test('source has no obvious dead placeholder links or empty click handlers',()=>
   assert.deepEqual(offenders,[],`Dead interactive placeholders found: ${offenders.join(', ')}`);
 });
 
-test('late global stylesheet provides themed controls, focus states and responsive profile layout',()=>{
-  const css=read('src/app/v22-global-navigation-profile.css');
-  assert.match(css,/globalSiteNav/);
-  assert.match(css,/button:disabled/);
-  assert.match(css,/focus-visible/);
-  assert.match(css,/pkProfileHero/);
-  assert.match(css,/pkPhotoStage/);
-  assert.match(css,/pkContact/);
-  assert.match(css,/@media\(max-width:620px\)/);
+test('semantic shell and profile styles provide controls, focus states and responsive profile layout',()=>{
+  const shell=read('src/app/site-shell.css');
+  const profile=read('src/app/profile-directory.css');
+  assert.match(shell,/globalSiteNav/);
+  assert.match(shell,/button:disabled/);
+  assert.match(shell,/focus-visible/);
+  assert.match(shell,/--cf-site-nav-height/);
+  assert.match(profile,/pkProfileHero/);
+  assert.match(profile,/pkPhotoStage/);
+  assert.match(profile,/pkContact/);
+  assert.match(profile,/pkMobileActions/);
+  assert.match(profile,/@media\(max-width:620px\)/);
 });

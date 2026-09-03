@@ -52,17 +52,22 @@ export default async function Page({params}:{params:Promise<{userId:string}>}){
           {p.heightCm?<span>{p.heightCm} cm</span>:null}
           {p.languages.length?<span>{p.languages.join(' · ')}</span>:null}
         </div>
-        <p className="pkBio">{p.bio||'Esta persona todavía no añadió una presentación.'}</p>
 
-        <section className="pkContact" aria-labelledby="contact-title">
+        <section className="pkContact" id="profile-contact" aria-labelledby="contact-title">
           <p className="pkProfileEyebrow">Contacto compartido</p>
           <h2 id="contact-title">Contactar a {p.displayName}</h2>
           {bundle.whatsapp?<><span className="pkContactNumber">WhatsApp · {formatWhatsapp(bundle.whatsapp)}</span><a className="whatsappContactButton directoryWhatsappButton" href={whatsappHref(bundle.whatsapp)} target="_blank" rel="noopener noreferrer" aria-label={`Abrir WhatsApp con ${p.displayName}`}><span className="whatsappContactIcon" aria-hidden="true">◉</span><span><strong>Abrir WhatsApp</strong><small>Número publicado voluntariamente por esta persona</small></span></a></>:<p>Esta persona no comparte WhatsApp públicamente. Puedes seguirla, hacer Match y conversar dentro de CitaFuego.</p>}
         </section>
 
+        <p className="pkBio">{p.bio||'Esta persona todavía no añadió una presentación.'}</p>
         <div className="pkProfileActions"><FollowButton targetId={userId} initialFollowing={bundle.viewerFollows} initialFollowers={bundle.followers} showCount={false}/><ReportContentButton type="profile" contentId={userId} label="Reportar perfil"/></div>
       </aside>
     </div>
+
+    <nav className={`pkMobileActions ${!bundle.whatsapp&&!bundle.isMatch?'single':''}`} aria-label="Acciones rápidas del perfil">
+      <a className="pkMobileAction primary" href="#profile-contact">Contacto</a>
+      {bundle.whatsapp?<a className="pkMobileAction secondary" href={whatsappHref(bundle.whatsapp)} target="_blank" rel="noopener noreferrer">WhatsApp</a>:bundle.isMatch?<Link className="pkMobileAction secondary" href="/chats">Chat CitaFuego</Link>:null}
+    </nav>
 
     <div className="pkStats" aria-label="Actividad social">
       <Link href={`/perfil/${userId}/seguidores`}><strong>{bundle.followers}</strong><span>Seguidores</span></Link>
