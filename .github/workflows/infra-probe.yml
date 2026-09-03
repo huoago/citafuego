@@ -11,67 +11,90 @@ permissions:
 jobs:
   probe:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
-      - name: Probe DNS and HTTPS
+      - name: Probe production DNS, TLS and HTTPS
         shell: bash
         run: |
-          set +e
+          set -uo pipefail
           exec > >(tee /tmp/infra-probe.txt) 2>&1
-          echo '=== citafuego.com A ==='
-          dig +short citafuego.com A
-          echo '=== citafuego.com NS ==='
-          dig +short citafuego.com NS
-          echo '=== www.citafuego.com CNAME ==='
-          dig +short www.citafuego.com CNAME
-          echo '=== www.citafuego.com A ==='
-          dig +short www.citafuego.com A
-          probe() {
-            local url="$1"
-            echo "=== $url ==="
-            rm -f /tmp/probe-body
-            curl --silent --show-error --location --max-time 30 \
-              --output /tmp/probe-body \
-              --write-out 'HTTP=%{http_code} FINAL=%{url_effective}\n' \
-              "$url"
-            head -c 500 /tmp/probe-body 2>/dev/null || true
+          failed=0
+
+          echo '=== DNS ==='
+          apex_a=$(dig +short citafuego.com A | awk '/^[0-9.]+$/{print}' | tr '\n' ' ')
+          apex_ns=$(dig +short citafuego.com NS | tr '\n' ' ')
+          www_cname=$(dig +short www.citafuego.com CNAME | tr '\n' ' ')
+          echo "citafuego.com A: ${apex_a:-<none>}"
+          echo "citafuego.com NS: ${apex_ns:-<none>}"
+          echo "www.citafuego.com CNAME: ${www_cname:-<none>}"
+
+          if [ -z "$apex_a" ]; then
+            echo 'ERROR: citafuego.com has no public IPv4 record.'
+            failed=1
+          fi
+          if [[ "$apex_ns" != *"alidns.com"* ]]; then
+            echo 'ERROR: citafuego.com authoritative nameservers are not AliDNS.'
+            failed=1
+          fi
+          if [[ "$www_cname" != *"vercel-dns"* ]]; then
+            echo 'ERROR: www.citafuego.com does not point to Vercel DNS.'
+            failed=1
+          fi
+
+          for host in citafuego.com www.citafuego.com; do
+            echo "=== TLS ${host} ==="
+            if ! echo | openssl s_client -servername "$host" -connect "$host:443" 2>/dev/null | openssl x509 -noout -checkend 604800; then
+              echo "ERROR: ${host} TLS certificate is unavailable or expires within 7 days."
+              failed=1
+            fi
+
+            echo "=== HTTPS health ${host} ==="
+            body_file=$(mktemp)
+            result=$(curl --silent --show-error --location --max-time 30 \
+              --output "$body_file" \
+              --write-out '%{http_code} %{url_effective}' \
+              "https://${host}/api/health" || true)
+            code=${result%% *}
+            final_url=${result#* }
+            echo "HTTP=${code:-000} FINAL=${final_url:-<none>}"
+            head -c 500 "$body_file" 2>/dev/null || true
             echo
-          }
-          resolved_https_probe() {
-            local host="$1"
-            echo "=== DNS-SIMULATED https://$host/api/health via 76.76.21.21 ==="
-            rm -f /tmp/probe-body
-            curl --silent --show-error --location --max-time 30 \
-              --resolve "$host:443:76.76.21.21" \
-              --output /tmp/probe-body \
-              --write-out 'HTTP=%{http_code} FINAL=%{url_effective} TLS=%{ssl_verify_result}\n' \
-              "https://$host/api/health"
-            head -c 500 /tmp/probe-body 2>/dev/null || true
-            echo
-          }
-          resolved_http_probe() {
-            local host="$1"
-            echo "=== HOST-SIMULATED http://$host/api/health via 76.76.21.21 ==="
-            rm -f /tmp/probe-body /tmp/probe-headers
-            curl --silent --show-error --max-time 30 \
-              --resolve "$host:80:76.76.21.21" \
-              --dump-header /tmp/probe-headers \
-              --output /tmp/probe-body \
-              --write-out 'HTTP=%{http_code} REDIRECT=%{redirect_url}\n' \
-              "http://$host/api/health"
-            cat /tmp/probe-headers 2>/dev/null || true
-            head -c 500 /tmp/probe-body 2>/dev/null || true
-            echo
-          }
-          probe 'https://citafuego-prod-2sqlhwb3p-huoago-7712s-projects.vercel.app/api/health'
-          probe 'https://citafuego-prod-huoago-7712s-projects.vercel.app/api/health'
-          probe 'https://citafuego.com/api/health'
-          probe 'https://www.citafuego.com/api/health'
-          resolved_https_probe 'citafuego.com'
-          resolved_https_probe 'www.citafuego.com'
-          resolved_http_probe 'citafuego.com'
-          resolved_http_probe 'www.citafuego.com'
-          exit 0
-      - uses: actions/upload-artifact@v4
+            if [ "$code" != "200" ] || \
+              ! grep -Eq '"ok"[[:space:]]*:[[:space:]]*true' "$body_file" || \
+              ! grep -Eq '"service"[[:space:]]*:[[:space:]]*"citafuego"' "$body_file"; then
+              echo "ERROR: ${host} health endpoint failed HTTP or CitaFuego identity validation."
+              failed=1
+            fi
+            if [ "$host" = "www.citafuego.com" ] && [[ "$final_url" != https://citafuego.com/* ]]; then
+              echo 'ERROR: www traffic did not canonicalize to the apex domain.'
+              failed=1
+            fi
+            rm -f "$body_file"
+          done
+
+          echo '=== Application readiness ==='
+          ready_file=$(mktemp)
+          ready_code=$(curl --silent --show-error --location --max-time 30 \
+            --output "$ready_file" --write-out '%{http_code}' \
+            https://citafuego.com/api/ready || true)
+          echo "HTTP=${ready_code:-000}"
+          head -c 500 "$ready_file" 2>/dev/null || true
+          echo
+          if [ "$ready_code" != "200" ] || ! grep -Eq '"ready"[[:space:]]*:[[:space:]]*true' "$ready_file"; then
+            echo 'ERROR: production readiness endpoint is not ready.'
+            failed=1
+          fi
+          rm -f "$ready_file"
+
+          if [ "$failed" -ne 0 ]; then
+            echo 'Production infrastructure probe failed.'
+            exit 1
+          fi
+          echo 'Production infrastructure probe passed.'
+
+      - name: Upload infrastructure probe
+        if: always()
+        uses: actions/upload-artifact@v7
         with:
           name: citafuego-infra-probe
           path: /tmp/infra-probe.txt
