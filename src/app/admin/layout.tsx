@@ -4,6 +4,7 @@ import {redirect} from 'next/navigation';
 import {AdminNav} from '@/components/admin/admin-nav';
 import {AdminLanguageSwitch} from '@/components/admin/admin-language-switch';
 import {AdminFormMode} from '@/components/admin/admin-form-mode';
+import {AdminContextControls} from '@/components/admin/admin-context-controls';
 import {ALL_ADMIN_ROLES,getAdminAccess} from '@/lib/admin/auth';
 import './admin-backoffice.css';
 
@@ -32,7 +33,7 @@ export default async function AdminLayout({children}:{children:ReactNode}){
     </header>
     <div className="adminWorkspace">
       <AdminNav roles={access.roles}/>
-      <div className="adminContent">{children}</div>
+      <div className="adminContent"><AdminContextControls isSuperAdmin={superAdmin}/>{children}</div>
     </div>
   </main>;
 }
