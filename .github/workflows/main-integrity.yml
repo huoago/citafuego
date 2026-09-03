@@ -1,1 +1,105 @@
-placeholder
+name: Main Integrity Gate
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+  pull-requests: read
+  issues: write
+
+concurrency:
+  group: citafuego-main-integrity
+  cancel-in-progress: false
+
+jobs:
+  integrity:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Verify main commit came through a merged pull request
+        id: provenance
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: node scripts/check-main-integrity.mjs
+
+      - name: Open or update integrity incident
+        if: steps.provenance.outcome == 'failure'
+        continue-on-error: true
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const shortSha = context.sha.slice(0, 12);
+            const title = `[Integrity] Unauthorized direct push to main ${shortSha}`;
+            const body = [
+              'The free CitaFuego main-integrity gate detected a `main` commit that is not associated with a merged pull request.',
+              '',
+              `- commit: ${context.sha}`,
+              `- actor: ${context.actor}`,
+              `- event: ${context.eventName}`,
+              `- before: ${context.payload.before || 'unknown'}`,
+              `- workflow run: https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`,
+              '',
+              '**Production authorization is denied for this SHA.** The production deployment workflow has an independent fail-closed provenance gate and must not deploy it.',
+              '',
+              'Recovery: create a normal branch from the intended state, submit a pull request into `main`, let all quality gates pass, and merge the PR. Do not auto-revert database migrations or production state from this incident workflow.',
+            ].join('\n');
+            const { data: issues } = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+              per_page: 100,
+            });
+            const existing = issues.find((issue) => issue.title === title);
+            if (existing) {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: existing.number,
+                body,
+              });
+            } else {
+              await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title,
+                body,
+              });
+            }
+
+      - name: Close stale integrity incidents after a compliant merge
+        if: steps.provenance.outcome == 'success'
+        continue-on-error: true
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const { data: issues } = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+              per_page: 100,
+            });
+            for (const issue of issues.filter((item) => item.title.startsWith('[Integrity] Unauthorized direct push to main '))) {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issue.number,
+                body: `A later compliant PR merge (${context.sha}) restored the production-authorized main head. Closing this integrity incident; the unauthorized commit remains in Git history for auditability.`,
+              });
+              await github.rest.issues.update({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issue.number,
+                state: 'closed',
+              });
+            }
+
+      - name: Block unauthorized main update
+        if: steps.provenance.outcome == 'failure'
+        run: |
+          echo 'main was updated without a merged pull request; production authorization denied.'
+          exit 1
