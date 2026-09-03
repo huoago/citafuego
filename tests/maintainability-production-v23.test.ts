@@ -4,14 +4,19 @@ import test from 'node:test';
 
 const read=(path:string)=>fs.readFileSync(path,'utf8');
 
-test('root layout uses semantic shell/profile styles instead of v22 patch files',()=>{
+test('root layout uses semantic shell styles and avoids v22 patch files',()=>{
   const layout=read('src/app/layout.tsx');
   assert.match(layout,/import '\.\/site-shell\.css';/);
-  assert.match(layout,/import '\.\/profile-directory\.css';/);
+  assert.doesNotMatch(layout,/profile-directory\.css/);
   assert.doesNotMatch(layout,/v22-global-navigation-profile\.css/);
   assert.doesNotMatch(layout,/v22-sticky-offsets\.css/);
   assert.equal(fs.existsSync('src/app/v22-global-navigation-profile.css'),false);
   assert.equal(fs.existsSync('src/app/v22-sticky-offsets.css'),false);
+});
+
+test('directory profile stylesheet is route-scoped instead of paid on every page',()=>{
+  const layout=read('src/app/(app)/perfil/[userId]/layout.tsx');
+  assert.match(layout,/import '\.\.\/\.\.\/\.\.\/profile-directory\.css';/);
 });
 
 test('site shell centralizes sticky offsets with reusable navigation height',()=>{
