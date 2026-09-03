@@ -3,7 +3,7 @@ import { AuthMethodSwitcher } from '@/components/auth/auth-method-switcher';
 import { getAuthProviderReadiness } from '@/lib/auth/provider-readiness';
 import styles from './login.module.css';
 
-type PageProps={searchParams:Promise<{error?:string|string[];from?:string|string[]}>};
+type PageProps={searchParams:Promise<{error?:string|string[];from?:string|string[];next?:string|string[]}>};
 
 function loginError(value:string|undefined){
  if(value==='browser_mismatch')return {title:'El enlace se abrió en otro navegador.',body:'Tu correo puede estar confirmado, pero la sesión no pudo completarse. Solicita un nuevo enlace desde este navegador y abre aquí el siguiente correo.'};
@@ -17,6 +17,8 @@ export default async function Page({searchParams}:PageProps){
  const turnstileSiteKey=process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY?.trim()??'';
  const params=await searchParams;
  const rawError=Array.isArray(params.error)?params.error[0]:params.error;
+ const rawNext=Array.isArray(params.next)?params.next[0]:params.next;
+ const nextPath=rawNext==='/admin'?'/admin' as const:undefined;
  const error=loginError(rawError);
  return <main className={styles.page}>
   <section className={styles.card} aria-labelledby="login-title">
@@ -27,12 +29,12 @@ export default async function Page({searchParams}:PageProps){
       Acceso privado
     </span>
     <h1 id="login-title" className={styles.title}>Bienvenido de nuevo</h1>
-    <p className={styles.subtitle}>Entra con tu cuenta y contraseña o usa otro método disponible.</p>
+    <p className={styles.subtitle}>{nextPath==='/admin'?'Identifícate con una cuenta administradora para abrir el backoffice.':'Entra con tu cuenta y contraseña o usa otro método disponible.'}</p>
    </header>
 
    {error?<div className={`${styles.alert} authInlineAlert`} role="alert"><strong>{error.title}</strong><span>{error.body}</span></div>:null}
 
-   <AuthMethodSwitcher mode="login" turnstileSiteKey={turnstileSiteKey} readiness={readiness}/>
+   <AuthMethodSwitcher mode="login" turnstileSiteKey={turnstileSiteKey} readiness={readiness} nextPath={nextPath}/>
    <p className={styles.footer}><Link href="/recuperar-cuenta">¿Olvidaste tu contraseña?</Link></p>
 
    <div className={styles.securityNote}>
