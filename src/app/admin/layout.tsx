@@ -2,6 +2,8 @@ import type {ReactNode} from 'react';
 import Link from 'next/link';
 import {redirect} from 'next/navigation';
 import {AdminNav} from '@/components/admin/admin-nav';
+import {AdminLanguageSwitch} from '@/components/admin/admin-language-switch';
+import {AdminFormMode} from '@/components/admin/admin-form-mode';
 import {ALL_ADMIN_ROLES,getAdminAccess} from '@/lib/admin/auth';
 import './admin-backoffice.css';
 
@@ -19,12 +21,18 @@ export default async function AdminLayout({children}:{children:ReactNode}){
     </div>
   </main>;
   const superAdmin=access.roles.includes('super_admin');
-  return <main className="adminLayout">
+  return <main className="adminLayout" data-admin-i18n-root>
     <header className="adminHeader">
       <div><p className="adminEyebrow">CitaFuego · Backoffice de producción</p><h1>Administración</h1><small>Roles activos: {access.roles.join(', ')}</small></div>
-      <div className="adminHeaderBadges"><span className="adminStatus ok">Producción</span>{superAdmin?<span className="adminStatus super">Super Admin</span>:null}</div>
+      <div className="adminHeaderTools">
+        <AdminLanguageSwitch/>
+        <AdminFormMode/>
+        <div className="adminHeaderBadges"><span className="adminStatus ok">Producción</span>{superAdmin?<span className="adminStatus super">Super Admin</span>:null}</div>
+      </div>
     </header>
-    <AdminNav roles={access.roles}/>
-    <div className="adminContent">{children}</div>
+    <div className="adminWorkspace">
+      <AdminNav roles={access.roles}/>
+      <div className="adminContent">{children}</div>
+    </div>
   </main>;
 }
