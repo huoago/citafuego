@@ -21,7 +21,7 @@ const districtLinks=[
 ] as const;
 
 export default function LandingPage(){
-  return <main className={styles.page}>
+  return <main className={styles.page} data-home-page>
     <div className={styles.trustStrip}>🔥 CitaFuego · Solo adultos 18+ · perfiles y contenido sujetos a controles de seguridad y moderación</div>
 
     <div className={styles.shell}>
