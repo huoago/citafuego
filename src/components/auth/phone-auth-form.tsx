@@ -4,7 +4,7 @@ import { useState } from 'react';
 
 const normalizePhone=(value:string)=>value.replace(/[\s().-]/g,'');
 
-export function PhoneAuthForm({mode,embedded=false}:{mode:'register'|'login';embedded?:boolean}){
+export function PhoneAuthForm({mode,embedded=false,nextPath}:{mode:'register'|'login';embedded?:boolean;nextPath?:'/admin'}){
   const[phone,setPhone]=useState('+51');
   const[token,setToken]=useState('');
   const[step,setStep]=useState<'phone'|'code'>('phone');
@@ -30,7 +30,7 @@ export function PhoneAuthForm({mode,embedded=false}:{mode:'register'|'login';emb
   async function verifyCode(event:React.FormEvent){
     event.preventDefault();setBusy(true);setError('');
     const normalizedPhone=normalizePhone(phone);
-    const response=await fetch('/api/auth/phone/verify',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({phone:normalizedPhone,token,mode})}).catch(()=>null);
+    const response=await fetch('/api/auth/phone/verify',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({phone:normalizedPhone,token,mode,next:mode==='login'?nextPath:undefined})}).catch(()=>null);
     const data=await response?.json().catch(()=>({}))??{};setBusy(false);
     if(!response?.ok){setError(data.error==='expired_code'?'El código venció o no es válido. Solicita uno nuevo.':'No pudimos verificar el código.');return}
     window.location.assign(data.next??(mode==='register'?'/registro/completar':'/descubrir'));
@@ -38,16 +38,7 @@ export function PhoneAuthForm({mode,embedded=false}:{mode:'register'|'login';emb
 
   return <div className="phoneAuthBlock">
     {!embedded?<div className="authDivider"><span>o con teléfono</span></div>:null}
-    {step==='phone'?<form className="authForm compactAuthForm" onSubmit={requestCode}>
-      <label>Número de celular<input inputMode="tel" autoComplete="tel" value={phone} onChange={e=>setPhone(e.target.value)} placeholder="+51 999 999 999" aria-describedby="phone-help" required/></label>
-      <small id="phone-help">Incluye el código de país. Puedes escribirlo con espacios, guiones o paréntesis.</small>
-      <button className="ctaButton authMethodButton" disabled={busy} type="submit">{busy?'Enviando…':mode==='register'?'Continuar':'Enviar código por SMS'}</button>
-    </form>:<form className="authForm compactAuthForm" onSubmit={verifyCode}>
-      <p className="authCodeDestination">Código enviado a <strong>{phone}</strong></p>
-      <label>Código SMS<input inputMode="numeric" autoComplete="one-time-code" value={token} onChange={e=>setToken(e.target.value.replace(/\D/g,'').slice(0,8))} placeholder="123456" required/></label>
-      <button className="ctaButton authMethodButton" disabled={busy||token.length<4} type="submit">{busy?'Verificando…':'Entrar'}</button>
-      <button className="textButton" type="button" onClick={()=>{setStep('phone');setToken('');setMessage('');setError('')}}>Cambiar número</button>
-    </form>}
+    {step==='phone'?<form className="authForm compactAuthForm" onSubmit={requestCode}><label>Número de celular<input inputMode="tel" autoComplete="tel" value={phone} onChange={e=>setPhone(e.target.value)} placeholder="+51 999 999 999" aria-describedby="phone-help" required/></label><small id="phone-help">Incluye el código de país. Puedes escribirlo con espacios, guiones o paréntesis.</small><button className="ctaButton authMethodButton" disabled={busy} type="submit">{busy?'Enviando…':mode==='register'?'Continuar':'Enviar código por SMS'}</button></form>:<form className="authForm compactAuthForm" onSubmit={verifyCode}><p className="authCodeDestination">Código enviado a <strong>{phone}</strong></p><label>Código SMS<input inputMode="numeric" autoComplete="one-time-code" value={token} onChange={e=>setToken(e.target.value.replace(/\D/g,'').slice(0,8))} placeholder="123456" required/></label><button className="ctaButton authMethodButton" disabled={busy||token.length<4} type="submit">{busy?'Verificando…':'Entrar'}</button><button className="textButton" type="button" onClick={()=>{setStep('phone');setToken('');setMessage('');setError('')}}>Cambiar número</button></form>}
     {message?<p className="formStatus" role="status" aria-live="polite">{message}</p>:null}
     {error?<p className="formError" role="alert">{error}</p>:null}
   </div>;
