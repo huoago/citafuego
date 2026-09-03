@@ -13,6 +13,7 @@ on:
 
 permissions:
   contents: read
+  pull-requests: read
   issues: write
 
 concurrency:
@@ -31,6 +32,12 @@ jobs:
       VERCEL_PROJECT: citafuego-prod
     steps:
       - uses: actions/checkout@v5
+
+      - name: Verify main provenance before any production work
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: node scripts/check-main-integrity.mjs
+
       - uses: actions/setup-node@v6
         with:
           node-version: 22
