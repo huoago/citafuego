@@ -13,9 +13,52 @@ test('admin layout never returns a white screen for missing access',()=>{
   assert.doesNotMatch(source,/if\(!auth\)return null/);
 });
 
+test('global proxy refreshes sessions but never duplicates admin authorization',()=>{
+  const proxy=read('src/lib/supabase/proxy.ts');
+  assert.match(proxy,/auth\.getClaims\(\)/);
+  assert.doesNotMatch(proxy,/pathname\.startsWith\(['"]\/admin/);
+  assert.doesNotMatch(proxy,/admin_user_roles/);
+  assert.doesNotMatch(proxy,/super_admin.*trust_safety.*support.*finance.*analyst/);
+});
+
+test('admin login preserves only the explicit backoffice return target and rechecks the admin role server-side',()=>{
+  const page=read('src/app/(auth)/iniciar-sesion/page.tsx');
+  const switcher=read('src/components/auth/auth-method-switcher.tsx');
+  const account=read('src/components/auth/account-auth-form.tsx');
+  const accountRoute=read('src/app/api/auth/account/login/route.ts');
+  const email=read('src/components/auth/login-form.tsx');
+  const emailRoute=read('src/app/api/auth/login/route.ts');
+  const callback=read('src/app/auth/confirm/route.ts');
+  const phone=read('src/components/auth/phone-auth-form.tsx');
+  const phoneRoute=read('src/app/api/auth/phone/verify/route.ts');
+  const social=read('src/components/auth/social-auth-buttons.tsx');
+  assert.match(page,/rawNext==='\/admin'/);
+  assert.match(switcher,/nextPath/);
+  assert.match(account,/next:mode==='login'\?nextPath:undefined/);
+  assert.match(accountRoute,/next:z\.literal\('\/admin'\)\.optional\(\)/);
+  assert.match(accountRoute,/isActiveAdminUser\(supabase,user\.id\)/);
+  assert.match(email,/next:nextPath/);
+  assert.match(emailRoute,/next:z\.literal\('\/admin'\)\.optional\(\)/);
+  assert.match(callback,/next==='\/admin'&&await isActiveAdminUser/);
+  assert.match(phone,/next:mode==='login'\?nextPath:undefined/);
+  assert.match(phoneRoute,/isActiveAdminUser\(s,data\.user\.id\)/);
+  assert.match(social,/params\.set\('next','\/admin'\)/);
+});
+
 test('admin role registry includes production operational roles',()=>{
   const source=read('src/lib/admin/auth.ts');
   for(const role of ['super_admin','trust_safety','support','finance','analyst','growth','content','seo'])assert.match(source,new RegExp(`'${role}'`));
+});
+
+test('every admin navigation function points to a real page',()=>{
+  const nav=read('src/components/admin/admin-nav.tsx');
+  const hrefs=[...nav.matchAll(/href:'(\/admin(?:\/[^']*)?)'/g)].map(match=>match[1]);
+  assert.ok(hrefs.length>=20,'admin navigation unexpectedly small');
+  for(const href of new Set(hrefs)){
+    const relative=href==='/admin'?'':href.slice('/admin/'.length);
+    const page=relative?`src/app/admin/${relative}/page.tsx`:'src/app/admin/page.tsx';
+    assert.ok(fs.existsSync(page),`dead admin navigation target: ${href}`);
+  }
 });
 
 test('dashboard and users expose explicit 90-day inactivity controls',()=>{

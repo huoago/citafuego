@@ -13,7 +13,7 @@ function validAccountIdentifier(value:string){
   return USERNAME_PATTERN.test(normalized)||(normalized.length<=254&&EMAIL_PATTERN.test(normalized));
 }
 
-export function AccountAuthForm({mode,turnstileSiteKey=''}:{mode:'register'|'login';turnstileSiteKey?:string}){
+export function AccountAuthForm({mode,turnstileSiteKey='',nextPath}:{mode:'register'|'login';turnstileSiteKey?:string;nextPath?:'/admin'}){
   const[busy,setBusy]=useState(false);
   const[error,setError]=useState('');
   const[challengeToken,setChallengeToken]=useState('');
@@ -30,7 +30,7 @@ export function AccountAuthForm({mode,turnstileSiteKey=''}:{mode:'register'|'log
     if(mode==='register'&&(password.length<REGISTRATION_PASSWORD_MIN_LENGTH||password.length>PASSWORD_MAX_LENGTH)){setBusy(false);setError(`La contraseña debe tener entre ${REGISTRATION_PASSWORD_MIN_LENGTH} y ${PASSWORD_MAX_LENGTH} caracteres.`);return;}
     if(mode==='register'&&password!==String(form.get('confirmPassword')??'')){setBusy(false);setError('Las contraseñas no coinciden.');return;}
     if(turnstileSiteKey&&!challengeToken){setBusy(false);setError('Completa la verificación de seguridad.');return;}
-    const body={username,password,turnstileToken:challengeToken||undefined};
+    const body={username,password,turnstileToken:challengeToken||undefined,next:mode==='login'?nextPath:undefined};
     const response=await fetch(`/api/auth/account/${mode}`,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(body)}).catch(()=>null);
     const data=await response?.json().catch(()=>({}))??{};
     setBusy(false);
@@ -57,19 +57,10 @@ export function AccountAuthForm({mode,turnstileSiteKey=''}:{mode:'register'|'log
     <label>Nombre de cuenta o correo<input name="username" autoComplete="username" inputMode="email" minLength={4} maxLength={254} placeholder="ej. fuego_lima o correo@ejemplo.com" required/><small className="fieldHelp">Nombre: 4–24 caracteres con letras, números, punto, guion o guion bajo. También puedes usar un correo válido.</small></label>
     <div className="passwordFieldGroup">
       <label htmlFor="account-password">Contraseña</label>
-      <div className="passwordInputWrap">
-        <input id="account-password" type={showPassword?'text':'password'} name="password" autoComplete={mode==='register'?'new-password':'current-password'} minLength={mode==='register'?REGISTRATION_PASSWORD_MIN_LENGTH:1} maxLength={PASSWORD_MAX_LENGTH} required/>
-        <button type="button" className="passwordVisibilityToggle" aria-pressed={showPassword} aria-controls="account-password" onClick={()=>setShowPassword(value=>!value)}>{showPassword?'Ocultar':'Mostrar'}</button>
-      </div>
+      <div className="passwordInputWrap"><input id="account-password" type={showPassword?'text':'password'} name="password" autoComplete={mode==='register'?'new-password':'current-password'} minLength={mode==='register'?REGISTRATION_PASSWORD_MIN_LENGTH:1} maxLength={PASSWORD_MAX_LENGTH} required/><button type="button" className="passwordVisibilityToggle" aria-pressed={showPassword} aria-controls="account-password" onClick={()=>setShowPassword(value=>!value)}>{showPassword?'Ocultar':'Mostrar'}</button></div>
       <small className="fieldHelp">{mode==='register'?`${REGISTRATION_PASSWORD_MIN_LENGTH}–${PASSWORD_MAX_LENGTH} caracteres. Puedes elegir la longitud dentro de ese rango; rechazamos contraseñas conocidas por filtraciones públicas.`:'Puedes mostrar u ocultar la contraseña antes de iniciar sesión.'}</small>
     </div>
-    {mode==='register'?<div className="passwordFieldGroup">
-      <label htmlFor="account-confirm-password">Repite la contraseña</label>
-      <div className="passwordInputWrap">
-        <input id="account-confirm-password" type={showConfirmPassword?'text':'password'} name="confirmPassword" autoComplete="new-password" minLength={REGISTRATION_PASSWORD_MIN_LENGTH} maxLength={PASSWORD_MAX_LENGTH} required/>
-        <button type="button" className="passwordVisibilityToggle" aria-pressed={showConfirmPassword} aria-controls="account-confirm-password" onClick={()=>setShowConfirmPassword(value=>!value)}>{showConfirmPassword?'Ocultar':'Mostrar'}</button>
-      </div>
-    </div>:null}
+    {mode==='register'?<div className="passwordFieldGroup"><label htmlFor="account-confirm-password">Repite la contraseña</label><div className="passwordInputWrap"><input id="account-confirm-password" type={showConfirmPassword?'text':'password'} name="confirmPassword" autoComplete="new-password" minLength={REGISTRATION_PASSWORD_MIN_LENGTH} maxLength={PASSWORD_MAX_LENGTH} required/><button type="button" className="passwordVisibilityToggle" aria-pressed={showConfirmPassword} aria-controls="account-confirm-password" onClick={()=>setShowConfirmPassword(value=>!value)}>{showConfirmPassword?'Ocultar':'Mostrar'}</button></div></div>:null}
     {turnstileSiteKey?<TurnstileField key={challengeKey} siteKey={turnstileSiteKey} onToken={setChallengeToken} action={mode}/>:null}
     <button className="ctaButton fullWidth" disabled={busy||(Boolean(turnstileSiteKey)&&!challengeToken)}>{busy?(mode==='register'?'Creando…':'Entrando…'):(mode==='register'?'Crear cuenta':'Iniciar sesión')}</button>
     {mode==='register'?<p className="authPrivacyHint">Después confirmarás que tienes 18+ y podrás vincular un correo o celular de recuperación de forma opcional.</p>:null}

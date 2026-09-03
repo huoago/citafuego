@@ -2,12 +2,14 @@ import {z} from 'zod';
 import {createClient} from '@/lib/supabase/server';
 import {callAccountEdge} from '@/lib/auth/account-edge';
 import {isAllowedAccountUsername} from '@/lib/auth/account-identity';
+import {isActiveAdminUser} from '@/lib/admin/auth';
 import {verifyTurnstile} from '@/lib/security/turnstile';
 
 const schema=z.object({
   username:z.string().trim().min(4).max(254),
   password:z.string().min(1).max(72),
   turnstileToken:z.string().max(2048).optional(),
+  next:z.literal('/admin').optional(),
 });
 
 export async function POST(request:Request){
@@ -28,6 +30,11 @@ export async function POST(request:Request){
   if(sessionError)return Response.json({error:'session_failed'},{status:503});
   const{data:{user}}=await supabase.auth.getUser();
   if(!user)return Response.json({error:'session_failed'},{status:503});
+
+  if(parsed.data.next==='/admin'&&await isActiveAdminUser(supabase,user.id)){
+    return Response.json({ok:true,next:'/admin'});
+  }
+
   const[{data:privateRow},{data:profile}]=await Promise.all([
     supabase.from('user_private').select('user_id').eq('user_id',user.id).maybeSingle(),
     supabase.from('profiles').select('status').eq('id',user.id).maybeSingle(),

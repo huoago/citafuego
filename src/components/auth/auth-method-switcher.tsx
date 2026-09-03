@@ -9,10 +9,11 @@ import {AccountAuthForm} from '@/components/auth/account-auth-form';
 import type {AuthProviderReadiness} from '@/lib/auth/provider-readiness';
 
 type Method='account'|'email'|'phone'|'google';
+type LoginNext='/admin'|undefined;
 const methodOrder:Method[]=['account','email','phone','google'];
 const labels:Record<Method,string>={account:'Cuenta',email:'Correo',phone:'Teléfono',google:'Google'};
 
-export function AuthMethodSwitcher({mode,turnstileSiteKey='',readiness}:{mode:'register'|'login';turnstileSiteKey?:string;readiness:AuthProviderReadiness}){
+export function AuthMethodSwitcher({mode,turnstileSiteKey='',readiness,nextPath}:{mode:'register'|'login';turnstileSiteKey?:string;readiness:AuthProviderReadiness;nextPath?:LoginNext}){
   const defaultMethod:Method=readiness.account?'account':mode==='login'&&readiness.phone?'phone':'email';
   const[method,setMethod]=useState<Method>(defaultMethod);
   const base=useId().replace(/:/g,'');
@@ -43,11 +44,11 @@ export function AuthMethodSwitcher({mode,turnstileSiteKey='',readiness}:{mode:'r
       {methods.map((item,index)=><button key={item} type="button" role="tab" id={`${base}-${item}-tab`} aria-selected={activeMethod===item} aria-controls={`${base}-${item}-panel`} tabIndex={activeMethod===item?0:-1} className={activeMethod===item?'authSegment active':'authSegment'} onClick={()=>setMethod(item)} onKeyDown={event=>moveTab(event,index)}>{methodLabel(item)}</button>)}
     </div>:null}
     <div className="authMethodPanel" role={methods.length>1?'tabpanel':undefined} id={`${base}-${activeMethod}-panel`} aria-labelledby={methods.length>1?`${base}-${activeMethod}-tab`:undefined}>
-      {activeMethod==='account'?<AccountAuthForm mode={mode} turnstileSiteKey={turnstileSiteKey}/>:null}
+      {activeMethod==='account'?<AccountAuthForm mode={mode} turnstileSiteKey={turnstileSiteKey} nextPath={nextPath}/>:null}
       {mode==='register'&&activeMethod==='phone'?<p className="authStepIndicator">Registro con teléfono · paso 1 de 2</p>:null}
-      {activeMethod==='email'?(mode==='register'?<RegisterForm turnstileSiteKey={turnstileSiteKey}/>:<LoginForm/>):null}
-      {activeMethod==='phone'?<PhoneAuthForm mode={mode} embedded/>:null}
-      {activeMethod==='google'?<div className="authProviderPanel"><p>{mode==='register'?'Continúa con Google. Después confirmarás que eres mayor de 18 años y tus consentimientos antes de crear tu perfil.':'Continúa con la cuenta de Google vinculada a tu perfil.'}</p><SocialAuthButtons mode={mode}/></div>:null}
+      {activeMethod==='email'?(mode==='register'?<RegisterForm turnstileSiteKey={turnstileSiteKey}/>:<LoginForm nextPath={nextPath}/>):null}
+      {activeMethod==='phone'?<PhoneAuthForm mode={mode} embedded nextPath={nextPath}/>:null}
+      {activeMethod==='google'?<div className="authProviderPanel"><p>{mode==='register'?'Continúa con Google. Después confirmarás que eres mayor de 18 años y tus consentimientos antes de crear tu perfil.':'Continúa con la cuenta de Google vinculada a tu perfil.'}</p><SocialAuthButtons mode={mode} nextPath={nextPath}/></div>:null}
     </div>
   </div>;
 }
