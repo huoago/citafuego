@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 
+import fs from 'node:fs';
+
 const apiBase = process.env.GITHUB_API_URL || 'https://api.github.com';
 const repository = process.env.GITHUB_REPOSITORY;
 const sha = process.env.GITHUB_SHA;
@@ -31,6 +33,32 @@ if (!Number.isInteger(attempts) || attempts < 1 || attempts > 20) {
 }
 if (!Number.isInteger(retryMs) || retryMs < 0 || retryMs > 30000) {
   fail('MAIN_INTEGRITY_RETRY_MS must be an integer between 0 and 30000.');
+}
+
+// GitHub Free cannot enforce native branch protection on this private repository.
+// For push-triggered runs, reject force-updates and branch deletion before checking
+// PR provenance. workflow_dispatch events do not carry these push fields and are
+// instead authorized by the PR association check below.
+if (process.env.GITHUB_EVENT_PATH) {
+  let event;
+  try {
+    event = JSON.parse(fs.readFileSync(process.env.GITHUB_EVENT_PATH, 'utf8'));
+  } catch (error) {
+    fail(`GitHub event payload cannot be read safely: ${error instanceof Error ? error.message : String(error)}`);
+  }
+
+  const targetRef = `refs/heads/${targetBranch}`;
+  if (event?.ref === targetRef) {
+    if (event.forced === true) {
+      fail(`Force-updating ${targetBranch} is never production-authorized.`);
+    }
+    if (event.deleted === true) {
+      fail(`Deleting ${targetBranch} is never production-authorized.`);
+    }
+    if (event.after && event.after !== sha) {
+      fail(`Push event SHA ${event.after} does not match workflow SHA ${sha}.`);
+    }
+  }
 }
 
 const headers = {
