@@ -44,9 +44,10 @@ export function AdminLanguageSwitch(){
     window.localStorage.setItem(STORAGE_KEY,locale);
     const root=document.querySelector<HTMLElement>('[data-admin-i18n-root]');if(!root)return;
     root.dataset.adminLocale=locale;
-    let frame=0;let observer:MutationObserver;
-    const observe=()=>observer.observe(root,{childList:true,subtree:true,characterData:true});
-    const apply=()=>{
+    let frame=0;
+    const observer=new MutationObserver(()=>{if(frame)window.cancelAnimationFrame(frame);frame=window.requestAnimationFrame(()=>{frame=0;apply();});});
+    function observe(){observer.observe(root,{childList:true,subtree:true,characterData:true});}
+    function apply(){
       observer.disconnect();
       const walker=document.createTreeWalker(root,NodeFilter.SHOW_TEXT);let node:Node|null=walker.nextNode();
       while(node){const parent=node.parentElement;if(parent&&!parent.closest('[data-no-admin-translate]')&&!['SCRIPT','STYLE','CODE','PRE'].includes(parent.tagName)){
@@ -54,8 +55,7 @@ export function AdminLanguageSwitch(){
       }node=walker.nextNode();}
       root.querySelectorAll<HTMLElement>('[placeholder],[title],[aria-label]').forEach((el)=>{if(el.closest('[data-no-admin-translate]'))return;let map=originalAttr.current.get(el);if(!map){map=new Map();originalAttr.current.set(el,map);}for(const name of ['placeholder','title','aria-label']){const current=el.getAttribute(name);if(current!==null&&!map.has(name))map.set(name,current);const source=map.get(name);if(source!==undefined){const next=locale==='zh'?translate(source):source;if(el.getAttribute(name)!==next)el.setAttribute(name,next);}}});
       observe();
-    };
-    observer=new MutationObserver(()=>{if(frame)window.cancelAnimationFrame(frame);frame=window.requestAnimationFrame(()=>{frame=0;apply();});});
+    }
     apply();
     return()=>{if(frame)window.cancelAnimationFrame(frame);observer.disconnect();};
   },[locale]);
