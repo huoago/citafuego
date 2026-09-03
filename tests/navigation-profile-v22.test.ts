@@ -21,6 +21,12 @@ test('root layout renders one universal navigation before every page',()=>{
   assert.doesNotMatch(nav,/usePathname|use client/);
 });
 
+test('authenticated shell brand also returns to the public homepage',()=>{
+  const shell=read('src/components/mobile-shell.tsx');
+  assert.match(shell,/<Link href="\/" className="brandMini" aria-label="CitaFuego Inicio">/);
+  assert.doesNotMatch(shell,/className="brandMini"[^>]+href="\/descubrir"/);
+});
+
 test('homepage does not duplicate the global header',()=>{
   const home=read('src/app/page.tsx');
   assert.doesNotMatch(home,/styles\.header|styles\.headerActions|styles\.publishButton/);
