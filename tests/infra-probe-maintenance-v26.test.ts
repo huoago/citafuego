@@ -14,8 +14,8 @@ test('production infrastructure probe fails closed instead of reporting false gr
 
 test('production infrastructure probe validates canonical public infrastructure without stale deployment pins',()=>{
   const workflow=read('.github/workflows/infra-probe.yml');
-  assert.match(workflow,/citafuego\.com\/api\/health/);
-  assert.match(workflow,/www\.citafuego\.com/);
+  assert.match(workflow,/for host in citafuego\.com www\.citafuego\.com/);
+  assert.match(workflow,/https:\/\/\$\{host\}\/api\/health/);
   assert.match(workflow,/api\/ready/);
   assert.match(workflow,/openssl s_client/);
   assert.match(workflow,/vercel-dns/);
@@ -26,10 +26,13 @@ test('production infrastructure probe validates canonical public infrastructure 
 });
 
 test('workflow artifacts use maintained Node 24 compatible action generation',()=>{
-  const infra=read('.github/workflows/infra-probe.yml');
-  const seo=read('.github/workflows/seo-quality.yml');
-  assert.match(infra,/actions\/upload-artifact@v7/);
-  assert.match(seo,/actions\/upload-artifact@v7/);
-  assert.doesNotMatch(infra,/actions\/upload-artifact@v4/);
-  assert.doesNotMatch(seo,/actions\/upload-artifact@v4/);
+  const workflows=[
+    read('.github/workflows/ci.yml'),
+    read('.github/workflows/infra-probe.yml'),
+    read('.github/workflows/seo-quality.yml'),
+  ];
+  for(const workflow of workflows){
+    assert.match(workflow,/actions\/upload-artifact@v7/);
+    assert.doesNotMatch(workflow,/actions\/upload-artifact@v4/);
+  }
 });
