@@ -4,6 +4,10 @@ import { getAuthProviderReadiness } from '@/lib/auth/provider-readiness';
 
 type PageProps={searchParams:Promise<{error?:string|string[]}>};
 
+export const dynamic='force-dynamic';
+export const revalidate=0;
+export const fetchCache='force-no-store';
+
 function registrationError(value:string|undefined){
  if(value==='expired_or_invalid_link')return 'Ese enlace ya no es válido. Solicita un nuevo código para continuar.';
  if(value==='browser_mismatch')return 'La verificación se abrió en un navegador distinto. Vuelve a esta pantalla y solicita un nuevo código.';
