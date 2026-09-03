@@ -34,7 +34,12 @@ export function AdminLanguageSwitch(){
   const [locale,setLocale]=useState<Locale>('es');
   const originalText=useRef(new WeakMap<Node,string>());
   const originalAttr=useRef(new WeakMap<Element,Map<string,string>>());
-  useEffect(()=>{const stored=window.localStorage.getItem(STORAGE_KEY);if(stored==='zh'||stored==='es')setLocale(stored);},[]);
+  useEffect(()=>{
+    const stored=window.localStorage.getItem(STORAGE_KEY);
+    if(stored!=='zh'&&stored!=='es')return;
+    const frame=window.requestAnimationFrame(()=>setLocale(stored));
+    return()=>window.cancelAnimationFrame(frame);
+  },[]);
   useEffect(()=>{
     window.localStorage.setItem(STORAGE_KEY,locale);
     const root=document.querySelector<HTMLElement>('[data-admin-i18n-root]');if(!root)return;
