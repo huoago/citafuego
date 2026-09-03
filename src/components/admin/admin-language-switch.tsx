@@ -42,7 +42,8 @@ export function AdminLanguageSwitch(){
   },[]);
   useEffect(()=>{
     window.localStorage.setItem(STORAGE_KEY,locale);
-    const root=document.querySelector<HTMLElement>('[data-admin-i18n-root]');if(!root)return;
+    const foundRoot=document.querySelector<HTMLElement>('[data-admin-i18n-root]');if(!foundRoot)return;
+    const root:HTMLElement=foundRoot;
     root.dataset.adminLocale=locale;
     let frame=0;
     const observer=new MutationObserver(()=>{if(frame)window.cancelAnimationFrame(frame);frame=window.requestAnimationFrame(()=>{frame=0;apply();});});
