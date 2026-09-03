@@ -8,6 +8,7 @@ import {AdminContextControls} from '@/components/admin/admin-context-controls';
 import {ALL_ADMIN_ROLES,getAdminAccess} from '@/lib/admin/auth';
 import './admin-backoffice.css';
 import './admin-v3.css';
+import './admin-logo.css';
 
 export const dynamic='force-dynamic';
 
