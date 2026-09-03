@@ -55,3 +55,16 @@ test('current activation source of truth keeps trust signals optional',()=>{
   assert.match(migration,/and not v_sanctioned/);
   assert.match(route,/refresh_profile_activation/);
 });
+
+test('internal visibility helper predicates are not exposed as authenticated RPCs',()=>{
+  const migration=read('supabase/migrations/20260903140000_lock_internal_visibility_helpers.sql');
+  for(const signature of [
+    'can_read_private_album_object\\(text, uuid\\)',
+    'can_view_private_album\\(uuid, uuid\\)',
+    'creator_marketplace_eligible\\(uuid\\)',
+    'is_active_match_pair\\(uuid, uuid\\)',
+    'is_blog_friend\\(uuid, uuid\\)',
+  ]){
+    assert.match(migration,new RegExp(`revoke all on function public\\.${signature} from public, anon, authenticated`));
+  }
+});
