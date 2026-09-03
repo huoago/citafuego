@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import Link from 'next/link';
 import {usePathname} from 'next/navigation';
 import {useEffect,useMemo,useState} from 'react';
@@ -55,7 +56,7 @@ export function AdminNav({roles}:{roles:string[]}){
   const toggle=(id:string)=>setOpen(prev=>{const next=new Set(prev);if(next.has(id))next.delete(id);else next.add(id);return next;});
   return <aside className="adminSidebar" aria-label="Navegación del backoffice">
     <Link href="/admin" className="adminSidebarBrand" aria-label="CitaFuego Admin">
-      <img src="/mascot-logo.svg" alt="" className="adminMascotLogo"/><span><b>CitaFuego</b><small>Admin</small></span>
+      <Image src="/mascot-logo.svg" alt="" width={42} height={42} className="adminMascotLogo"/><span><b>CitaFuego</b><small>Admin</small></span>
     </Link>
     <nav className="adminNav">
       {visibleGroups.map(group=>{const expanded=open.has(group.id);return <section className="adminNavGroup" key={group.id}>
