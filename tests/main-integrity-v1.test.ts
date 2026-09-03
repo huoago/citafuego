@@ -15,6 +15,16 @@ test('free main integrity gate fails closed unless GitHub associates the SHA wit
   assert.match(script, /Direct pushes are not production-authorized/);
 });
 
+test('free integrity gate rejects forced main updates and branch deletion when a push payload is available', () => {
+  const script = read('scripts/check-main-integrity.mjs');
+  assert.match(script, /GITHUB_EVENT_PATH/);
+  assert.match(script, /event\.forced === true/);
+  assert.match(script, /Force-updating \$\{targetBranch\} is never production-authorized/);
+  assert.match(script, /event\.deleted === true/);
+  assert.match(script, /Deleting \$\{targetBranch\} is never production-authorized/);
+  assert.match(script, /event\.after && event\.after !== sha/);
+});
+
 test('main integrity workflow checks every main push, records an incident, and never auto-reverts production state', () => {
   const workflow = read('.github/workflows/main-integrity.yml');
   assert.match(workflow, /name: Main Integrity Gate/);
