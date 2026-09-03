@@ -8,11 +8,10 @@ export async function POST(request:Request){
   const parsed=schema.safeParse(await request.json().catch(()=>null));
   if(!parsed.success)return Response.json({error:'invalid_payload'},{status:400});
   const supabase=await createClient();
+  const{data:enabled}=await supabase.rpc('public_feature_enabled',{p_key:'EMAIL_LOGIN_ENABLED'});
+  if(enabled!==true)return Response.json({error:'email_login_disabled'},{status:503});
   const appUrl=getAuthRequestOrigin(request);
   const loginCallback=`${appUrl}/auth/confirm?flow=login${parsed.data.next==='/admin'?'&next=%2Fadmin':''}`;
-  await supabase.auth.signInWithOtp({
-    email:parsed.data.email.toLowerCase(),
-    options:{shouldCreateUser:false,emailRedirectTo:loginCallback},
-  });
+  await supabase.auth.signInWithOtp({email:parsed.data.email.toLowerCase(),options:{shouldCreateUser:false,emailRedirectTo:loginCallback}});
   return Response.json({ok:true,message:'Si existe una cuenta, recibirás un enlace de acceso.'});
 }

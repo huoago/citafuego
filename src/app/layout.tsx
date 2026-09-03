@@ -21,6 +21,7 @@ import './v18-activation-ux.css';
 import './v19-trust-theme.css';
 import './v20-settings-personalization.css';
 import './site-shell.css';
+import './control-contrast-brand.css';
 import { GlobalSiteNav } from '@/components/global-site-nav';
 import { DEFAULT_DESCRIPTION, DEFAULT_TITLE, SITE_NAME, SITE_URL } from '@/lib/seo';
 
@@ -52,7 +53,7 @@ export const metadata: Metadata = {
     },
   },
   manifest:'/manifest.webmanifest',
-  icons:{icon:'/icon.svg'},
+  icons:{icon:'/mascot-logo.svg',shortcut:'/mascot-logo.svg',apple:'/mascot-logo.svg'},
   appleWebApp:{capable:true,title:'CitaFuego',statusBarStyle:'black-translucent'},
 };
 
@@ -73,7 +74,7 @@ const organizationJsonLd={
   '@id':`${SITE_URL}/#organization`,
   name:SITE_NAME,
   url:SITE_URL,
-  logo:`${SITE_URL}/icon.svg`,
+  logo:`${SITE_URL}/mascot-logo.svg`,
 };
 const serviceWorkerRegistration=`(()=>{if(!('serviceWorker'in navigator))return;const register=()=>navigator.serviceWorker.register('/sw.js',{scope:'/',updateViaCache:'none'}).then(registration=>registration.update()).catch(()=>undefined);if(document.readyState==='complete')void register();else window.addEventListener('load',()=>void register(),{once:true});})();`;
 
