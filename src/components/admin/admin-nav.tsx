@@ -1,6 +1,5 @@
 'use client';
 
-import Image from 'next/image';
 import Link from 'next/link';
 import {usePathname} from 'next/navigation';
 import {useMemo,useState} from 'react';
@@ -56,7 +55,7 @@ export function AdminNav({roles}:{roles:string[]}){
   const toggle=(id:string)=>setOverrides(prev=>({...prev,[id]:!(prev[id]??(id===currentGroup))}));
   return <aside className="adminSidebar" aria-label="Navegación del backoffice">
     <Link href="/admin" className="adminSidebarBrand" aria-label="CitaFuego Admin">
-      <Image src="/mascot-logo.svg" alt="" width={42} height={42} className="adminMascotLogo"/><span><b>CitaFuego</b><small>Admin</small></span>
+      <span className="adminMascotLogo" aria-hidden="true"/><span><b>CitaFuego</b><small>Admin</small></span>
     </Link>
     <nav className="adminNav">
       {visibleGroups.map(group=>{const expanded=expandedFor(group.id);return <section className="adminNavGroup" key={group.id}>
