@@ -4,15 +4,16 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 const read=(p:string)=>fs.readFileSync(p,'utf8');
+const productionControlCss='src/app/control-contrast-brand.css';
 
 test('mascot is the production site logo and has reduced-motion-safe animation',()=>{
   assert.ok(fs.existsSync('public/mascot-logo.svg'));
-  const layout=read('src/app/layout.tsx');const nav=read('src/components/global-site-nav.tsx');const css=read('src/app/v21-contrast-brand.css');
-  assert.match(layout,/mascot-logo\.svg/);assert.match(nav,/globalSiteBrandMascot/);assert.match(nav,/src="\/mascot-logo\.svg"/);assert.match(css,/@keyframes cfMascotFloat/);assert.match(css,/prefers-reduced-motion:reduce/);
+  const layout=read('src/app/layout.tsx');const nav=read('src/components/global-site-nav.tsx');const css=read(productionControlCss);
+  assert.match(layout,/import '\.\/control-contrast-brand\.css'/);assert.match(layout,/mascot-logo\.svg/);assert.match(nav,/globalSiteBrandMascot/);assert.match(css,/mascot-logo\.svg/);assert.match(css,/@keyframes cfMascotFloat/);assert.match(css,/prefers-reduced-motion:reduce/);
 });
 
 test('global control contrast explicitly prevents light-on-light form states',()=>{
-  const css=read('src/app/v21-contrast-brand.css');
+  const css=read(productionControlCss);
   assert.match(css,/input:not\(\[type="hidden"\]\)/);assert.match(css,/background:var\(--cf-readable-bg\)!important/);assert.match(css,/-webkit-text-fill-color:var\(--cf-readable-text\)!important/);assert.match(css,/input::placeholder/);assert.match(css,/select option/);assert.match(css,/input:disabled,select:disabled,textarea:disabled/);
 });
 
@@ -27,8 +28,8 @@ test('admin deletion no longer asks operators to type destructive confirmation w
 });
 
 test('manual membership grants target a specific user and duration and remain audited',()=>{
-  const page=read('src/app/admin/memberships/page.tsx');const migration=read('supabase/migrations/20260903194409_admin_manual_membership_grants_v1.sql');
-  assert.match(page,/admin_grant_membership/);assert.match(page,/name="user_id"/);assert.match(page,/name="duration_days"/);assert.match(page,/Fuego Plus/);assert.match(page,/Fuego Gold/);assert.match(migration,/admin_membership_grants/);assert.match(migration,/membership_granted/);assert.match(migration,/p_duration_days<1 or p_duration_days>3650/);assert.match(migration,/provider='admin_manual'/);
+  const page=read('src/app/admin/memberships/page.tsx');const migration=read('supabase/migrations/20260903194409_admin_manual_membership_grants_v1.sql');const searchMigration=read('supabase/migrations/20260903203250_admin_membership_recipient_search_v3.sql');
+  assert.match(page,/admin_grant_membership/);assert.match(page,/admin_search_membership_recipients/);assert.match(page,/name="user_id"/);assert.match(page,/name="duration_days"/);assert.match(page,/Fuego Plus/);assert.match(page,/Fuego Gold/);assert.match(migration,/admin_membership_grants/);assert.match(migration,/membership_granted/);assert.match(migration,/p_duration_days<1 or p_duration_days>3650/);assert.match(migration,/provider='admin_manual'/);assert.match(searchMigration,/array\['super_admin','finance'\]/);
 });
 
 test('Recommendation V3 renders a visual mix and never dumps allocation JSON',()=>{
@@ -43,8 +44,8 @@ test('Lima location control plane contains all 43 districts and supports manual 
 });
 
 test('content center displays social posts and automatic violations without auto deletion',()=>{
-  const page=read('src/app/admin/content/page.tsx');const migration=read('supabase/migrations/20260903195941_admin_control_plane_expansion_v3.sql');const runtime=read('supabase/migrations/20260903201511_content_moderation_trigger_runtime_fix_v3.sql');
-  assert.match(page,/admin_get_content_feed_v3/);assert.match(page,/CONTENT_AUTO_MODERATION_ENABLED/);assert.match(page,/Volver a analizar/);assert.match(migration,/content_rule_scan/);assert.match(migration,/auto_moderate_social_text/);assert.match(migration,/human_review/);assert.match(runtime,/tg_op='INSERT'/);assert.doesNotMatch(migration,/delete from public\.blog_posts/);
+  const page=read('src/app/admin/content/page.tsx');const migration=read('supabase/migrations/20260903195941_admin_control_plane_expansion_v3.sql');const runtime=read('supabase/migrations/20260903201511_content_moderation_trigger_runtime_fix_v3.sql');const lock=read('supabase/migrations/20260903203712_lock_content_moderation_trigger_functions_v3.sql');
+  assert.match(page,/admin_get_content_feed_v3/);assert.match(page,/CONTENT_AUTO_MODERATION_ENABLED/);assert.match(page,/Volver a analizar/);assert.match(migration,/content_rule_scan/);assert.match(migration,/auto_moderate_social_text/);assert.match(migration,/human_review/);assert.match(runtime,/tg_op='INSERT'/);assert.doesNotMatch(migration,/delete from public\.blog_posts/);assert.match(lock,/revoke all on function public\.auto_moderate_social_text\(\)/);assert.match(lock,/revoke all on function public\.log_auto_moderation_event\(\)/);
 });
 
 test('commercial media payment and auth modules expose audited operational switches',()=>{
