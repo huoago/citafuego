@@ -73,3 +73,15 @@ test('referral code hashing resolves pgcrypto from the Supabase extensions schem
   const migration=read('supabase/migrations/20260903143000_fix_referral_pgcrypto_schema.sql');
   assert.match(migration,/alter function public\.get_my_referral_code\(\) set search_path = 'public', 'extensions'/);
 });
+
+test('admin dashboard uses the real matches timestamp column',()=>{
+  const migration=read('supabase/migrations/20260903144500_fix_admin_dashboard_match_timestamp.sql');
+  assert.match(migration,/from public\.matches where matched_at>=now\(\)-interval '7 days'/);
+  assert.doesNotMatch(migration,/from public\.matches where created_at>=/);
+});
+
+test('admin billing maps commercialization provider status instead of removed columns',()=>{
+  const migration=read('supabase/migrations/20260903150000_fix_admin_billing_provider_shape.sql');
+  assert.match(migration,/'enabled',status='live','mode',status/);
+  assert.doesNotMatch(migration,/provider_slug,'enabled',enabled,'mode',mode/);
+});
