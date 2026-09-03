@@ -47,14 +47,21 @@ export function AdminContextControls({isSuperAdmin}:{isSuperAdmin:boolean}){
  const pathname=usePathname();
  const defs=useMemo(()=>byPath[pathname]??[],[pathname]);
  const[flags,setFlags]=useState<Record<string,boolean>>({});
- const[loading,setLoading]=useState(false);const[busy,setBusy]=useState('');const[message,setMessage]=useState('');
+ const[loadedPath,setLoadedPath]=useState('');
+ const[busy,setBusy]=useState('');const[message,setMessage]=useState('');
  useEffect(()=>{
   if(!isSuperAdmin||!defs.length)return;
-  let active=true;setLoading(true);
-  void createClient().rpc('admin_get_feature_flags').then(({data,error})=>{if(!active)return;setLoading(false);if(error){setMessage(`No se pudieron cargar los interruptores: ${error.message}`);return;}const next:Record<string,boolean>={};for(const row of (data??[]) as Flag[])next[row.key]=row.enabled;setFlags(next);});
+  let active=true;
+  void createClient().rpc('admin_get_feature_flags').then(({data,error})=>{
+   if(!active)return;
+   setLoadedPath(pathname);
+   if(error){setMessage(`No se pudieron cargar los interruptores: ${error.message}`);return;}
+   const next:Record<string,boolean>={};for(const row of (data??[]) as Flag[])next[row.key]=row.enabled;setFlags(next);
+  });
   return()=>{active=false};
  },[isSuperAdmin,pathname,defs.length]);
  if(!isSuperAdmin||!defs.length)return null;
+ const loading=loadedPath!==pathname;
  async function toggle(def:SwitchDef){const next=!Boolean(flags[def.key]);setBusy(def.key);setMessage('');const{error}=await createClient().rpc('admin_set_feature_flag',{p_key:def.key,p_enabled:next,p_reason:`Cambio manual de interruptor: ${def.key}`,p_confirmation:next&&def.commercial?'ACTIVAR':null});setBusy('');if(error){setMessage(error.message==='commercial_gate_locked'?'Activación bloqueada hasta alcanzar el umbral comercial de usuarios reales.':`No se pudo cambiar ${def.label}: ${error.message}`);return;}setFlags(v=>({...v,[def.key]:next}));setMessage(`${def.label}: ${next?'activado':'desactivado'}.`)}
  return <section className="adminContextControls" aria-label="Interruptores del módulo"><div className="adminSectionHeader"><div><p className="eyebrow">Control operativo</p><h3>Interruptores del módulo</h3><p className="muted">Cada cambio se valida en servidor y queda registrado en auditoría.</p></div>{pathname==='/admin/email'?<Link className="adminButton" href="/admin/integrations">Configurar Google OAuth</Link>:null}</div>{loading?<div className="adminNotice">Cargando interruptores…</div>:<div className="adminSwitchGrid">{defs.map(def=>{const enabled=Boolean(flags[def.key]);return <div className="adminFeatureSwitch" key={def.key}><div><strong>{def.label}</strong><p>{def.description}</p><small><code>{def.key}</code></small></div><button type="button" role="switch" aria-checked={enabled} className={`adminToggle ${enabled?'on':'off'}`} disabled={Boolean(busy)} onClick={()=>void toggle(def)}><span/>{busy===def.key?'…':enabled?'ON':'OFF'}</button></div>})}</div>}{message?<div className="adminNotice" role="status">{message}</div>:null}</section>;
 }
