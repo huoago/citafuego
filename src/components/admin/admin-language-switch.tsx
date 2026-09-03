@@ -1,6 +1,6 @@
 'use client';
 
-import {useEffect,useState} from 'react';
+import {useEffect,useRef,useState} from 'react';
 
 type Locale='es'|'zh';
 const STORAGE_KEY='citafuego-admin-locale';
@@ -32,19 +32,19 @@ function translate(value:string){
 
 export function AdminLanguageSwitch(){
   const [locale,setLocale]=useState<Locale>('es');
+  const originalText=useRef(new WeakMap<Node,string>());
+  const originalAttr=useRef(new WeakMap<Element,Map<string,string>>());
   useEffect(()=>{const stored=window.localStorage.getItem(STORAGE_KEY);if(stored==='zh'||stored==='es')setLocale(stored);},[]);
   useEffect(()=>{
     window.localStorage.setItem(STORAGE_KEY,locale);
     const root=document.querySelector<HTMLElement>('[data-admin-i18n-root]');if(!root)return;
     root.dataset.adminLocale=locale;
-    const originalText=new WeakMap<Node,string>();
-    const originalAttr=new WeakMap<Element,Map<string,string>>();
     const apply=()=>{
       const walker=document.createTreeWalker(root,NodeFilter.SHOW_TEXT);let node:Node|null=walker.nextNode();
       while(node){const parent=node.parentElement;if(parent&&!parent.closest('[data-no-admin-translate]')&&!['SCRIPT','STYLE','CODE','PRE'].includes(parent.tagName)){
-        if(!originalText.has(node))originalText.set(node,node.nodeValue??'');const source=originalText.get(node)??'';node.nodeValue=locale==='zh'?translate(source):source;
+        if(!originalText.current.has(node))originalText.current.set(node,node.nodeValue??'');const source=originalText.current.get(node)??'';const next=locale==='zh'?translate(source):source;if(node.nodeValue!==next)node.nodeValue=next;
       }node=walker.nextNode();}
-      root.querySelectorAll<HTMLElement>('[placeholder],[title],[aria-label]').forEach((el)=>{if(el.closest('[data-no-admin-translate]'))return;let map=originalAttr.get(el);if(!map){map=new Map();originalAttr.set(el,map);}for(const name of ['placeholder','title','aria-label']){const current=el.getAttribute(name);if(current!==null&&!map.has(name))map.set(name,current);const source=map.get(name);if(source!==undefined)el.setAttribute(name,locale==='zh'?translate(source):source);}});
+      root.querySelectorAll<HTMLElement>('[placeholder],[title],[aria-label]').forEach((el)=>{if(el.closest('[data-no-admin-translate]'))return;let map=originalAttr.current.get(el);if(!map){map=new Map();originalAttr.current.set(el,map);}for(const name of ['placeholder','title','aria-label']){const current=el.getAttribute(name);if(current!==null&&!map.has(name))map.set(name,current);const source=map.get(name);if(source!==undefined){const next=locale==='zh'?translate(source):source;if(el.getAttribute(name)!==next)el.setAttribute(name,next);}}});
     };
     apply();const observer=new MutationObserver(()=>requestAnimationFrame(apply));observer.observe(root,{childList:true,subtree:true,characterData:true});return()=>observer.disconnect();
   },[locale]);
