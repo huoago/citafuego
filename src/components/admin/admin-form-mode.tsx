@@ -7,7 +7,12 @@ const STORAGE_KEY='citafuego-admin-edit-mode';
 
 export function AdminFormMode(){
   const [mode,setMode]=useState<Mode>('options');
-  useEffect(()=>{const stored=window.localStorage.getItem(STORAGE_KEY);if(stored==='manual'||stored==='options')setMode(stored);},[]);
+  useEffect(()=>{
+    const stored=window.localStorage.getItem(STORAGE_KEY);
+    if(stored!=='manual'&&stored!=='options')return;
+    const frame=window.requestAnimationFrame(()=>setMode(stored));
+    return()=>window.cancelAnimationFrame(frame);
+  },[]);
   useEffect(()=>{
     window.localStorage.setItem(STORAGE_KEY,mode);
     const root=document.querySelector<HTMLElement>('[data-admin-i18n-root]');if(!root)return;
