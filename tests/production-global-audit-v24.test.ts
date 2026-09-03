@@ -68,3 +68,8 @@ test('internal visibility helper predicates are not exposed as authenticated RPC
     assert.match(migration,new RegExp(`revoke all on function public\\.${signature} from public, anon, authenticated`));
   }
 });
+
+test('referral code hashing resolves pgcrypto from the Supabase extensions schema',()=>{
+  const migration=read('supabase/migrations/20260903143000_fix_referral_pgcrypto_schema.sql');
+  assert.match(migration,/alter function public\.get_my_referral_code\(\) set search_path = 'public', 'extensions'/);
+});
