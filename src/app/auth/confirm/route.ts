@@ -1,6 +1,7 @@
 import { NextResponse,type NextRequest } from 'next/server';
 import type { EmailOtpType } from '@supabase/supabase-js';
 import { createClient } from '@/lib/supabase/server';
+import { isActiveAdminUser } from '@/lib/admin/auth';
 
 const allowed=new Set<EmailOtpType>(['email','magiclink','signup','recovery']);
 function safeNext(value:string|null){return value&&value.startsWith('/')&&!value.startsWith('//')?value:'/descubrir'}
@@ -22,29 +23,18 @@ export async function GET(request:NextRequest){
   const s=await createClient();
 
   let authFailure:'code_exchange'|'otp_verify'|'missing'|null=null;
-  if(providerError){
-    authFailure='missing';
-  }else if(code){
-    const{error}=await s.auth.exchangeCodeForSession(code);
-    if(error)authFailure='code_exchange';
-  }else if(tokenHash&&rawType&&allowed.has(rawType)){
-    const{error}=await s.auth.verifyOtp({token_hash:tokenHash,type:rawType});
-    if(error)authFailure='otp_verify';
-  }else{
-    authFailure='missing';
-  }
+  if(providerError){authFailure='missing';}
+  else if(code){const{error}=await s.auth.exchangeCodeForSession(code);if(error)authFailure='code_exchange';}
+  else if(tokenHash&&rawType&&allowed.has(rawType)){const{error}=await s.auth.verifyOtp({token_hash:tokenHash,type:rawType});if(error)authFailure='otp_verify';}
+  else{authFailure='missing';}
 
   if(authFailure){
     if(flow==='register'&&authFailure==='code_exchange'){
-      url.pathname='/iniciar-sesion';
-      url.searchParams.set('error','browser_mismatch');
-      url.searchParams.set('from','register');
+      url.pathname='/iniciar-sesion';url.searchParams.set('error','browser_mismatch');url.searchParams.set('from','register');
     }else if(flow==='register'){
-      url.pathname='/registro';
-      url.searchParams.set('error','expired_or_invalid_link');
+      url.pathname='/registro';url.searchParams.set('error','expired_or_invalid_link');
     }else{
-      url.pathname='/iniciar-sesion';
-      url.searchParams.set('error','expired_or_invalid_link');
+      url.pathname='/iniciar-sesion';url.searchParams.set('error','expired_or_invalid_link');
     }
     return redirectNoStore(url);
   }
@@ -53,6 +43,10 @@ export async function GET(request:NextRequest){
   if(!user){url.pathname='/iniciar-sesion';url.searchParams.set('error','session_failed');return redirectNoStore(url)}
   if(rawType==='recovery'){
     url.pathname=next==='/descubrir'?'/perfil':next;
+    return redirectNoStore(url);
+  }
+  if(next==='/admin'&&await isActiveAdminUser(s,user.id)){
+    url.pathname='/admin';
     return redirectNoStore(url);
   }
   const{data:privateRow}=await s.from('user_private').select('user_id').eq('user_id',user.id).maybeSingle();
