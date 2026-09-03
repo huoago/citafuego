@@ -1,0 +1,15 @@
+/* V21 — global readable controls + animated mascot brand. Loaded last. */
+:root{--cf-readable-text:#151923;--cf-readable-muted:#5d6675;--cf-readable-border:#cbd2dc;--cf-readable-bg:#fff;--cf-readable-disabled-bg:#e9edf2;--cf-readable-disabled-text:#4f5968}
+input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]),select,textarea{background:var(--cf-readable-bg)!important;color:var(--cf-readable-text)!important;-webkit-text-fill-color:var(--cf-readable-text)!important;border-color:var(--cf-readable-border)!important;caret-color:var(--cf-readable-text)!important}
+input::placeholder,textarea::placeholder{color:#687385!important;-webkit-text-fill-color:#687385!important;opacity:1!important}
+select option{background:#fff!important;color:#151923!important}
+input:disabled,select:disabled,textarea:disabled{background:var(--cf-readable-disabled-bg)!important;color:var(--cf-readable-disabled-text)!important;-webkit-text-fill-color:var(--cf-readable-disabled-text)!important;opacity:1!important}
+input[aria-invalid="true"],select[aria-invalid="true"],textarea[aria-invalid="true"]{background:#fff8f8!important;color:#7a1824!important;border-color:#cf3f50!important}
+.globalSiteBrandMark{padding:0!important;background:transparent!important;border-radius:50%!important;overflow:visible!important;box-shadow:none!important}
+.globalSiteBrandMascot{display:block;width:38px;height:38px;border-radius:50%;object-fit:cover;transform-origin:50% 70%;animation:cfMascotFloat 3.2s ease-in-out infinite,cfMascotGlow 2.6s ease-in-out infinite;filter:drop-shadow(0 7px 12px rgba(255,88,26,.25))}
+.globalSiteBrand:hover .globalSiteBrandMascot{animation:cfMascotWave .55s ease-in-out 1,cfMascotGlow 2.6s ease-in-out infinite}
+@keyframes cfMascotFloat{0%,100%{transform:translateY(0) rotate(-1deg)}50%{transform:translateY(-3px) rotate(1deg)}}
+@keyframes cfMascotGlow{0%,100%{filter:drop-shadow(0 6px 10px rgba(255,82,20,.22))}50%{filter:drop-shadow(0 8px 16px rgba(255,134,34,.44))}}
+@keyframes cfMascotWave{0%,100%{transform:translateY(0) rotate(0)}25%{transform:translateY(-2px) rotate(-7deg)}60%{transform:translateY(-2px) rotate(6deg)}}
+@media(max-width:620px){.globalSiteBrandMascot{width:34px;height:34px}}
+@media(prefers-reduced-motion:reduce){.globalSiteBrandMascot,.globalSiteBrand:hover .globalSiteBrandMascot{animation:none!important;transform:none!important}}
