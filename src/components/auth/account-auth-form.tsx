@@ -52,7 +52,7 @@ export function AccountAuthForm({mode,turnstileSiteKey=''}:{mode:'register'|'log
     window.location.assign(typeof data.next==='string'?data.next:(mode==='register'?'/registro/completar':'/onboarding'));
   }
 
-  return <form className="formStack registrationForm accountAuthForm" onSubmit={submit}>
+  return <form className="formStack registrationForm accountAuthForm" data-registration-contract={mode==='register'?'account-v25-6-72':undefined} onSubmit={submit}>
     <div className="authStepHeader"><span className="authStepBadge">{mode==='register'?'1':'✓'}</span><div><strong>{mode==='register'?'Crea tu cuenta':'Entra con tu cuenta'}</strong><small>{mode==='register'?'Puedes usar un nombre de cuenta o tu correo. El celular se puede vincular después.':'Usa el nombre de cuenta o correo que elegiste al registrarte.'}</small></div></div>
     <label>Nombre de cuenta o correo<input name="username" autoComplete="username" inputMode="email" minLength={4} maxLength={254} placeholder="ej. fuego_lima o correo@ejemplo.com" required/><small className="fieldHelp">Nombre: 4–24 caracteres con letras, números, punto, guion o guion bajo. También puedes usar un correo válido.</small></label>
     <div className="passwordFieldGroup">
