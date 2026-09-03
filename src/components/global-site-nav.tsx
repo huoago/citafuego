@@ -1,3 +1,4 @@
+import Image from 'next/image';
 import Link from 'next/link';
 
 const primary=[
@@ -12,7 +13,7 @@ export function GlobalSiteNav(){
   return <header className="globalSiteNav" data-global-site-nav>
     <div className="globalSiteNavInner">
       <Link href="/" className="globalSiteBrand" aria-label="CitaFuego · volver al inicio" data-home-link>
-        <span className="globalSiteBrandMark" aria-hidden="true"><img src="/mascot-logo.svg" alt="" className="globalSiteBrandMascot"/></span><strong>CitaFuego</strong>
+        <span className="globalSiteBrandMark" aria-hidden="true"><Image src="/mascot-logo.svg" alt="" width={38} height={38} priority className="globalSiteBrandMascot"/></span><strong>CitaFuego</strong>
       </Link>
       <nav className="globalSitePrimary" aria-label="Navegación principal">
         {primary.map(item=><Link key={item.href} href={item.href}>{item.label}</Link>)}
