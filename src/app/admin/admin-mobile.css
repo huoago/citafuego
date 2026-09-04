@@ -1,0 +1,21 @@
+.adminMobileNav{display:none}
+@media(max-width:760px){
+  .adminSidebarDesktop{display:none!important}
+  .adminMobileNav{display:block!important;margin:0 0 14px;border:1px solid #d7dde5;border-radius:14px;background:#fff;box-shadow:0 8px 24px rgba(20,28,40,.06);overflow:hidden;color:#20242c}
+  .adminMobileNav>summary{min-height:56px;display:grid;grid-template-columns:34px minmax(0,1fr) 24px;align-items:center;gap:8px;padding:9px 12px;list-style:none;cursor:pointer;background:#fff;color:#20242c}
+  .adminMobileNav>summary::-webkit-details-marker{display:none}
+  .adminMobileNavIcon{width:32px;height:32px;display:grid;place-items:center;border-radius:9px;background:#20242c;color:#fff;font-size:17px}
+  .adminMobileNav>summary>span:nth-child(2){display:flex;flex-direction:column;gap:2px;min-width:0}
+  .adminMobileNav>summary b{font-size:13px}.adminMobileNav>summary small{color:#66717f;font-size:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .adminMobileNavChevron{font-size:20px;color:#697482;text-align:center;transition:transform .16s ease}.adminMobileNav[open] .adminMobileNavChevron{transform:rotate(180deg)}
+  .adminMobileNavPanel{max-height:min(68svh,620px);overflow:auto;padding:8px;border-top:1px solid #edf0f2;background:#f8fafc;display:grid;gap:8px}
+  .adminMobileNavGroup{margin:0!important;padding:9px;border:1px solid #e0e5eb;border-radius:11px;background:#fff}
+  .adminMobileNavGroup h2{display:flex;align-items:center;gap:7px;margin:0 0 7px!important;font-size:12px!important;color:#394454!important}
+  .adminMobileNavGroup h2 span{width:24px;height:24px;display:grid;place-items:center;border-radius:7px;background:#f3f5f7;color:#c93444}
+  .adminMobileNavGroup>div{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
+  .adminMobileNavGroup a{min-height:42px;display:flex;align-items:center;padding:8px 10px;border:1px solid #e3e7ec;border-radius:9px;background:#fff;color:#4d5968;text-decoration:none;font-size:12px;font-weight:760}
+  .adminMobileNavGroup a.active{border-color:#f0b6bd;background:#fff0ed;color:#9f2634}
+  .adminHeader{margin-bottom:10px}.adminHeaderTools{gap:8px}.adminLocaleSwitch,.adminEditMode{overflow-x:auto}
+}
+@media(max-width:430px){.adminMobileNavGroup>div{grid-template-columns:1fr}}
+@media(prefers-reduced-motion:reduce){.adminMobileNavChevron{transition:none}}
