@@ -7,12 +7,15 @@ const read=(path:string)=>readFileSync(join(process.cwd(),path),'utf8');
 
 test('V22 public navigation reduces choices while homepage exposes directory-first actions',()=>{
   const nav=read('src/components/global-site-nav.tsx');
+  const accountActions=read('src/components/global-account-actions.tsx');
   const home=read('src/app/page.tsx');
   const controls=read('src/components/public/HomeDirectoryEnhancements.tsx');
   assert.match(nav,/Cómo funciona/);
   assert.match(nav,/Seguridad/);
   assert.match(nav,/Ayuda/);
-  assert.match(nav,/\+ Crear perfil/);
+  assert.match(nav,/GlobalAccountActions/);
+  assert.match(accountActions,/\+ Crear perfil/);
+  assert.match(accountActions,/Mi perfil/);
   assert.match(nav,/href="\/"/);
   assert.match(home,/HomeDirectoryEnhancements/);
   assert.doesNotMatch(home,/HomeDirectoryControls/);

@@ -20,6 +20,7 @@ import '../v20-settings-personalization.css';
 import './admin-backoffice.css';
 import './admin-v3.css';
 import './admin-logo.css';
+import './admin-mobile.css';
 
 export const dynamic='force-dynamic';
 

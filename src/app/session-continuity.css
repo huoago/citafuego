@@ -1,0 +1,4 @@
+.globalAccountLoading{min-height:40px;display:inline-flex;align-items:center;justify-content:center;padding:0 13px;border:1px solid rgba(255,255,255,.12);border-radius:11px;background:rgba(255,255,255,.055);color:#cfc1bd;font-size:12px;font-weight:760;white-space:nowrap}
+body:has([data-home-page]) .globalAccountLoading{background:#fff;color:#5d6672;border-color:#e2e5ea}
+.globalSiteActions[data-account-state="authenticated"] .globalSitePrimaryButton{background:linear-gradient(135deg,#ff5a65,#ff6c43)}
+@media(max-width:620px){.globalAccountLoading{display:none}}
