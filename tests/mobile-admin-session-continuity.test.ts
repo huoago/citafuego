@@ -29,7 +29,7 @@ test('global account shell reflects the live session instead of always looking l
   assert.match(actions,/data-account-state="authenticated"/);
   assert.match(actions,/href="\/perfil"/);
   assert.match(actions,/href="\/logout"/);
-  assert.match(actions,/state\.admin\?<a href="\/admin"/);
+  assert.match(actions,/state\.admin\?<Link href="\/admin"/);
   assert.match(route,/auth\.getClaims\(\)/);
   assert.match(route,/private, no-store/);
   assert.match(route,/vary':'Cookie/);
