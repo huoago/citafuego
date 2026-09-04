@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import {readFileSync} from 'node:fs';
 
-const migration=readFileSync('supabase/migrations/20260904144500_security_contract_hardening_v4.sql','utf8');
+const migration=readFileSync('supabase/migrations/20260904144311_security_contract_hardening_v4.sql','utf8');
 
 const publicFlags=[
   'ACCOUNT_LOGIN_ENABLED',
