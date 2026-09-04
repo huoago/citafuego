@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import {useCallback,useEffect,useState} from 'react';
 
 type SessionState={authenticated:boolean;admin:boolean};
@@ -16,29 +17,29 @@ export function GlobalAccountActions(){
   },[]);
 
   useEffect(()=>{
-    void refresh();
+    const initial=window.setTimeout(()=>void refresh(),0);
     const onPageShow=()=>void refresh();
     const onVisibility=()=>{if(document.visibilityState==='visible')void refresh();};
     window.addEventListener('pageshow',onPageShow);
     document.addEventListener('visibilitychange',onVisibility);
-    return()=>{window.removeEventListener('pageshow',onPageShow);document.removeEventListener('visibilitychange',onVisibility);};
+    return()=>{window.clearTimeout(initial);window.removeEventListener('pageshow',onPageShow);document.removeEventListener('visibilitychange',onVisibility);};
   },[refresh]);
 
   if(state===null)return <nav className="globalSiteActions" aria-label="Acciones de cuenta" data-account-state="loading">
-    <a href="/guardados" className="globalSiteIconButton" aria-label="Guardados" title="Guardados">♡</a>
+    <Link href="/guardados" className="globalSiteIconButton" aria-label="Guardados" title="Guardados">♡</Link>
     <span className="globalAccountLoading" aria-label="Comprobando sesión">Cuenta</span>
-    <details className="globalSiteMenu"><summary aria-label="Abrir menú">☰</summary><div className="globalSiteMenuPanel"><a href="/">Inicio</a><a href="/safety">Seguridad</a><a href="/help">Ayuda</a></div></details>
+    <details className="globalSiteMenu"><summary aria-label="Abrir menú">☰</summary><div className="globalSiteMenuPanel"><Link href="/">Inicio</Link><Link href="/safety">Seguridad</Link><Link href="/help">Ayuda</Link></div></details>
   </nav>;
 
   if(!state.authenticated)return <nav className="globalSiteActions" aria-label="Acciones de cuenta" data-account-state="guest">
-    <a href="/guardados" className="globalSiteIconButton" aria-label="Guardados" title="Guardados">♡</a>
-    <a href="/registro" className="globalSitePrimaryButton">+ Crear perfil</a>
-    <details className="globalSiteMenu"><summary aria-label="Abrir menú">☰</summary><div className="globalSiteMenuPanel"><a href="/">Inicio</a><a href="/iniciar-sesion">Iniciar sesión</a><a href="/registro">Crear perfil</a><a href="/explorar">Explorar</a><a href="/community-guidelines">Normas de la comunidad</a><a href="/seguridad-privacidad">Privacidad</a></div></details>
+    <Link href="/guardados" className="globalSiteIconButton" aria-label="Guardados" title="Guardados">♡</Link>
+    <Link href="/registro" className="globalSitePrimaryButton">+ Crear perfil</Link>
+    <details className="globalSiteMenu"><summary aria-label="Abrir menú">☰</summary><div className="globalSiteMenuPanel"><Link href="/">Inicio</Link><Link href="/iniciar-sesion">Iniciar sesión</Link><Link href="/registro">Crear perfil</Link><Link href="/explorar">Explorar</Link><Link href="/community-guidelines">Normas de la comunidad</Link><Link href="/seguridad-privacidad">Privacidad</Link></div></details>
   </nav>;
 
   return <nav className="globalSiteActions" aria-label="Acciones de cuenta" data-account-state="authenticated">
-    <a href="/guardados" className="globalSiteIconButton" aria-label="Guardados" title="Guardados">♡</a>
-    <a href="/perfil" className="globalSitePrimaryButton globalAccountPrimary">Mi perfil</a>
-    <details className="globalSiteMenu"><summary aria-label="Abrir menú de cuenta">☰</summary><div className="globalSiteMenuPanel"><a href="/perfil">Mi perfil</a><a href="/descubrir">Descubrir</a><a href="/matches">Matches</a><a href="/chats">Chats</a><a href="/notificaciones">Notificaciones</a><a href="/guardados">Guardados</a>{state.admin?<a href="/admin">Administración</a>:null}<a href="/logout">Cerrar sesión</a></div></details>
+    <Link href="/guardados" className="globalSiteIconButton" aria-label="Guardados" title="Guardados">♡</Link>
+    <Link href="/perfil" className="globalSitePrimaryButton globalAccountPrimary">Mi perfil</Link>
+    <details className="globalSiteMenu"><summary aria-label="Abrir menú de cuenta">☰</summary><div className="globalSiteMenuPanel"><Link href="/perfil">Mi perfil</Link><Link href="/descubrir">Descubrir</Link><Link href="/matches">Matches</Link><Link href="/chats">Chats</Link><Link href="/notificaciones">Notificaciones</Link><Link href="/guardados">Guardados</Link>{state.admin?<Link href="/admin">Administración</Link>:null}<Link href="/logout">Cerrar sesión</Link></div></details>
   </nav>;
 }
