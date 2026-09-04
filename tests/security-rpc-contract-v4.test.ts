@@ -3,6 +3,7 @@ import test from 'node:test';
 import {readFileSync} from 'node:fs';
 
 const migration=readFileSync('supabase/migrations/20260904144311_security_contract_hardening_v4.sql','utf8');
+const wrapperMigration=readFileSync('supabase/migrations/20260904153635_security_definer_wrapper_minimization_v5.sql','utf8');
 
 const publicFlags=[
   'ACCOUNT_LOGIN_ENABLED',
@@ -57,4 +58,9 @@ test('historically broken core RPCs are pinned to authenticated and never anon',
     const escaped=signature.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
     assert.match(migration,new RegExp(`revoke execute on function ${escaped} from public,anon;[\\s\\S]*?grant execute on function ${escaped} to authenticated;`,'i'));
   }
+});
+
+test('compatibility-only blog comment wrapper no longer runs as SECURITY DEFINER',()=>{
+  assert.match(wrapperMigration,/alter function public\.add_blog_comment\(uuid,text\) security invoker;/i);
+  assert.doesNotMatch(wrapperMigration,/security definer/i);
 });
