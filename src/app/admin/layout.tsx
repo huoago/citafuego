@@ -32,7 +32,7 @@ export default async function AdminLayout({children}:{children:ReactNode}){
       <p className="adminEyebrow">CitaFuego · Backoffice</p>
       <h1>403 · Acceso denegado</h1>
       <p>Tu cuenta está autenticada, pero no tiene un rol administrativo activo. No se ha cargado ningún dato del backoffice.</p>
-      <div className="adminActions"><Link href="/">Volver a CitaFuego</Link><Link href="/logout">Cerrar sesión</Link></div>
+      <div className="adminActions"><Link href="/">Volver a CitaFuego</Link><form action="/logout" method="post"><button type="submit">Cerrar sesión</button></form></div>
     </div>
   </main>;
   const superAdmin=access.roles.includes('super_admin');
