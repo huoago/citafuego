@@ -31,10 +31,10 @@ export function AccountAuthForm({mode,turnstileSiteKey='',nextPath}:{mode:'regis
     if(mode==='register'&&password!==String(form.get('confirmPassword')??'')){setBusy(false);setError('Las contraseñas no coinciden.');return;}
     if(turnstileSiteKey&&!challengeToken){setBusy(false);setError('Completa la verificación de seguridad.');return;}
     const body={username,password,turnstileToken:challengeToken||undefined,next:mode==='login'?nextPath:undefined};
-    const response=await fetch(`/api/auth/account/${mode}`,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(body)}).catch(()=>null);
+    const response=await fetch(`/api/auth/account/${mode}`,{method:'POST',credentials:'same-origin',cache:'no-store',headers:{'content-type':'application/json'},body:JSON.stringify(body)}).catch(()=>null);
     const data=await response?.json().catch(()=>({}))??{};
-    setBusy(false);
     if(!response?.ok){
+      setBusy(false);
       if(turnstileSiteKey){setChallengeToken('');setChallengeKey(key=>key+1)}
       const code=String(data.error??'');
       if(code==='account_taken')setError('Ese nombre de cuenta o correo ya está en uso. Elige otro.');
@@ -49,7 +49,17 @@ export function AccountAuthForm({mode,turnstileSiteKey='',nextPath}:{mode:'regis
       else setError(mode==='register'?'No pudimos crear la cuenta ahora. Revisa los datos e inténtalo de nuevo.':'No pudimos iniciar sesión ahora. Inténtalo de nuevo.');
       return;
     }
-    window.location.assign(typeof data.next==='string'?data.next:(mode==='register'?'/registro/completar':'/onboarding'));
+    if(mode==='login'){
+      const sessionResponse=await fetch('/api/auth/session',{credentials:'same-origin',cache:'no-store',headers:{accept:'application/json'}}).catch(()=>null);
+      const session=await sessionResponse?.json().catch(()=>({}))??{};
+      if(!sessionResponse?.ok||session.authenticated!==true){
+        setBusy(false);
+        setError('La cuenta se validó, pero el navegador no pudo conservar la sesión. Recarga la página e inténtalo de nuevo.');
+        return;
+      }
+    }
+    setBusy(false);
+    window.location.replace(typeof data.next==='string'?data.next:(mode==='register'?'/registro/completar':'/onboarding'));
   }
 
   return <form className="formStack registrationForm accountAuthForm" data-registration-contract={mode==='register'?'account-v25-6-72':undefined} onSubmit={submit}>
