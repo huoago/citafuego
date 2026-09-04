@@ -23,6 +23,7 @@ try{
  const context=await browser.newContext({viewport:{width:390,height:844},userAgent:'CitaFuego Session Continuity QA/2026.09'});
  await context.addCookies(pwCookies(await authCookies()));
  const page=await context.newPage();
+ await page.goto(`${BASE}/`,{waitUntil:'domcontentloaded'});
  const checkpoints=[];
  checkpoints.push(await session(page,'fresh-login'));
  const adminResponse=await page.goto(`${BASE}/admin`,{waitUntil:'domcontentloaded'});
