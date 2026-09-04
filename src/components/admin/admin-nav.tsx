@@ -46,24 +46,37 @@ const groups:NavGroup[]=[
   ]},
 ];
 
+function activePath(pathname:string,href:string){return href==='/admin'?pathname==='/admin':pathname.startsWith(href)}
+
 export function AdminNav({roles}:{roles:string[]}){
   const pathname=usePathname();
   const visibleGroups=useMemo(()=>groups.map(group=>({...group,items:group.items.filter(item=>!item.roles||item.roles.some(role=>roles.includes(role)))})).filter(group=>group.items.length),[roles]);
-  const currentGroup=visibleGroups.find(group=>group.items.some(item=>item.href==='/admin'?pathname==='/admin':pathname.startsWith(item.href)))?.id??visibleGroups[0]?.id??'';
+  const currentGroup=visibleGroups.find(group=>group.items.some(item=>activePath(pathname,item.href)))?.id??visibleGroups[0]?.id??'';
+  const currentItem=visibleGroups.flatMap(group=>group.items).find(item=>activePath(pathname,item.href));
+  const itemCount=visibleGroups.reduce((sum,group)=>sum+group.items.length,0);
   const [overrides,setOverrides]=useState<Record<string,boolean>>({});
   const expandedFor=(id:string)=>overrides[id]??(id===currentGroup);
   const toggle=(id:string)=>setOverrides(prev=>({...prev,[id]:!(prev[id]??(id===currentGroup))}));
-  return <aside className="adminSidebar" aria-label="Navegación del backoffice">
-    <Link href="/admin" className="adminSidebarBrand" aria-label="CitaFuego Admin">
-      <span className="adminMascotLogo" aria-hidden="true"/><span><b>CitaFuego</b><small>Admin</small></span>
-    </Link>
-    <nav className="adminNav">
-      {visibleGroups.map(group=>{const expanded=expandedFor(group.id);return <section className="adminNavGroup" key={group.id}>
-        <button type="button" className={`adminNavGroupButton ${currentGroup===group.id?'current':''}`} onClick={()=>toggle(group.id)} aria-expanded={expanded} aria-controls={`admin-nav-${group.id}`}>
-          <span className="adminNavGroupIcon" aria-hidden="true">{group.icon}</span><span>{group.label}</span><span className="adminNavChevron" aria-hidden="true">{expanded?'−':'+'}</span>
-        </button>
-        {expanded?<div id={`admin-nav-${group.id}`} className="adminNavItems">{group.items.map(item=>{const active=item.href==='/admin'?pathname==='/admin':pathname.startsWith(item.href);return <Link href={item.href} key={item.href} className={active?'active':''}>{item.label}</Link>})}</div>:null}
-      </section>})}
-    </nav>
-  </aside>;
+
+  return <>
+    <details className="adminMobileNav" data-admin-mobile-nav>
+      <summary><span className="adminMobileNavIcon" aria-hidden="true">☰</span><span><b>Menú administrativo</b><small>{currentItem?.label??'Dashboard'} · {itemCount} funciones</small></span><span className="adminMobileNavChevron" aria-hidden="true">⌄</span></summary>
+      <div className="adminMobileNavPanel">
+        {visibleGroups.map(group=><section key={group.id} className="adminMobileNavGroup"><h2><span aria-hidden="true">{group.icon}</span>{group.label}</h2><div>{group.items.map(item=><Link href={item.href} key={item.href} className={activePath(pathname,item.href)?'active':''}>{item.label}</Link>)}</div></section>)}
+      </div>
+    </details>
+    <aside className="adminSidebar adminSidebarDesktop" aria-label="Navegación del backoffice">
+      <Link href="/admin" className="adminSidebarBrand" aria-label="CitaFuego Admin">
+        <span className="adminMascotLogo" aria-hidden="true"/><span><b>CitaFuego</b><small>Admin</small></span>
+      </Link>
+      <nav className="adminNav">
+        {visibleGroups.map(group=>{const expanded=expandedFor(group.id);return <section className="adminNavGroup" key={group.id}>
+          <button type="button" className={`adminNavGroupButton ${currentGroup===group.id?'current':''}`} onClick={()=>toggle(group.id)} aria-expanded={expanded} aria-controls={`admin-nav-${group.id}`}>
+            <span className="adminNavGroupIcon" aria-hidden="true">{group.icon}</span><span>{group.label}</span><span className="adminNavChevron" aria-hidden="true">{expanded?'−':'+'}</span>
+          </button>
+          {expanded?<div id={`admin-nav-${group.id}`} className="adminNavItems">{group.items.map(item=><Link href={item.href} key={item.href} className={activePath(pathname,item.href)?'active':''}>{item.label}</Link>)}</div>:null}
+        </section>})}
+      </nav>
+    </aside>
+  </>;
 }
