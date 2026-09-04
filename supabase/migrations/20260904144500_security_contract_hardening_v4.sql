@@ -84,7 +84,7 @@ revoke all on function public.sync_public_operational_flag() from public, anon, 
 
 drop trigger if exists feature_flags_sync_public_operational on public.feature_flags;
 create trigger feature_flags_sync_public_operational
-  after insert or delete or update of key,enabled on public.feature_flags
+  after insert or update or delete on public.feature_flags
   for each row execute function public.sync_public_operational_flag();
 
 -- Preserve the existing RPC contract, but remove elevated execution.
@@ -103,7 +103,7 @@ $$;
 revoke all on function public.public_feature_enabled(text) from public;
 grant execute on function public.public_feature_enabled(text) to anon, authenticated;
 
--- These tables are intentionally backend/RPC-only.  Keep direct client access fail-closed,
+-- These tables are intentionally backend/RPC-only. Keep direct client access fail-closed,
 -- but make that intent explicit so an absent policy cannot be mistaken for an omission.
 drop policy if exists account_deletion_jobs_direct_clients_denied on public.account_deletion_jobs;
 create policy account_deletion_jobs_direct_clients_denied
