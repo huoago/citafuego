@@ -198,3 +198,5 @@ try{
 } finally {
   await browser.close();
 }
+
+await import('./production-security-qa.mjs');
