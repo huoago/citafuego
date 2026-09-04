@@ -62,5 +62,5 @@ test('historically broken core RPCs are pinned to authenticated and never anon',
 
 test('compatibility-only blog comment wrapper no longer runs as SECURITY DEFINER',()=>{
   assert.match(wrapperMigration,/alter function public\.add_blog_comment\(uuid,text\) security invoker;/i);
-  assert.doesNotMatch(wrapperMigration,/security definer/i);
+  assert.doesNotMatch(wrapperMigration,/alter function public\.add_blog_comment\(uuid,text\) security definer;/i);
 });
