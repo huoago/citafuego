@@ -40,6 +40,6 @@ export function GlobalAccountActions(){
   return <nav className="globalSiteActions" aria-label="Acciones de cuenta" data-account-state="authenticated">
     <Link href="/guardados" className="globalSiteIconButton" aria-label="Guardados" title="Guardados">♡</Link>
     <Link href="/perfil" className="globalSitePrimaryButton globalAccountPrimary">Mi perfil</Link>
-    <details className="globalSiteMenu"><summary aria-label="Abrir menú de cuenta">☰</summary><div className="globalSiteMenuPanel"><Link href="/perfil">Mi perfil</Link><Link href="/descubrir">Descubrir</Link><Link href="/matches">Matches</Link><Link href="/chats">Chats</Link><Link href="/notificaciones">Notificaciones</Link><Link href="/guardados">Guardados</Link>{state.admin?<Link href="/admin">Administración</Link>:null}<Link href="/logout">Cerrar sesión</Link></div></details>
+    <details className="globalSiteMenu"><summary aria-label="Abrir menú de cuenta">☰</summary><div className="globalSiteMenuPanel"><Link href="/perfil">Mi perfil</Link><Link href="/descubrir">Descubrir</Link><Link href="/matches">Matches</Link><Link href="/chats">Chats</Link><Link href="/notificaciones">Notificaciones</Link><Link href="/guardados">Guardados</Link>{state.admin?<Link href="/admin">Administración</Link>:null}<form className="globalSiteLogoutForm" action="/logout" method="post"><button className="globalSiteLogoutButton" type="submit">Cerrar sesión</button></form></div></details>
   </nav>;
 }
