@@ -71,3 +71,5 @@ try{
   console.log('CF_SECURITY_QA_SUMMARY '+JSON.stringify({ok:hard.length===0,metrics,findings}));
   if(hard.length)process.exitCode=1;
 }finally{await browser.close();}
+
+await import('./production-session-continuity-probe.mjs');
