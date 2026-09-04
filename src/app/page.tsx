@@ -4,15 +4,14 @@ import styles from './home.module.css';
 
 type PreviewProfile={id:string;name:string;age:number;district:string;gender:'mujer'|'hombre';connection:'citas'|'amistad'|'video';tagline:string;verified:boolean;online:boolean;media:string[]};
 
+// Keep the public landing preview intentionally small. These are illustrative
+// cards, not a real user feed; four cards preserve the directory-first layout
+// while avoiding a large duplicated RSC payload on the most performance-sensitive page.
 const previewProfiles:PreviewProfile[]=[
   {id:'p1',name:'Lucía',age:27,district:'Miraflores',gender:'mujer',connection:'citas',tagline:'Café, viajes y conversaciones sin prisa.',verified:true,online:true,media:['2 fotos','audio']},
   {id:'p2',name:'Mateo',age:31,district:'Barranco',gender:'hombre',connection:'amistad',tagline:'Música, fotografía y planes de fin de semana.',verified:true,online:false,media:['3 fotos']},
   {id:'p3',name:'Valeria',age:29,district:'Surco',gender:'mujer',connection:'video',tagline:'Primero conversar, luego vemos qué surge.',verified:true,online:true,media:['video','2 fotos']},
   {id:'p4',name:'Diego',age:33,district:'San Borja',gender:'hombre',connection:'citas',tagline:'Cocina, running y escapadas fuera de Lima.',verified:false,online:true,media:['2 fotos']},
-  {id:'p5',name:'Camila',age:26,district:'Lince',gender:'mujer',connection:'amistad',tagline:'Arte, perros y descubrir lugares nuevos.',verified:true,online:false,media:['4 fotos']},
-  {id:'p6',name:'Andrés',age:35,district:'La Molina',gender:'hombre',connection:'video',tagline:'Conversaciones claras y conexiones reales.',verified:true,online:false,media:['audio','2 fotos']},
-  {id:'p7',name:'Sofía',age:30,district:'Jesús María',gender:'mujer',connection:'citas',tagline:'Libros, gastronomía y una buena primera cita.',verified:true,online:true,media:['3 fotos']},
-  {id:'p8',name:'Nicolás',age:28,district:'Miraflores',gender:'hombre',connection:'amistad',tagline:'Viajes, cine y conocer gente nueva.',verified:false,online:false,media:['2 fotos']},
 ];
 
 const districtLinks=[
