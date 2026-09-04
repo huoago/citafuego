@@ -28,11 +28,11 @@ try{
   expect(await page.locator('link[rel="canonical"]').count()===1,'home canonical missing');
   expect(await page.locator('meta[property="og:title"]').count()===1,'home Open Graph title missing');
   expect(await page.locator('meta[name="twitter:card"]').count()===1,'home Twitter card missing');
-  expect(await page.locator('[data-preview-profile]').count()===8,'directory preview cards missing');
+  expect(await page.locator('[data-preview-profile]').count()===4,'compact directory preview cards missing');
   await assertGlobalNavigation(page,'/');
 
   await page.getByRole('button',{name:'Mujeres',exact:true}).click();
-  expect(await page.locator('[data-preview-profile]:visible').count()===4,'gender directory filter failed');
+  expect(await page.locator('[data-preview-profile]:visible').count()===2,'gender directory filter failed');
   await page.getByRole('button',{name:'Todos',exact:true}).click();
   await page.locator('[data-preview-query]').fill('Barranco');
   expect(await page.locator('[data-preview-profile]:visible').count()===1,'keyword directory filter failed');
