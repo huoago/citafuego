@@ -7,6 +7,10 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: citafuego-production-synthetic-qa
+  cancel-in-progress: true
+
 jobs:
   authenticated-qa:
     runs-on: ubuntu-latest
