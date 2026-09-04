@@ -2,6 +2,17 @@ import type { ReactNode } from 'react';
 import { redirect } from 'next/navigation';
 import { MobileShell } from '@/components/mobile-shell';
 import { createClient } from '@/lib/supabase/server';
+import '../interaction.css';
+import '../growth.css';
+import '../blog.css';
+import '../recommendations.css';
+import '../monetization.css';
+import '../top-tier.css';
+import '../ios-social.css';
+import '../ios-v2.css';
+import '../chat-read-v7.css';
+import '../whatsapp-contact.css';
+import '../v20-settings-personalization.css';
 
 export default async function AppLayout({children}:{children:ReactNode}){
   const s=await createClient();
