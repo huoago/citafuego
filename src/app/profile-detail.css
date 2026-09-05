@@ -1,0 +1,149 @@
+/* Profile detail hierarchy and mobile contact affordance. Scoped to v23 profile pages. */
+[data-social-profile-v23] .pkDecisionBlock,
+[data-social-profile-v23] .pkProfileAbout{
+  margin-top:18px;
+  padding-top:18px;
+  border-top:1px solid rgba(255,255,255,.10);
+}
+[data-social-profile-v23] .pkDecisionHeading h2,
+[data-social-profile-v23] .pkProfileAbout h2{
+  margin:3px 0 0;
+  font-size:clamp(18px,2.2vw,24px);
+  line-height:1.18;
+  letter-spacing:-.025em;
+}
+[data-social-profile-v23] .pkDecisionGrid{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:9px;
+  margin-top:13px;
+}
+[data-social-profile-v23] .pkDecisionGrid>div{
+  min-width:0;
+  padding:12px 13px;
+  border:1px solid rgba(255,255,255,.11);
+  border-radius:14px;
+  background:rgba(255,255,255,.045);
+}
+[data-social-profile-v23] .pkDecisionGrid small{
+  display:block;
+  margin-bottom:4px;
+  color:#c9bdc4;
+  font-size:11px;
+  font-weight:760;
+  letter-spacing:.055em;
+  text-transform:uppercase;
+}
+[data-social-profile-v23] .pkDecisionGrid strong{
+  display:block;
+  color:#fff9fc;
+  font-size:14px;
+  line-height:1.35;
+  overflow-wrap:anywhere;
+}
+[data-social-profile-v23] .pkProfileAbout .pkBio{
+  margin:10px 0 0;
+  color:#eee5ea;
+  line-height:1.68;
+}
+[data-social-profile-v23] .pkContact{
+  margin-top:18px;
+}
+[data-social-profile-v23] .pkContactLead,
+[data-social-profile-v23] .pkContactMuted,
+[data-social-profile-v23] .pkSafetyNote{
+  color:#d3c8cf;
+  line-height:1.55;
+}
+[data-social-profile-v23] .pkNativeContactButton{
+  width:100%;
+  min-height:48px;
+  margin:12px 0 10px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  padding:0 16px;
+  border:1px solid transparent;
+  border-radius:13px;
+  background:linear-gradient(135deg,#ff5a65,#ff704a);
+  color:#fff;
+  font-weight:840;
+  text-decoration:none;
+  box-shadow:0 12px 28px rgba(255,90,101,.18);
+}
+[data-social-profile-v23] .pkNativeContactButton:hover,
+[data-social-profile-v23] .pkNativeContactButton:focus-visible{
+  filter:brightness(1.06);
+}
+[data-social-profile-v23] .pkSafetyNote{
+  margin:12px 0 0;
+  padding:10px 12px;
+  border:1px solid rgba(255,255,255,.10);
+  border-radius:12px;
+  background:rgba(255,255,255,.035);
+  font-size:12px;
+}
+[data-social-profile-v23] .pkMobileActions[data-mobile-contact-toolbar]{
+  display:none;
+}
+
+@media(max-width:760px){
+  [data-social-profile-v23]{
+    padding-bottom:calc(94px + env(safe-area-inset-bottom));
+  }
+  [data-social-profile-v23] .pkDecisionGrid{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+  }
+  [data-social-profile-v23] .pkMobileActions[data-mobile-contact-toolbar]{
+    position:fixed;
+    left:max(10px,env(safe-area-inset-left));
+    right:max(10px,env(safe-area-inset-right));
+    bottom:max(10px,env(safe-area-inset-bottom));
+    z-index:110;
+    display:grid;
+    grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);
+    gap:8px;
+    padding:8px;
+    border:1px solid rgba(255,255,255,.14);
+    border-radius:16px;
+    background:rgba(16,9,15,.94);
+    box-shadow:0 16px 48px rgba(0,0,0,.42);
+    backdrop-filter:blur(18px) saturate(135%);
+  }
+  [data-social-profile-v23] .pkMobileAction{
+    min-width:0;
+    min-height:52px;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    padding:0 12px;
+    border:1px solid rgba(255,255,255,.12);
+    border-radius:12px;
+    color:#fff;
+    font-size:14px;
+    font-weight:820;
+    text-decoration:none;
+    text-align:center;
+  }
+  [data-social-profile-v23] .pkMobileAction.primary{
+    border-color:transparent;
+    background:linear-gradient(135deg,#ff5a65,#ff704a);
+    box-shadow:0 10px 24px rgba(255,90,101,.20);
+  }
+  [data-social-profile-v23] .pkMobileAction.secondary{
+    background:#24191f;
+  }
+}
+
+@media(max-width:390px){
+  [data-social-profile-v23] .pkDecisionGrid{
+    grid-template-columns:1fr;
+  }
+}
+
+@media(prefers-reduced-motion:reduce){
+  [data-social-profile-v23] .pkNativeContactButton,
+  [data-social-profile-v23] .pkMobileAction{
+    transition:none!important;
+  }
+}

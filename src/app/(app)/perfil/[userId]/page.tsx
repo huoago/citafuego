@@ -33,9 +33,10 @@ export default async function Page({params}:{params:Promise<{userId:string}>}){
   const trustLabel=p.verified?'Foto real verificada':hasPhoto?'Fotos aprobadas':'Perfil sin foto verificada';
   const location=[p.district,p.city].filter(Boolean).filter((x,i,a)=>a.indexOf(x)===i).join(' · ')||'Lima, Perú';
   const lastActiveLabel=p.lastActiveAt?`Actividad · ${new Intl.DateTimeFormat('es-PE',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'}).format(new Date(p.lastActiveAt))}`:'Actividad no publicada';
+  const activityShortLabel=p.lastActiveAt?'Actividad reciente':'Actividad privada';
   const identityItems=identity?[...(identity.pronouns?[identity.pronouns]:[]),...identity.sexualOrientations.map(x=>identityLabels[x]??x),...identity.relationshipStyles.map(x=>identityLabels[x]??x),...identity.desires.map(x=>identityLabels[x]??x)]:[];
 
-  return <section className="pkProfilePage" data-social-profile-v22>
+  return <section className="pkProfilePage" data-social-profile-v23>
     <div className="pkProfileHero">
       <DirectoryProfileGallery photos={bundle.photos} name={p.displayName} lastActiveLabel={lastActiveLabel}/>
 
@@ -45,7 +46,7 @@ export default async function Page({params}:{params:Promise<{userId:string}>}){
         {bundle.handle?<p className="pkHandle">@{bundle.handle}</p>:null}
         <p className="pkLocation">⌖ {location}</p>
         <div className="pkTrustLine"><span aria-hidden="true">✓</span><strong>{trustLabel}</strong></div>
-        <div className="pkQuickFacts">
+        <div className="pkQuickFacts" aria-label="Resumen del perfil">
           <span>{intentLabels[p.intent]??p.intent}</span>
           {p.genderIdentity?<span>{p.genderIdentity}</span>:null}
           {p.occupation?<span>{p.occupation}</span>:null}
@@ -53,20 +54,38 @@ export default async function Page({params}:{params:Promise<{userId:string}>}){
           {p.languages.length?<span>{p.languages.join(' · ')}</span>:null}
         </div>
 
+        <section className="pkDecisionBlock" aria-labelledby="profile-summary-title" data-profile-key-facts>
+          <div className="pkDecisionHeading"><p className="pkProfileEyebrow">En breve</p><h2 id="profile-summary-title">Lo esencial antes de conectar</h2></div>
+          <div className="pkDecisionGrid">
+            <div><small>Busca</small><strong>{intentLabels[p.intent]??p.intent}</strong></div>
+            <div><small>Zona</small><strong>{displayValue(p.district,p.city||'Lima')}</strong></div>
+            <div><small>Confianza</small><strong>{trustLabel}</strong></div>
+            <div><small>Actividad</small><strong>{activityShortLabel}</strong></div>
+          </div>
+        </section>
+
         <section className="pkContact" id="profile-contact" aria-labelledby="contact-title">
           <p className="pkProfileEyebrow">Contacto compartido</p>
           <h2 id="contact-title">Contactar a {p.displayName}</h2>
-          {bundle.whatsapp?<><span className="pkContactNumber">WhatsApp · {formatWhatsapp(bundle.whatsapp)}</span><a className="whatsappContactButton directoryWhatsappButton" href={whatsappHref(bundle.whatsapp)} target="_blank" rel="noopener noreferrer" aria-label={`Abrir WhatsApp con ${p.displayName}`}><span className="whatsappContactIcon" aria-hidden="true">◉</span><span><strong>Abrir WhatsApp</strong><small>Número publicado voluntariamente por esta persona</small></span></a></>:<p>Esta persona no comparte WhatsApp públicamente. Puedes seguirla, hacer Match y conversar dentro de CitaFuego.</p>}
+          <p className="pkContactLead">Prioriza CitaFuego para seguir, hacer Match y conversar. Si esta persona comparte un contacto externo, úsalo solo cuando te resulte cómodo.</p>
+          {bundle.isMatch?<Link className="pkNativeContactButton" href="/chats">Abrir Chat CitaFuego</Link>:<a className="pkNativeContactButton" href="#profile-actions">Seguir y conectar</a>}
+          {bundle.whatsapp?<><span className="pkContactNumber">WhatsApp · {formatWhatsapp(bundle.whatsapp)}</span><a className="whatsappContactButton directoryWhatsappButton" href={whatsappHref(bundle.whatsapp)} target="_blank" rel="noopener noreferrer" aria-label={`Abrir WhatsApp con ${p.displayName}`}><span className="whatsappContactIcon" aria-hidden="true">◉</span><span><strong>Abrir WhatsApp</strong><small>Número publicado voluntariamente por esta persona</small></span></a></>:<p className="pkContactMuted">Esta persona no comparte WhatsApp públicamente.</p>}
+          <p className="pkSafetyNote">Nunca envíes dinero ni compartas claves, códigos o documentos sensibles. Puedes reportar o bloquear si algo no se siente seguro.</p>
         </section>
 
-        <p className="pkBio">{p.bio||'Esta persona todavía no añadió una presentación.'}</p>
-        <div className="pkProfileActions"><FollowButton targetId={userId} initialFollowing={bundle.viewerFollows} initialFollowers={bundle.followers} showCount={false}/><ReportContentButton type="profile" contentId={userId} label="Reportar perfil"/></div>
+        <section className="pkProfileAbout" aria-labelledby="profile-about-title">
+          <p className="pkProfileEyebrow">Sobre mí</p>
+          <h2 id="profile-about-title">Conoce a {p.displayName}</h2>
+          <p className="pkBio">{p.bio||'Esta persona todavía no añadió una presentación.'}</p>
+        </section>
+
+        <div className="pkProfileActions" id="profile-actions"><FollowButton targetId={userId} initialFollowing={bundle.viewerFollows} initialFollowers={bundle.followers} showCount={false}/><ReportContentButton type="profile" contentId={userId} label="Reportar perfil"/></div>
       </aside>
     </div>
 
-    <nav className={`pkMobileActions ${!bundle.whatsapp&&!bundle.isMatch?'single':''}`} aria-label="Acciones rápidas del perfil">
-      <a className="pkMobileAction primary" href="#profile-contact">Contacto</a>
-      {bundle.whatsapp?<a className="pkMobileAction secondary" href={whatsappHref(bundle.whatsapp)} target="_blank" rel="noopener noreferrer">WhatsApp</a>:bundle.isMatch?<Link className="pkMobileAction secondary" href="/chats">Chat CitaFuego</Link>:null}
+    <nav className="pkMobileActions" aria-label="Acciones rápidas del perfil" data-mobile-contact-toolbar>
+      {bundle.isMatch?<Link className="pkMobileAction primary" href="/chats">Mensaje</Link>:<a className="pkMobileAction primary" href="#profile-actions">Conectar</a>}
+      {bundle.whatsapp?<a className="pkMobileAction secondary" href={whatsappHref(bundle.whatsapp)} target="_blank" rel="noopener noreferrer">WhatsApp</a>:<a className="pkMobileAction secondary" href="#profile-contact">Contacto</a>}
     </nav>
 
     <div className="pkStats" aria-label="Actividad social">
