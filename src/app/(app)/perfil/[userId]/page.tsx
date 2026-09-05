@@ -68,7 +68,7 @@ export default async function Page({params}:{params:Promise<{userId:string}>}){
           <p className="pkProfileEyebrow">Contacto compartido</p>
           <h2 id="contact-title">Contactar a {p.displayName}</h2>
           <p className="pkContactLead">Prioriza CitaFuego para seguir, hacer Match y conversar. Si esta persona comparte un contacto externo, úsalo solo cuando te resulte cómodo.</p>
-          {bundle.isMatch?<Link className="pkNativeContactButton" href="/chats">Abrir chat CitaFuego</Link>:<a className="pkNativeContactButton" href="#profile-actions">Seguir y conectar</a>}
+          {bundle.isMatch?<Link className="pkNativeContactButton" href="/chats">Abrir Chat CitaFuego</Link>:<a className="pkNativeContactButton" href="#profile-actions">Seguir y conectar</a>}
           {bundle.whatsapp?<><span className="pkContactNumber">WhatsApp · {formatWhatsapp(bundle.whatsapp)}</span><a className="whatsappContactButton directoryWhatsappButton" href={whatsappHref(bundle.whatsapp)} target="_blank" rel="noopener noreferrer" aria-label={`Abrir WhatsApp con ${p.displayName}`}><span className="whatsappContactIcon" aria-hidden="true">◉</span><span><strong>Abrir WhatsApp</strong><small>Número publicado voluntariamente por esta persona</small></span></a></>:<p className="pkContactMuted">Esta persona no comparte WhatsApp públicamente.</p>}
           <p className="pkSafetyNote">Nunca envíes dinero ni compartas claves, códigos o documentos sensibles. Puedes reportar o bloquear si algo no se siente seguro.</p>
         </section>
