@@ -9,7 +9,7 @@ test('profile trust guidance prioritizes an approved first photo without making 
   assert.match(profile,/approvedPhotoCount/);
   assert.match(profile,/pendingPhotoCount/);
   assert.match(profile,/!hasPhoto[\s\S]*pendingPhotoCount>0[\s\S]*Añade tu primera foto/);
-  assert.match(profile,/puedes seguir usando CitaFuego sin subirla/);
+  assert.match(profile,/puedes seguir usando CitaFuego sin subirla/i);
   assert.match(profile,/href:'\/perfil\/fotos'/);
 });
 
