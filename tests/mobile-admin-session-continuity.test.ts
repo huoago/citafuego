@@ -26,10 +26,16 @@ test('global account shell reflects the live session instead of always looking l
   assert.match(shell,/GlobalAccountActions/);
   assert.match(actions,/fetch\('\/api\/auth\/session'/);
   assert.match(actions,/credentials:'same-origin'/);
-  assert.match(actions,/data-account-state="authenticated"/);
+  assert.match(actions,/data-global-account-actions/);
+  assert.match(actions,/root\.dataset\.accountState=authenticated\?'authenticated':'guest'/);
+  assert.match(actions,/data-account-guest/);
+  assert.match(actions,/data-account-auth/);
   assert.match(actions,/href="\/perfil"/);
   assert.match(actions,/href="\/logout"/);
-  assert.match(actions,/state\.admin\?<Link href="\/admin"/);
+  assert.match(actions,/state\?\.admin===true/);
+  assert.match(actions,/data-account-admin/);
+  assert.match(actions,/window\.addEventListener\('pageshow'/);
+  assert.match(actions,/visibilitychange/);
   assert.match(route,/auth\.getClaims\(\)/);
   assert.match(route,/private, no-store/);
   assert.match(route,/vary':'Cookie/);
