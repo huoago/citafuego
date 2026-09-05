@@ -66,9 +66,15 @@ test('future privileged SECURITY DEFINER migrations must fail closed',()=>{
   );
 });
 
-test('/explorar enters the real discovery funnel',()=>{
+test('/explorar stays public while real discovery remains protected',()=>{
   const page=fs.readFileSync('src/app/explorar/page.tsx','utf8');
-  assert.match(page,/redirect\('\/descubrir'\)/);
+  const seo=fs.readFileSync('src/lib/seo.ts','utf8');
+  assert.doesNotMatch(page,/redirect\('\/descubrir'\)/);
+  assert.match(page,/publicMetadata/);
+  assert.match(page,/path:'\/explorar'/);
+  assert.match(page,/href="\/descubrir"/);
+  assert.match(seo,/PUBLIC_INDEXABLE_ROUTES[\s\S]*'\/explorar'/);
+  assert.match(seo,/PRIVATE_ROUTE_PREFIXES[\s\S]*'\/descubrir'/);
 });
 
 test('admin users blocks destructive actions for auth-only accounts',()=>{
