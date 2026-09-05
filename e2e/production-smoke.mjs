@@ -21,7 +21,7 @@ const publicChecks=[
   '/',
   '/iniciar-sesion','/registro',
   '/swipe','/verificacion','/chat-privado','/random-connect','/para-ti-info','/stories-info','/blog-info','/album-privado','/match-intelligence','/seguridad-privacidad',
-  '/terminos','/privacidad','/safety','/community-guidelines','/help','/explorar','/como-funciona','/offline','/manifest.webmanifest','/api/health',
+  '/terminos','/privacidad','/safety','/community-guidelines','/help','/como-funciona','/offline','/manifest.webmanifest','/api/health',
   '/robots.txt','/sitemap.xml','/lima','/guias','/guias/seguridad-en-citas-online',
 ];
 const protectedChecks=['/para-ti','/descubrir','/matches','/likes','/chats','/perfil','/stories','/blog','/guardados','/albumes','/citas','/premium'];
@@ -100,6 +100,12 @@ console.log(`sitemap targets ${sitemapUrls.length}/ ${sitemapUrls.length} return
 
 const missing=await fetch(new URL(`/this-page-must-not-exist-${Date.now()}`,base),{redirect:'manual',headers:userAgent});
 if(missing.status!==404)throw new Error(`unknown route returned ${missing.status}; expected true HTTP 404`);
+
+const explorar=await fetch(new URL('/explorar',base),{redirect:'manual',headers:userAgent});
+if(![307,308].includes(explorar.status))throw new Error(`/explorar returned ${explorar.status}; expected redirect to /descubrir`);
+const explorarLocation=explorar.headers.get('location')||'';
+if(!explorarLocation.includes('/descubrir'))throw new Error(`/explorar redirect target mismatch: ${explorarLocation}`);
+console.log('discovery alias /explorar',explorar.status,explorarLocation);
 
 for(const [from,to] of [['/login','/iniciar-sesion'],['/signup','/registro'],['/register','/registro']]){
   const r=await fetch(new URL(from,base),{redirect:'manual',headers:userAgent});
