@@ -55,7 +55,7 @@ test('future privileged SECURITY DEFINER migrations must fail closed',()=>{
   for(const file of files){
     const sql=fs.readFileSync(path.join(MIGRATION_DIR,file),'utf8');
     for(const block of privilegedFunctionBlocks(sql)){
-      if(!hasFailClosedGuard(block))violations.push(`${file}: ${block.name}`);
+      if(!hasFailClosedGuard(block.sql))violations.push(`${file}: ${block.name}`);
     }
   }
 
