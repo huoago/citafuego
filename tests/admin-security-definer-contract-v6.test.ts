@@ -14,3 +14,10 @@ test('/explorar enters the real discovery funnel',()=>{
   const page=fs.readFileSync('src/app/explorar/page.tsx','utf8');
   assert.match(page,/redirect\('\/descubrir'\)/);
 });
+
+
+test('admin users blocks destructive actions for auth-only accounts',()=>{
+  const page=fs.readFileSync('src/app/admin/users/page.tsx','utf8');
+  assert.match(page,/!u\.status\?<div className="adminNotice warn">Cuenta de Auth sin perfil operativo/);
+  assert.match(page,/Solo Auth · sin perfil/);
+});
