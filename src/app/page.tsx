@@ -2,16 +2,17 @@
 import {HomeDirectoryEnhancements} from '@/components/public/HomeDirectoryEnhancements';
 import styles from './home.module.css';
 
-type PreviewProfile={id:string;name:string;age:number;district:string;gender:'mujer'|'hombre';connection:'citas'|'amistad'|'video';tagline:string;verified:boolean;online:boolean;media:string[]};
+type PreviewProfile={id:string;name:string;age:number;district:string;gender:'mujer'|'hombre';connection:'citas'|'amistad'|'video';tagline:string;media:string[]};
 
 // Keep the public landing preview intentionally small. These are illustrative
 // cards, not a real user feed; four cards preserve the directory-first layout
 // while avoiding a large duplicated RSC payload on the most performance-sensitive page.
+// Illustrative cards must never imply real-time presence or completed verification.
 const previewProfiles:PreviewProfile[]=[
-  {id:'p1',name:'Lucía',age:27,district:'Miraflores',gender:'mujer',connection:'citas',tagline:'Café, viajes y conversaciones sin prisa.',verified:true,online:true,media:['2 fotos','audio']},
-  {id:'p2',name:'Mateo',age:31,district:'Barranco',gender:'hombre',connection:'amistad',tagline:'Música, fotografía y planes de fin de semana.',verified:true,online:false,media:['3 fotos']},
-  {id:'p3',name:'Valeria',age:29,district:'Surco',gender:'mujer',connection:'video',tagline:'Primero conversar, luego vemos qué surge.',verified:true,online:true,media:['video','2 fotos']},
-  {id:'p4',name:'Diego',age:33,district:'San Borja',gender:'hombre',connection:'citas',tagline:'Cocina, running y escapadas fuera de Lima.',verified:false,online:true,media:['2 fotos']},
+  {id:'p1',name:'Lucía',age:27,district:'Miraflores',gender:'mujer',connection:'citas',tagline:'Café, viajes y conversaciones sin prisa.',media:['2 fotos','audio']},
+  {id:'p2',name:'Mateo',age:31,district:'Barranco',gender:'hombre',connection:'amistad',tagline:'Música, fotografía y planes de fin de semana.',media:['3 fotos']},
+  {id:'p3',name:'Valeria',age:29,district:'Surco',gender:'mujer',connection:'video',tagline:'Primero conversar, luego vemos qué surge.',media:['video','2 fotos']},
+  {id:'p4',name:'Diego',age:33,district:'San Borja',gender:'hombre',connection:'citas',tagline:'Cocina, running y escapadas fuera de Lima.',media:['2 fotos']},
 ];
 
 const districtLinks=[
@@ -26,7 +27,7 @@ export default function LandingPage(){
     <div className={styles.shell}>
       <HomeDirectoryEnhancements/>
 
-      <section className={styles.directorySection} aria-label="Vista previa de perfiles">
+      <section className={styles.directorySection} aria-label="Ejemplos ilustrativos de perfiles">
         <div data-preview-grid data-grid-class={styles.profileGrid} data-list-class={styles.profileList} className={styles.profileGrid}>
           {previewProfiles.map((profile,index)=><article
             className={styles.profilePreview}
@@ -35,25 +36,24 @@ export default function LandingPage(){
             data-connection={profile.connection}
             data-gender={profile.gender}
             data-district={profile.district}
-            data-verified={String(profile.verified)}
-            data-online={String(profile.online)}
+            data-verified="false"
+            data-online="false"
             data-search={`${profile.name} ${profile.district} ${profile.tagline}`.toLowerCase()}
           >
             <div className={`${styles.previewPhoto} ${styles[`previewTone${(index%4)+1}`]}`}>
-              <span className={styles.previewBadge}>Vista previa</span>
-              {profile.online?<span className={styles.onlineBadge}>● Activo ahora</span>:null}
+              <span className={styles.previewBadge}>Vista previa · ejemplo ilustrativo</span>
               <div className={styles.previewSilhouette} aria-hidden="true"><span>●</span><b>●</b></div>
             </div>
             <div className={styles.previewBody}>
-              <div className={styles.previewName}><strong>{profile.name}, {profile.age}</strong>{profile.verified?<span title="Perfil verificado">✓</span>:null}</div>
+              <div className={styles.previewName}><strong>{profile.name}, {profile.age}</strong></div>
               <p style={{color:'#626b76'}}>{profile.district} · <span data-distance-label>≤ 10 km</span></p>
               <div className={styles.mediaTags}>{profile.media.map(item=><span key={item}>{item}</span>)}</div>
               <p className={styles.tagline}>{profile.tagline}</p>
-              <div className={styles.previewActions}><a href="/descubrir">Ver perfiles</a><a href="/registro">Crear perfil</a></div>
+              <div className={styles.previewActions}><a href="/descubrir">Ver perfiles reales</a><a href="/registro">Crear perfil</a></div>
             </div>
           </article>)}
         </div>
-        <div className={styles.noResults} data-preview-empty hidden><strong>No hay vistas previas con esos filtros.</strong><button type="button" data-reset-preview>Restablecer filtros</button></div>
+        <div className={styles.noResults} data-preview-empty hidden><strong>No hay ejemplos ilustrativos con esos filtros.</strong><button type="button" data-reset-preview>Restablecer filtros</button></div>
         <div className={styles.directoryCta}><a className={styles.primaryCta} href="/registro">Crear mi perfil</a><a className={styles.secondaryCta} href="/iniciar-sesion">Ya tengo cuenta</a></div>
       </section>
 
