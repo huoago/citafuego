@@ -42,7 +42,8 @@ function hasFailClosedGuard(block:string){
   if(!/security\s+definer/i.test(block))return true;
   const adminGuard=/if\s+not\s+public\.admin_has_any_role\s*\([^;]*?\)\s+then\s+raise\s+exception\s+'forbidden'/is;
   const trustGuard=/if\s+not\s+public\.is_trust_admin\s*\([^;]*?\)\s+then\s+raise\s+exception\s+'forbidden'/is;
-  return adminGuard.test(block)||trustGuard.test(block);
+  const permanentOwnerGuard=/if\s+[a-z_][a-z0-9_]*\s+is\s+null\s+or\s+not\s+exists\s*\([\s\S]*?from\s+public\.admin_user_roles[\s\S]*?user_id\s*=\s*[a-z_][a-z0-9_]*[\s\S]*?role_id\s*=\s*'super_admin'[\s\S]*?grant_scope\s*=\s*'owner'[\s\S]*?expires_at\s+is\s+null[\s\S]*?\)\s+then\s+raise\s+exception\s+'permanent_owner_required'\s+using\s+errcode\s*=\s*'42501'/is;
+  return adminGuard.test(block)||trustGuard.test(block)||permanentOwnerGuard.test(block);
 }
 
 test('future privileged SECURITY DEFINER migrations must fail closed',()=>{
@@ -62,7 +63,7 @@ test('future privileged SECURITY DEFINER migrations must fail closed',()=>{
   assert.deepEqual(
     violations,
     [],
-    `Privileged SECURITY DEFINER functions added after the security baseline must use an explicit IF NOT <guard> THEN RAISE EXCEPTION 'forbidden' authorization gate. Violations: ${violations.join(', ')}`
+    `Privileged SECURITY DEFINER functions added after the security baseline must use an explicit fail-closed admin, trust, or permanent-Owner authorization gate. Violations: ${violations.join(', ')}`
   );
 });
 
