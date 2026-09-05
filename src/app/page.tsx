@@ -41,7 +41,7 @@ export default function LandingPage(){
             data-search={`${profile.name} ${profile.district} ${profile.tagline}`.toLowerCase()}
           >
             <div className={`${styles.previewPhoto} ${styles[`previewTone${(index%4)+1}`]}`}>
-              <span className={styles.previewBadge}>Ejemplo ilustrativo</span>
+              <span className={styles.previewBadge}>Vista previa · ejemplo ilustrativo</span>
               <div className={styles.previewSilhouette} aria-hidden="true"><span>●</span><b>●</b></div>
             </div>
             <div className={styles.previewBody}>
