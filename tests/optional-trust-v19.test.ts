@@ -43,11 +43,13 @@ test('trust marker has distinct photo, verified and advanced states and appears 
   assert.match(discover,/<TrustMark/);
 });
 
-test('V19 is loaded last and gives all onboarding steps the activation dark surface',()=>{
+test('V19 is loaded after activation UX and provides the canonical accessible light trust surface',()=>{
   assert.match(layout,/v18-activation-ux\.css';\nimport '\.\/v19-trust-theme\.css'/);
   assert.match(theme,/\.onboardingCard,\.activationCard,\.trustStepCard/);
-  assert.match(theme,/background:linear-gradient\(180deg,#151017 0%,#0d0a0f 100%\)!important/);
-  assert.match(theme,/--cf19-text:#fff9fc/);
+  assert.match(theme,/background:linear-gradient\(180deg,#fff 0%,#fbfcfe 100%\)!important/);
+  assert.match(theme,/--cf19-text:#111827/);
+  assert.match(theme,/--cf19-bg:#ffffff/);
+  assert.match(theme,/body\{color-scheme:light\}/);
   assert.match(theme,/\.appCanvas,\.mobileShell,\.iosAppShell,\.appMain/);
   assert.match(theme,/\.profileSummary,\.profileCompletionPrompt,\.settingsSection/);
 });

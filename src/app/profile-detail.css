@@ -3,11 +3,12 @@
 [data-social-profile-v23] .pkProfileAbout{
   margin-top:18px;
   padding-top:18px;
-  border-top:1px solid rgba(255,255,255,.10);
+  border-top:1px solid #e2e8f0;
 }
 [data-social-profile-v23] .pkDecisionHeading h2,
 [data-social-profile-v23] .pkProfileAbout h2{
   margin:3px 0 0;
+  color:#111827;
   font-size:clamp(18px,2.2vw,24px);
   line-height:1.18;
   letter-spacing:-.025em;
@@ -21,14 +22,14 @@
 [data-social-profile-v23] .pkDecisionGrid>div{
   min-width:0;
   padding:12px 13px;
-  border:1px solid rgba(255,255,255,.11);
+  border:1px solid #e2e8f0;
   border-radius:14px;
-  background:rgba(255,255,255,.045);
+  background:#f8fafc;
 }
 [data-social-profile-v23] .pkDecisionGrid small{
   display:block;
   margin-bottom:4px;
-  color:#c9bdc4;
+  color:#64748b;
   font-size:11px;
   font-weight:760;
   letter-spacing:.055em;
@@ -36,14 +37,14 @@
 }
 [data-social-profile-v23] .pkDecisionGrid strong{
   display:block;
-  color:#fff9fc;
+  color:#111827;
   font-size:14px;
   line-height:1.35;
   overflow-wrap:anywhere;
 }
 [data-social-profile-v23] .pkProfileAbout .pkBio{
   margin:10px 0 0;
-  color:#eee5ea;
+  color:#334155;
   line-height:1.68;
 }
 [data-social-profile-v23] .pkContact{
@@ -52,7 +53,7 @@
 [data-social-profile-v23] .pkContactLead,
 [data-social-profile-v23] .pkContactMuted,
 [data-social-profile-v23] .pkSafetyNote{
-  color:#d3c8cf;
+  color:#475569;
   line-height:1.55;
 }
 [data-social-profile-v23] .pkNativeContactButton{
@@ -65,22 +66,22 @@
   padding:0 16px;
   border:1px solid transparent;
   border-radius:13px;
-  background:linear-gradient(135deg,#ff5a65,#ff704a);
+  background:linear-gradient(135deg,#e54759,#e93867);
   color:#fff;
   font-weight:840;
   text-decoration:none;
-  box-shadow:0 12px 28px rgba(255,90,101,.18);
+  box-shadow:0 12px 28px rgba(217,47,91,.16);
 }
 [data-social-profile-v23] .pkNativeContactButton:hover,
 [data-social-profile-v23] .pkNativeContactButton:focus-visible{
-  filter:brightness(1.06);
+  filter:brightness(.97);
 }
 [data-social-profile-v23] .pkSafetyNote{
   margin:12px 0 0;
   padding:10px 12px;
-  border:1px solid rgba(255,255,255,.10);
+  border:1px solid #e2e8f0;
   border-radius:12px;
-  background:rgba(255,255,255,.035);
+  background:#f8fafc;
   font-size:12px;
 }
 [data-social-profile-v23] .pkMobileActions[data-mobile-contact-toolbar]{
@@ -104,11 +105,11 @@
     grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);
     gap:8px;
     padding:8px;
-    border:1px solid rgba(255,255,255,.14);
+    border:1px solid #dbe2ea;
     border-radius:16px;
-    background:rgba(16,9,15,.94);
-    box-shadow:0 16px 48px rgba(0,0,0,.42);
-    backdrop-filter:blur(18px) saturate(135%);
+    background:rgba(255,255,255,.97);
+    box-shadow:0 16px 48px rgba(15,23,42,.15);
+    backdrop-filter:blur(18px) saturate(125%);
   }
   [data-social-profile-v23] .pkMobileAction{
     min-width:0;
@@ -117,9 +118,9 @@
     align-items:center;
     justify-content:center;
     padding:0 12px;
-    border:1px solid rgba(255,255,255,.12);
+    border:1px solid #dbe2ea;
     border-radius:12px;
-    color:#fff;
+    color:#1f2937;
     font-size:14px;
     font-weight:820;
     text-decoration:none;
@@ -127,11 +128,13 @@
   }
   [data-social-profile-v23] .pkMobileAction.primary{
     border-color:transparent;
-    background:linear-gradient(135deg,#ff5a65,#ff704a);
-    box-shadow:0 10px 24px rgba(255,90,101,.20);
+    background:linear-gradient(135deg,#e54759,#e93867);
+    color:#fff;
+    box-shadow:0 10px 24px rgba(217,47,91,.18);
   }
   [data-social-profile-v23] .pkMobileAction.secondary{
-    background:#24191f;
+    background:#f1f5f9;
+    color:#1f2937;
   }
 }
 

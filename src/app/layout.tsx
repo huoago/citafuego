@@ -43,10 +43,10 @@ export const metadata: Metadata = {
   },
   manifest:'/manifest.webmanifest',
   icons:{icon:'/mascot-logo.svg',shortcut:'/mascot-logo.svg',apple:'/mascot-logo.svg'},
-  appleWebApp:{capable:true,title:'CitaFuego',statusBarStyle:'black-translucent'},
+  appleWebApp:{capable:true,title:'CitaFuego',statusBarStyle:'default'},
 };
 
-export const viewport:Viewport={width:'device-width',initialScale:1,viewportFit:'cover',themeColor:'#08080b'};
+export const viewport:Viewport={width:'device-width',initialScale:1,viewportFit:'cover',themeColor:'#ffffff'};
 
 const websiteJsonLd={
   '@context':'https://schema.org',
