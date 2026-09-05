@@ -11,7 +11,7 @@ permissions:
 jobs:
   browser:
     runs-on: ubuntu-latest
-    timeout-minutes: 35
+    timeout-minutes: 50
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-node@v6
@@ -44,3 +44,12 @@ jobs:
         env:
           E2E_BASE_URL: http://127.0.0.1:3000
         run: node e2e/browser-smoke.mjs
+      - name: Temporary production full-site admin QA
+        run: node e2e/production-admin-full-qa.mjs
+      - name: Upload temporary production QA evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: production-admin-full-qa-${{ github.run_id }}
+          path: qa-artifacts
+          if-no-files-found: warn
