@@ -1,21 +1,21 @@
-:root{--cf-control-radius:12px;--cf-control-border:rgba(255,255,255,.12);--cf-control-bg:rgba(255,255,255,.055);--cf-control-text:#fff7f2;--cf-focus:#ff765f;--cf-site-nav-height:64px;--cf-app-header-offset:57px}
+:root{--cf-control-radius:12px;--cf-control-border:#d5dce5;--cf-control-bg:#fff;--cf-control-text:#1f2937;--cf-focus:#d92f5b;--cf-site-nav-height:64px;--cf-app-header-offset:57px}
 
-/* Durable site shell. Keep universal navigation, control primitives and sticky offsets in one semantic layer. */
-.globalSiteNav{position:sticky;top:0;z-index:120;width:100%;min-height:var(--cf-site-nav-height);background:rgba(16,9,9,.96);border-bottom:1px solid rgba(255,255,255,.09);backdrop-filter:blur(18px);color:#fff7f2}
+/* Durable site shell. Universal navigation and controls use the same light, readable baseline. */
+.globalSiteNav{position:sticky;top:0;z-index:120;width:100%;min-height:var(--cf-site-nav-height);background:rgba(255,255,255,.97);border-bottom:1px solid #e5e8ec;backdrop-filter:blur(18px);color:#181c24}
 .globalSiteNavInner{width:min(1240px,calc(100% - 28px));min-height:var(--cf-site-nav-height);margin:0 auto;display:flex;align-items:center;gap:18px}
-.globalSiteBrand{display:inline-flex;align-items:center;gap:9px;flex:0 0 auto;font-size:20px;font-weight:850;letter-spacing:-.03em;color:inherit;text-decoration:none}
-.globalSiteBrandMark{width:35px;height:35px;display:grid;place-items:center;border-radius:11px;background:linear-gradient(135deg,#ff5a65,#ff7a43);box-shadow:0 8px 20px rgba(255,90,101,.22)}
+.globalSiteBrand{display:inline-flex;align-items:center;gap:9px;flex:0 0 auto;font-size:20px;font-weight:850;letter-spacing:-.03em;color:#181c24;text-decoration:none}
+.globalSiteBrandMark{width:35px;height:35px;display:grid;place-items:center;border-radius:11px;background:linear-gradient(135deg,#ff5a65,#ff7a43);box-shadow:0 8px 20px rgba(255,90,101,.18)}
 .globalSitePrimary{display:flex;align-items:center;gap:3px;min-width:0;flex:1}
-.globalSitePrimary a{min-height:38px;display:inline-flex;align-items:center;padding:0 10px;border-radius:10px;color:#cfc1bd;font-size:13px;font-weight:720;white-space:nowrap}
-.globalSitePrimary a:hover,.globalSitePrimary a:focus-visible{background:rgba(255,255,255,.07);color:#fff}
+.globalSitePrimary a{min-height:38px;display:inline-flex;align-items:center;padding:0 10px;border-radius:10px;color:#4f5b69;font-size:13px;font-weight:720;white-space:nowrap}
+.globalSitePrimary a:hover,.globalSitePrimary a:focus-visible{background:#f1f3f5;color:#111827}
 .globalSiteActions{display:flex;align-items:center;gap:8px;flex:0 0 auto}
-.globalSiteIconButton,.globalSitePrimaryButton,.globalSiteMenu summary{min-height:40px;display:inline-flex;align-items:center;justify-content:center;border:1px solid rgba(255,255,255,.12);border-radius:11px;background:rgba(255,255,255,.055);color:#fff;text-decoration:none;font-weight:780;cursor:pointer}
-.globalSiteIconButton{width:42px;font-size:22px}.globalSitePrimaryButton{padding:0 15px;background:linear-gradient(135deg,#ff5a65,#ff4668);border-color:transparent;box-shadow:0 10px 24px rgba(255,79,92,.18)}
+.globalSiteIconButton,.globalSitePrimaryButton,.globalSiteMenu summary{min-height:40px;display:inline-flex;align-items:center;justify-content:center;border:1px solid #dfe4ea;border-radius:11px;background:#fff;color:#202733;text-decoration:none;font-weight:780;cursor:pointer}
+.globalSiteIconButton{width:42px;font-size:22px}.globalSitePrimaryButton{padding:0 15px;background:linear-gradient(135deg,#e54759,#e93867);color:#fff;border-color:transparent;box-shadow:0 10px 24px rgba(218,47,91,.16)}
 .globalSiteMenu{position:relative}.globalSiteMenu summary{list-style:none;width:42px;font-size:18px}.globalSiteMenu summary::-webkit-details-marker{display:none}
-.globalSiteMenuPanel{position:absolute;right:0;top:48px;width:230px;padding:8px;border:1px solid rgba(255,255,255,.1);border-radius:14px;background:#191010;box-shadow:0 18px 45px rgba(0,0,0,.34)}
-.globalSiteMenuPanel a{display:block;padding:10px 12px;border-radius:9px;color:#e8dcda;font-size:14px;font-weight:650}.globalSiteMenuPanel a:hover{background:rgba(255,255,255,.07);color:#fff}
+.globalSiteMenuPanel{position:absolute;right:0;top:48px;width:230px;padding:8px;border:1px solid #e1e5ea;border-radius:14px;background:#fff;box-shadow:0 18px 45px rgba(26,31,42,.14)}
+.globalSiteMenuPanel a{display:block;padding:10px 12px;border-radius:9px;color:#262c37;font-size:14px;font-weight:650}.globalSiteMenuPanel a:hover{background:#f4f5f7;color:#111}
 body:has([data-home-page]) .globalSiteNav{background:rgba(255,255,255,.97);border-bottom-color:#e5e8ec;color:#181c24}
-body:has([data-home-page]) .globalSitePrimary a{color:#5d6672}
+body:has([data-home-page]) .globalSitePrimary a{color:#4f5b69}
 body:has([data-home-page]) .globalSitePrimary a:hover,body:has([data-home-page]) .globalSitePrimary a:focus-visible{background:#f1f3f5;color:#242a35}
 body:has([data-home-page]) .globalSiteIconButton,body:has([data-home-page]) .globalSiteMenu summary{background:#fff;color:#262c37;border-color:#e2e5ea}
 body:has([data-home-page]) .globalSiteMenuPanel{background:#fff;border-color:#e1e5ea;box-shadow:0 18px 45px rgba(26,31,42,.16)}
@@ -25,11 +25,11 @@ button:not(.roundAction):not(.headerIconButton):not(.viewToggle button):not(.sel
 button:not(.roundAction):not(.headerIconButton):not(.viewToggle button):not(.selectorRow button):hover,a[role="button"]:hover{transform:translateY(-1px)}
 button:not([class]){min-height:40px;padding:0 14px;border:1px solid var(--cf-control-border);border-radius:var(--cf-control-radius);background:var(--cf-control-bg);color:var(--cf-control-text);font-weight:750;cursor:pointer}
 body:has([data-home-page]) button:not([class]){border-color:#dfe3e7;background:#fff;color:#2e3541}
-button:disabled{cursor:not-allowed;opacity:.55;transform:none!important}
-a:focus-visible,button:focus-visible,summary:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid color-mix(in srgb,var(--cf-focus) 72%,transparent);outline-offset:2px}
+button:disabled{cursor:not-allowed;opacity:.6;transform:none!important}
+a:focus-visible,button:focus-visible,summary:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid color-mix(in srgb,var(--cf-focus) 55%,transparent);outline-offset:2px}
 .primaryButton,.ctaButton,.whatsappContactButton{border-radius:12px!important;min-height:42px}.ghostButton,.filterButton{border-radius:12px!important;min-height:40px}.settingsList a,.settingsList button{min-height:48px}
 
-/* Secondary sticky UI sits below the universal site navigation. Centralized variables prevent offset drift. */
+/* Secondary sticky UI sits below the universal site navigation. */
 .globalSiteNav + .appCanvas .appHeader,.globalSiteNav + .appCanvas .iosAppHeader{top:var(--cf-site-nav-height)!important}
 .globalSiteNav + .appCanvas .communitySegments{top:calc(var(--cf-site-nav-height) + var(--cf-app-header-offset) + env(safe-area-inset-top))!important}
 .globalSiteNav + .appCanvas .iosConversationHeader{top:calc(var(--cf-site-nav-height) + 56px + env(safe-area-inset-top))!important}
