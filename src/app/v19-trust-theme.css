@@ -1,33 +1,34 @@
-/* CitaFuego V19 — optional trust tiers + humane dark theme */
+/* CitaFuego V19 — optional trust tiers + accessible light theme */
 :root{
-  --cf19-bg:#08080b;
-  --cf19-surface:#151017;
-  --cf19-surface-raised:#201820;
-  --cf19-surface-soft:#271b22;
-  --cf19-text:#fff9fc;
-  --cf19-body:#eee6eb;
-  --cf19-muted:#d8cfd5;
-  --cf19-subtle:#bdb3ba;
-  --cf19-border:rgba(255,255,255,.15);
-  --cf19-focus:#ff718c;
+  --cf19-bg:#ffffff;
+  --cf19-surface:#ffffff;
+  --cf19-surface-raised:#f7f8fa;
+  --cf19-surface-soft:#eef2f6;
+  --cf19-text:#111827;
+  --cf19-body:#334155;
+  --cf19-muted:#596579;
+  --cf19-subtle:#6b7280;
+  --cf19-border:#dbe2ea;
+  --cf19-focus:#d92f5b;
 }
 html,body{background:var(--cf19-bg);color:var(--cf19-text)}
-body{color-scheme:dark}
+body{color-scheme:light}
 
 /* One visual language for Perfil / Fotos / Verificación / Activar. */
-.onboardingMain{min-height:100dvh;background:radial-gradient(circle at 50% -10%,rgba(255,91,120,.11),transparent 36%),var(--cf19-bg)!important;color:var(--cf19-text)!important}
-.onboardingCard,.activationCard,.trustStepCard{background:linear-gradient(180deg,#151017 0%,#0d0a0f 100%)!important;color:var(--cf19-text)!important;border:1px solid var(--cf19-border)!important;box-shadow:0 22px 60px rgba(0,0,0,.34)!important}
+.onboardingMain{min-height:100dvh;background:linear-gradient(180deg,#fff 0%,#f8fafc 100%)!important;color:var(--cf19-text)!important}
+.onboardingCard,.activationCard,.trustStepCard{background:linear-gradient(180deg,#fff 0%,#fbfcfe 100%)!important;color:var(--cf19-text)!important;border:1px solid var(--cf19-border)!important;box-shadow:0 18px 48px rgba(15,23,42,.08)!important}
 .onboardingCard h1,.onboardingCard h2,.onboardingCard h3,.onboardingCard label,.onboardingCard legend,.onboardingCard strong,.onboardingCard b{color:var(--cf19-text)!important}
 .onboardingCard p{color:var(--cf19-body)!important}
 .onboardingCard small,.onboardingCard .muted,.onboardingCard .fieldHelp,#birth-help{color:var(--cf19-muted)!important}
 .onboardingCard fieldset,.onboardingCard .softPanel,.trustInfoStrip,.trustLevelCard{background:var(--cf19-surface-raised)!important;border:1px solid var(--cf19-border)!important;color:var(--cf19-text)!important}
-.onboardingCard input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),.onboardingCard textarea,.onboardingCard select{background:#0d0a0f!important;color:var(--cf19-text)!important;border:1px solid #654d57!important}
-.onboardingCard input::placeholder,.onboardingCard textarea::placeholder{color:#bdb2b9!important;opacity:1}
-.onboardingCard input:focus,.onboardingCard textarea:focus,.onboardingCard select:focus{outline:2px solid rgba(255,113,140,.42)!important;border-color:var(--cf19-focus)!important}
-.onboardingCard input[readonly]{background:#1b1318!important;color:#ddd5da!important}
-.onboardingCard .choice{background:#1c1318!important;color:#f8f2f5!important;border-color:#654b55!important}
-.onboardingCard .choice.active{background:#542333!important;color:#fff!important;border-color:#ff718c!important}
-.onboardingCard .softButton{background:#2a2026!important;color:#fff8fb!important;border:1px solid rgba(255,255,255,.2)!important}
+.onboardingCard input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),.onboardingCard textarea,.onboardingCard select{background:#fff!important;color:#111827!important;-webkit-text-fill-color:#111827!important;border:1px solid #c7d0db!important}
+.onboardingCard input::placeholder,.onboardingCard textarea::placeholder{color:#687385!important;-webkit-text-fill-color:#687385!important;opacity:1}
+.onboardingCard input:focus,.onboardingCard textarea:focus,.onboardingCard select:focus{outline:3px solid rgba(217,47,91,.20)!important;border-color:var(--cf19-focus)!important}
+.onboardingCard input[readonly]{background:#f1f5f9!important;color:#475569!important;-webkit-text-fill-color:#475569!important}
+.onboardingCard .choice{background:#fff!important;color:#1f2937!important;border-color:#cbd5e1!important;font-weight:720}
+.onboardingCard .choice:hover,.onboardingCard .choice:focus-visible{background:#f8fafc!important;color:#111827!important;border-color:#94a3b8!important}
+.onboardingCard .choice.active{background:#fff0f4!important;color:#831843!important;border-color:#d92f5b!important}
+.onboardingCard .softButton{background:#f8fafc!important;color:#1f2937!important;border:1px solid #cbd5e1!important}
 .onboardingCard .ctaButton{color:#fff!important}
 .optionalStepActions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px}
 .skipTrustButton{margin-top:12px}
@@ -35,31 +36,31 @@ body{color-scheme:dark}
 .trustInfoStrip strong{font-size:15px}.trustInfoStrip span{color:var(--cf19-muted);font-size:13px;line-height:1.45}
 .trustLevelCard{display:grid;gap:4px;margin:15px 0;padding:15px;border-radius:16px}
 .trustLevelCard>span{color:var(--cf19-muted);font-size:12px;text-transform:uppercase;letter-spacing:.07em}.trustLevelCard>strong{font-size:18px}.trustLevelCard>small{color:var(--cf19-muted)!important}
-.activationRequirement.isOptional{background:#171d2b!important;border-color:rgba(130,172,255,.28)!important}.activationRequirement.isOptional strong{background:#294b7d!important}.activationRequirement.isOptional.hasTrust{background:#15251f!important;border-color:rgba(102,232,166,.34)!important}.activationRequirement.isOptional.hasTrust strong{background:#1d6b4c!important}
+.activationRequirement.isOptional{background:#f2f7ff!important;border-color:#b7cff4!important}.activationRequirement.isOptional strong{background:#2d66a6!important;color:#fff!important}.activationRequirement.isOptional.hasTrust{background:#eefaf4!important;border-color:#a8dcc2!important}.activationRequirement.isOptional.hasTrust strong{background:#22734f!important;color:#fff!important}
 
 /* Trust tier markers: photo, verified, photo+verified, identity. */
-.trustMark{display:inline-grid;place-items:center;box-sizing:border-box;width:22px;height:22px;border-radius:999px;border:2px solid rgba(255,255,255,.88);font-size:12px;font-weight:950;line-height:1;color:#fff;vertical-align:middle;box-shadow:0 3px 12px rgba(0,0,0,.38)}
-.trustPhoto{background:#8d4566}.trustVerified{background:#2774d8}.trustAdvanced{background:linear-gradient(135deg,#e38a2d,#ff5576);font-size:13px}.trustIdentity{background:#6f4ac7}
+.trustMark{display:inline-grid;place-items:center;box-sizing:border-box;width:22px;height:22px;border-radius:999px;border:2px solid #fff;font-size:12px;font-weight:950;line-height:1;color:#fff;vertical-align:middle;box-shadow:0 3px 10px rgba(15,23,42,.22)}
+.trustPhoto{background:#8d4566}.trustVerified{background:#2774d8}.trustAdvanced{background:linear-gradient(135deg,#d9781c,#e93f62);font-size:13px}.trustIdentity{background:#6f4ac7}
 .profileAvatarWrap{position:relative;display:inline-flex;flex:0 0 auto}.profileAvatarWrap>.trustMark{position:absolute;right:-3px;bottom:-3px;z-index:3;width:25px;height:25px}
 .nameLine .trustMark,.socialProfileHero h1 .trustMark{margin-left:5px;transform:translateY(-1px)}
 
 /* App-wide readable surfaces. Specific selectors avoid damaging media overlays. */
-.appCanvas,.mobileShell,.iosAppShell,.appMain{background:var(--cf19-bg)!important;color:var(--cf19-text)!important}
-.appHeader,.iosAppHeader,.bottomNav{background:rgba(12,9,12,.92)!important;color:var(--cf19-text)!important;border-color:var(--cf19-border)!important}
+.appCanvas,.mobileShell,.iosAppShell,.appMain{background:#fff!important;color:var(--cf19-text)!important}
+.appHeader,.iosAppHeader,.bottomNav{background:rgba(255,255,255,.96)!important;color:var(--cf19-text)!important;border-color:var(--cf19-border)!important}
 .pageHeader h1,.iosLargeHeader h1,.profileSummary h2,.profileSection h2,.settingsSection h2,.socialProfileHero h1,.emptyState h1{color:var(--cf19-text)!important}
 .pageHeader p,.profileSummary p,.settingsSection header p,.socialHandle,.socialProfileHero .muted,.profileSection .muted,.emptyState p{color:var(--cf19-muted)!important}
-.profileSummary,.profileCompletionPrompt,.settingsSection,.settingsList,.softPanel,.profileSection,.socialStats,.promptPreview,.promptPublicGrid article,.emptyState{background:var(--cf19-surface)!important;color:var(--cf19-text)!important;border-color:var(--cf19-border)!important}
-.settingsList a,.settingsList button,.profileCompletionPrompt a,.profileSection a{color:#f6eff3!important}
-.settingsList a:hover,.settingsList a:focus-visible,.ghostButton:hover,.softButton:hover{background:var(--cf19-surface-raised)!important;color:#fff!important}
-.ghostButton,.filterButton,.textButton,.softButton{background:var(--cf19-surface-raised)!important;color:#f8f2f5!important;border-color:var(--cf19-border)!important}
-.chip{background:#261a20!important;color:#f7f0f4!important;border-color:#604954!important}
+.profileSummary,.profileCompletionPrompt,.settingsSection,.settingsList,.softPanel,.profileSection,.socialStats,.promptPreview,.promptPublicGrid article,.emptyState{background:#fff!important;color:var(--cf19-text)!important;border-color:var(--cf19-border)!important}
+.settingsList a,.settingsList button,.profileCompletionPrompt a,.profileSection a{color:#1f2937!important}
+.settingsList a:hover,.settingsList a:focus-visible,.ghostButton:hover,.softButton:hover{background:var(--cf19-surface-raised)!important;color:#111827!important}
+.ghostButton,.filterButton,.textButton,.softButton{background:var(--cf19-surface-raised)!important;color:#1f2937!important;border-color:var(--cf19-border)!important}
+.chip{background:#f4f6f8!important;color:#334155!important;border-color:#d7dee7!important}
 .socialStats span,.socialStats a span,.profileFacts span,.promptPreview small,.promptPublicGrid small{color:var(--cf19-muted)!important}
-.headerMoreMenu,.iosSheetMenu{background:#171116!important;border-color:var(--cf19-border)!important}.headerMoreMenu a{color:#fff8fb!important}
+.headerMoreMenu,.iosSheetMenu{background:#fff!important;border-color:var(--cf19-border)!important;box-shadow:0 16px 42px rgba(15,23,42,.12)!important}.headerMoreMenu a{color:#1f2937!important}
 
 /* Auth, public information, dialogs and safety screens stay readable too. */
-.authPage,.authRegistrationPage,.legalPage,.marketingPage,.v15InfoShell,.reportDialog,.safetyPage{background-color:var(--cf19-bg)!important;color:var(--cf19-text)!important}
-.authCard,.authCardRegistration,.v15StepCard,.v15SafetyCard,.v15InfoNote,.dangerPanel,.safetyRow{background-color:var(--cf19-surface)!important;color:var(--cf19-text)!important;border-color:var(--cf19-border)!important}
+.authPage,.authRegistrationPage,.legalPage,.marketingPage,.v15InfoShell,.reportDialog,.safetyPage{background-color:#fff!important;color:var(--cf19-text)!important}
+.authCard,.authCardRegistration,.v15StepCard,.v15SafetyCard,.v15InfoNote,.dangerPanel,.safetyRow{background-color:#fff!important;color:var(--cf19-text)!important;border-color:var(--cf19-border)!important}
 .authCard p,.authCardRegistration p,.v15InfoShell p,.dangerPanel p,.safetyRow small{color:var(--cf19-muted)!important}
 
 @media(max-width:560px){.optionalStepActions{grid-template-columns:1fr}.onboardingCard,.trustStepCard{padding:18px!important}}
-@media(prefers-contrast:more){:root{--cf19-muted:#ebe3e8;--cf19-border:rgba(255,255,255,.36)}.onboardingCard,.profileSummary,.settingsSection,.profileSection{border-width:2px!important}}
+@media(prefers-contrast:more){:root{--cf19-muted:#3f4a5a;--cf19-border:#aab4c2}.onboardingCard,.profileSummary,.settingsSection,.profileSection{border-width:2px!important}}
