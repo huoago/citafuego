@@ -41,9 +41,10 @@ function Module({config,children}:{config:ModuleConfig;children:ReactNode}){
 export default async function Page(){
   const id=await getAuthenticatedUserId();if(!id)redirect('/iniciar-sesion');
   const supabase=await createClient();
-  const[{data:profile},{data:photo},{data:boost},{data:prefs},social,{data:referralCode},{count:referralCount}]=await Promise.all([
+  const[{data:profile},{data:photo},{data:photoStates},{data:boost},{data:prefs},social,{data:referralCode},{count:referralCount}]=await Promise.all([
     supabase.from('profiles').select('display_name,district,city,verification_badge,profile_completion,bio,intent,last_active_at').eq('id',id).maybeSingle(),
     supabase.from('profile_photos').select('storage_path').eq('user_id',id).eq('status','approved').order('is_primary',{ascending:false}).order('position').limit(1).maybeSingle(),
+    supabase.from('profile_photos').select('status').eq('user_id',id).neq('status','removed'),
     supabase.rpc('get_my_boost_status'),
     supabase.from('user_ui_preferences').select('module_layout').eq('user_id',id).maybeSingle(),
     getSocialProfile(id),
@@ -53,13 +54,24 @@ export default async function Page(){
   if(!profile)redirect('/onboarding');
   let imageUrl:string|null=null;
   if(photo?.storage_path){const{data}=await supabase.storage.from('profile-photos').createSignedUrl(photo.storage_path,600);imageUrl=data?.signedUrl??null}
-  const hasPhoto=Boolean(imageUrl);
+  const approvedPhotoCount=(photoStates??[]).filter(row=>String(row.status)==='approved').length;
+  const pendingPhotoCount=(photoStates??[]).filter(row=>String(row.status)==='pending').length;
+  const hasPhoto=approvedPhotoCount>0;
   const verified=Boolean(profile.verification_badge);
   const trustLabel=hasPhoto&&verified?'Foto real verificada':verified?'Foto real verificada':hasPhoto?'Fotos aprobadas':'Perfil estándar';
   const boostStatus=(boost??{}) as {active?:boolean};
   const layout=normalizeLayout(prefs?.module_layout);
   const referralUrl=typeof referralCode==='string'?`https://citafuego.com/registro?ref=${encodeURIComponent(referralCode)}`:null;
   const currentCity=profile.district??profile.city??'tu ciudad';
+  const nextTrustStep=!hasPhoto
+    ?pendingPhotoCount>0
+      ?{eyebrow:'Foto en revisión',title:'Tu primera foto está siendo revisada',body:'No necesitas esperar para usar CitaFuego. Cuando la foto sea aprobada aparecerá como señal de confianza en tu perfil.',href:'/perfil/fotos',action:'Ver estado'}
+      :{eyebrow:'Primera impresión',title:'Añade tu primera foto',body:'Una foto aprobada hace que tu perfil sea reconocible y añade la primera señal real de confianza. Puedes seguir usando CitaFuego sin subirla.',href:'/perfil/fotos',action:'Añadir foto'}
+    :profile.profile_completion<80
+      ?{eyebrow:'Siguiente mejora',title:`Lleva tu perfil del ${profile.profile_completion}% al 80%`,body:'Completa tus datos principales para mejorar la calidad de las recomendaciones. No bloquea Descubrir.',href:'/onboarding?edit=1',action:'Completar perfil'}
+      :!verified
+        ?{eyebrow:'Confianza opcional',title:'Verifica que eres la persona de tus fotos',body:'La selfie de verificación es privada, opcional y añade una señal adicional de confianza. No se publica en tu perfil.',href:'/perfil/verificacion-foto',action:'Verificar foto'}
+        :null;
   const modules:Record<ModuleId,ReactNode>={
     completion:profile.profile_completion<100?<div className="profileCompletionPrompt"><div><strong>Tu perfil está al {profile.profile_completion}%</strong><span>Completarlo mejora la calidad de las recomendaciones, pero puedes usar Descubrir sin terminarlo.</span></div><Link className="ghostButton" href="/onboarding?edit=1">Completar perfil</Link></div>:<div className="softPanel"><strong>Perfil completo</strong><p>Tus datos principales están completos. Puedes modificarlos cuando quieras.</p></div>,
     social:social?<div className="socialStats"><Link href={`/perfil/${id}/seguidores`}><strong>{social.followers}</strong><span>Seguidores</span></Link><Link href={`/perfil/${id}/seguidos`}><strong>{social.following}</strong><span>Siguiendo</span></Link><Link href="/stories"><strong>{social.activeStories}</strong><span>Stories</span></Link></div>:<div className="softPanel"><strong>Actividad social</strong><p>Tu actividad aparecerá aquí.</p></div>,
@@ -84,6 +96,7 @@ export default async function Page(){
       <div><h2>{profile.display_name}</h2><p>{profile.district??profile.city} · Lima</p><small className="trustCaption">{trustLabel}</small>{social?.handle?<small>@{social.handle}</small>:null}{boostStatus.active?<small className="boostInline">⚡ Prioridad activa</small>:null}</div>
       <Link className="completionBadge completionAction" href="/onboarding?edit=1" aria-label={`Perfil completado al ${profile.profile_completion} por ciento`}>{profile.profile_completion}%</Link>
     </div>
+    {nextTrustStep?<div className="profileCompletionPrompt" data-profile-trust-next-step><div><span className="eyebrow">{nextTrustStep.eyebrow}</span><strong>{nextTrustStep.title}</strong><span>{nextTrustStep.body}</span></div><Link className="ghostButton" href={nextTrustStep.href}>{nextTrustStep.action}</Link></div>:null}
     <p className="profileLayoutHint">Puedes reorganizar, cambiar de tamaño u ocultar los módulos desde <Link href="/ajustes">Configuración</Link>.</p>
     <div className="profilePersonalGrid">{layout.map((config,index)=><Module key={config.id} config={{...config}}><div style={{height:'100%',order:index}}>{modules[config.id]}</div></Module>)}</div>
   </section>;
