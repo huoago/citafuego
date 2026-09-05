@@ -53,29 +53,36 @@ jobs:
           fi
           export CHROME_PATH
           echo "Using Chrome at $CHROME_PATH"
+          # GitHub-hosted runners have variable CPU contention. Capture three
+          # independent samples per page and gate on the median rather than one
+          # noisy trace. Thresholds remain unchanged in the next step.
           for target in home lima guide; do
             case "$target" in
               home) url='http://127.0.0.1:3000/' ;;
               lima) url='http://127.0.0.1:3000/lima' ;;
               guide) url='http://127.0.0.1:3000/guias/seguridad-en-citas-online' ;;
             esac
-            success=0
-            for attempt in 1 2 3; do
-              rm -f "lighthouse/${target}.json"
-              if npx --yes lighthouse@latest "$url" --quiet \
-                --chrome-path="$CHROME_PATH" \
-                --chrome-flags='--headless=new --no-sandbox --disable-dev-shm-usage --disable-gpu' \
-                --output=json --output-path="lighthouse/${target}.json"; then
-                success=1
-                break
+            for sample in 1 2 3; do
+              output="lighthouse/${target}-${sample}.json"
+              rm -f "$output"
+              success=0
+              for attempt in 1 2; do
+                if npx --yes lighthouse@latest "$url" --quiet \
+                  --chrome-path="$CHROME_PATH" \
+                  --chrome-flags='--headless=new --no-sandbox --disable-dev-shm-usage --disable-gpu' \
+                  --output=json --output-path="$output"; then
+                  success=1
+                  break
+                fi
+                echo "Lighthouse ${target} sample ${sample} attempt ${attempt} failed; retrying..." >&2
+                sleep 2
+              done
+              if [ "$success" -ne 1 ] || [ ! -s "$output" ]; then
+                echo "Lighthouse failed for ${target} sample ${sample}" >&2
+                exit 1
               fi
-              echo "Lighthouse ${target} attempt ${attempt} failed; retrying..." >&2
-              sleep 2
+              sleep 1
             done
-            if [ "$success" -ne 1 ] || [ ! -s "lighthouse/${target}.json" ]; then
-              echo "Lighthouse failed for ${target} after retries" >&2
-              exit 1
-            fi
           done
       - name: Enforce Lighthouse thresholds
         shell: bash
@@ -83,12 +90,18 @@ jobs:
           node --input-type=module <<'NODE'
           import fs from 'node:fs';
           const thresholds={performance:0.80,accessibility:0.90,'best-practices':0.90,seo:0.95};
-          for(const file of fs.readdirSync('lighthouse').filter((name)=>name.endsWith('.json'))){
-            const report=JSON.parse(fs.readFileSync(`lighthouse/${file}`,'utf8'));
+          const targets=['home','lima','guide'];
+          const median=(values)=>{
+            const sorted=[...values].sort((a,b)=>a-b);
+            return sorted[Math.floor(sorted.length/2)];
+          };
+          for(const target of targets){
+            const reports=[1,2,3].map((sample)=>JSON.parse(fs.readFileSync(`lighthouse/${target}-${sample}.json`,'utf8')));
             for(const [category,min] of Object.entries(thresholds)){
-              const score=report.categories?.[category]?.score ?? 0;
-              console.log(`${file} ${category}: ${score}`);
-              if(score<min)throw new Error(`${file} ${category} ${score} is below ${min}`);
+              const samples=reports.map((report)=>report.categories?.[category]?.score ?? 0);
+              const score=median(samples);
+              console.log(`${target} ${category}: samples=${samples.join(',')} median=${score}`);
+              if(score<min)throw new Error(`${target} ${category} median ${score} is below ${min}`);
             }
           }
           NODE
