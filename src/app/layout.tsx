@@ -10,6 +10,7 @@ import './v19-trust-theme.css';
 import './site-shell.css';
 import './session-continuity.css';
 import './control-contrast-brand.css';
+import './profile-detail.css';
 import { GlobalSiteNav } from '@/components/global-site-nav';
 import { DEFAULT_DESCRIPTION, DEFAULT_TITLE, SITE_NAME, SITE_URL } from '@/lib/seo';
 
