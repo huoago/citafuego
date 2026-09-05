@@ -4,7 +4,7 @@ import fs from 'node:fs';
 
 const initial=fs.readFileSync('supabase/migrations/20260905192905_admin_lifecycle_funnel_v1.sql','utf8');
 const roleFix=fs.readFileSync('supabase/migrations/20260905192947_admin_lifecycle_funnel_role_fix_v1.sql','utf8');
-const latest=fs.readFileSync('supabase/migrations/20260906040000_lifecycle_cohort_and_activation_recheck_v2.sql','utf8');
+const latest=fs.readFileSync('supabase/migrations/20260905195627_lifecycle_cohort_and_activation_recheck_v2.sql','utf8');
 const dashboard=fs.readFileSync('src/app/admin/page.tsx','utf8');
 
 test('lifecycle funnel remains an admin-only source-of-truth aggregate',()=>{
