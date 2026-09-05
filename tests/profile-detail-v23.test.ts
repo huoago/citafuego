@@ -13,15 +13,15 @@ test('profile detail stylesheet is loaded as a semantic layer',()=>{
   assert.match(page,/data-social-profile-v23/);
 });
 
-test('profile hierarchy exposes decision facts before biography and contact',()=>{
+test('profile hierarchy exposes decision facts before contact and long-form biography',()=>{
   const facts=page.indexOf('data-profile-key-facts');
-  const about=page.indexOf('profile-about-title');
   const contact=page.indexOf('profile-contact');
+  const about=page.indexOf('profile-about-title');
   assert.ok(facts>0);
-  assert.ok(about>facts);
-  assert.ok(contact>about);
+  assert.ok(contact>facts);
+  assert.ok(about>contact);
   for(const label of ['Busca','Zona','Confianza','Actividad']) assert.match(page,new RegExp(`>${label}<`));
-  assert.match(page,/Conectar con seguridad/);
+  assert.match(page,/Contacto compartido/);
   assert.match(page,/Prioriza CitaFuego/);
 });
 
