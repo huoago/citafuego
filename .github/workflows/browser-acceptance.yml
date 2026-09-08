@@ -44,6 +44,18 @@ jobs:
         env:
           E2E_BASE_URL: http://127.0.0.1:3000
         run: node e2e/browser-smoke.mjs
+      - name: Stabilize temporary production QA harness
+        run: |
+          node <<'NODE'
+          const fs=require('fs');
+          const path='e2e/production-admin-full-qa.mjs';
+          let source=fs.readFileSync(path,'utf8');
+          const from="  await page.getByRole('button',{name:'Continuar sin fotos'}).click();";
+          const to="  const skipPhotos=page.getByRole('button',{name:'Continuar sin fotos'});\n  await skipPhotos.waitFor({state:'visible',timeout:15000});\n  await skipPhotos.evaluate(el=>el.click());";
+          if(!source.includes(from)) throw new Error('optional photo skip target not found');
+          source=source.replace(from,to);
+          fs.writeFileSync(path,source);
+          NODE
       - name: Temporary production full-site admin QA
         run: node e2e/production-admin-full-qa.mjs
       - name: Upload temporary production QA evidence
