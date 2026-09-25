@@ -92,7 +92,7 @@ export function HomeDirectoryEnhancements(){
     <section className={styles.selectorArea} aria-label="Buscar personas">
       <div className={styles.selectorRow}><strong>Conexión:</strong>{[['todos','Todo'],['citas','Citas'],['amistad','Amistad'],['video','Videollamadas']].map(([value,label],index)=><button type="button" key={value} data-filter-group="connection" data-filter-value={value} data-active-class={styles.activePill} className={index===0?styles.activePill:undefined}>{label}</button>)}</div>
       <div className={styles.selectorRow}><strong>Quiero conocer:</strong>{[['todos','Todos'],['mujer','Mujeres'],['hombre','Hombres']].map(([value,label],index)=><button type="button" key={value} data-filter-group="gender" data-filter-value={value} data-active-class={styles.activePill} className={index===0?styles.activePill:undefined}>{label}</button>)}</div>
-      <div className={styles.cityScroller} aria-label="Distritos de Lima">{districts.map((item,index)=><button type="button" key={item} data-filter-group="district" data-filter-value={item} data-active-class={styles.cityActive} className={index===0?styles.cityActive:undefined}>{item}</button>)}<a href="/lima">Ver todos los distritos</a></div>
+      <div className={styles.cityScroller} role="group" aria-label="Distritos de Lima">{districts.map((item,index)=><button type="button" key={item} data-filter-group="district" data-filter-value={item} data-active-class={styles.cityActive} className={index===0?styles.cityActive:undefined}>{item}</button>)}<a href="/lima">Ver todos los distritos</a></div>
       <div className={styles.searchRow}>
         <button type="button" className={styles.locateButton} data-locate><span aria-hidden="true">⌖</span><span> Cerca de mí</span></button>
         <label className={styles.searchBox}><span aria-hidden="true">⌕</span><input data-preview-query defaultValue="" placeholder="¿Qué buscas?" aria-label="Buscar en la vista previa"/></label>
@@ -107,7 +107,7 @@ export function HomeDirectoryEnhancements(){
     </section>
     <div className={styles.directoryHeader}>
       <div><p className={styles.eyebrow}>Vista previa · Lima</p><h1>Personas cerca de ti</h1><p>Explora por distrito, intención y señales de confianza. Los perfiles reales aparecen al iniciar sesión.</p></div>
-      <div className={styles.viewToggle} aria-label="Cambiar vista"><button type="button" data-view="grid" data-active-class={styles.viewActive} className={styles.viewActive} aria-label="Vista en cuadrícula">▦</button><button type="button" data-view="list" data-active-class={styles.viewActive} aria-label="Vista en lista">☷</button></div>
+      <div className={styles.viewToggle} role="group" aria-label="Cambiar vista"><button type="button" data-view="grid" data-active-class={styles.viewActive} className={styles.viewActive} aria-label="Vista en cuadrícula">▦</button><button type="button" data-view="list" data-active-class={styles.viewActive} aria-label="Vista en lista">☷</button></div>
     </div>
     <script dangerouslySetInnerHTML={{__html:enhancementScript}}/>
   </div>;
