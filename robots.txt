@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://huoago.github.io/citafuego/sitemap.xml
