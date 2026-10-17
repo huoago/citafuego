@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel - CitaFuego.com</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔥</text></svg>">
+</head>
+<body>
+    <div class="admin-layout">
+        <!-- Sidebar -->
+        <aside class="admin-sidebar">
+            <a href="index.html" class="logo">🔥 CitaFuego<span> Admin</span></a>
+            <ul class="admin-menu">
+                <li><a href="#" class="active" data-tab="dashboard">📊 Dashboard</a></li>
+                <li><a href="#" data-tab="offers">🎯 Ofertas / Productos</a></li>
+                <li><a href="#" data-tab="users">👥 Usuarios</a></li>
+                <li><a href="#" data-tab="ads">📢 Espacios Publicitarios</a></li>
+                <li><a href="#" data-tab="settings">⚙️ Configuración</a></li>
+                <li><a href="index.html" target="_blank">🌍 Ver sitio</a></li>
+                <li><a href="#" id="btn-logout">🚪 Cerrar sesión</a></li>
+            </ul>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="admin-main">
+            <div class="admin-header">
+                <h1 id="page-title">📊 Dashboard</h1>
+                <div id="admin-user-info"></div>
+            </div>
+
+            <!-- Dashboard Tab -->
+            <div class="tab-content active" id="tab-dashboard">
+                <div class="stats-row">
+                    <div class="stat-card">
+                        <div class="label">Ofertas activas</div>
+                        <div class="value" id="stat-offers">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="label">Usuarios registrados</div>
+                        <div class="value" id="stat-users">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="label">Total clicks</div>
+                        <div class="value" id="stat-clicks">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="label">Conversiones</div>
+                        <div class="value" id="stat-conversions">0</div>
+                    </div>
+                </div>
+
+                <div class="admin-card">
+                    <h3>⚡ Última actualización</h3>
+                    <p id="last-update">--</p>
+                    <p style="color:#6c757d; font-size:14px; margin-top:8px;">
+                        Los datos se actualizan en tiempo real. Los precios de las ofertas se sincronizan automáticamente cada 30 segundos.
+                    </p>
+                </div>
+
+                <div class="admin-card">
+                    <h3>📈 Rendimiento de ofertas</h3>
+                    <div id="offers-performance"></div>
+                </div>
+            </div>
+
+            <!-- Offers Tab -->
+            <div class="tab-content" id="tab-offers">
+                <div class="admin-card">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+                        <h3>🎯 Gestión de Ofertas</h3>
+                        <button class="btn btn-primary" onclick="showOfferForm()">+ Nueva oferta</button>
+                    </div>
+                    <div id="offers-table-container"></div>
+                </div>
+
+                <!-- Offer Form Modal -->
+                <div id="offer-form-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000; justify-content:center; align-items:center;">
+                    <div class="admin-card" style="width: 600px; max-width: 90%; max-height: 90vh; overflow-y:auto;">
+                        <h3 id="offer-form-title">Nueva Oferta</h3>
+                        <form id="offer-form">
+                            <input type="hidden" id="offer-id">
+                            <div class="form-group">
+                                <label>Nombre de la oferta</label>
+                                <input type="text" id="offer-name" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Descripción</label>
+                                <textarea id="offer-desc" rows="3" required></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label>Icono (emoji)</label>
+                                <input type="text" id="offer-icon" placeholder="💘" value="💘">
+                            </div>
+                            <div class="form-group">
+                                <label>Comisión</label>
+                                <input type="text" id="offer-commission" placeholder="$4.50" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Tipo de comisión</label>
+                                <select id="offer-commission-type">
+                                    <option value="CPA">CPA (pago por acción)</option>
+                                    <option value="RevShare">RevShare (ingresos recurrentes)</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>URL de afiliado</label>
+                                <input type="url" id="offer-url" placeholder="https://...">
+                            </div>
+                            <div class="form-group">
+                                <label>Países objetivo</label>
+                                <input type="text" id="offer-target" placeholder="Latinoamérica, España">
+                            </div>
+                            <div class="form-group">
+                                <label>Estado</label>
+                                <select id="offer-status">
+                                    <option value="active">Activa</option>
+                                    <option value="paused">Pausada</option>
+                                </select>
+                            </div>
+                            <div style="display:flex; gap:12px;">
+                                <button type="submit" class="btn btn-primary">💾 Guardar</button>
+                                <button type="button" class="btn btn-outline" onclick="hideOfferForm()">Cancelar</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Users Tab -->
+            <div class="tab-content" id="tab-users">
+                <div class="admin-card">
+                    <h3>👥 Usuarios Registrados</h3>
+                    <div id="users-table-container"></div>
+                </div>
+            </div>
+
+            <!-- Ads Tab -->
+            <div class="tab-content" id="tab-ads">
+                <div class="admin-card">
+                    <h3>📢 Espacios Publicitarios</h3>
+                    <div id="ads-table-container"></div>
+                </div>
+            </div>
+
+            <!-- Settings Tab -->
+            <div class="tab-content" id="tab-settings">
+                <div class="admin-card">
+                    <h3>⚙️ Configuración del Sitio</h3>
+                    <div class="form-group">
+                        <label>Nombre del sitio</label>
+                        <input type="text" value="CitaFuego.com" id="setting-site-name">
+                    </div>
+                    <div class="form-group">
+                        <label>Email de contacto</label>
+                        <input type="email" value="admin@citafuego.com" id="setting-contact-email">
+                    </div>
+                    <div class="form-group">
+                        <label>Tasa de actualización de precios (segundos)</label>
+                        <input type="number" value="30" id="setting-price-interval">
+                    </div>
+                    <button class="btn btn-primary" onclick="saveSettings()">💾 Guardar configuración</button>
+                </div>
+
+                <div class="admin-card">
+                    <h3>🔧 Mantenimiento</h3>
+                    <button class="btn btn-danger" onclick="resetAllData()">🗑️ Restablecer todos los datos</button>
+                    <p style="color:#6c757d; font-size:14px; margin-top:8px;">
+                        Esto borrará todos los usuarios, ofertas y anuncios y restaurará los valores por defecto.
+                    </p>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="js/auth.js"></script>
+    <script src="js/offers.js"></script>
+    <script src="js/ads.js"></script>
+    <script src="js/admin.js"></script>
+</body>
+</html>
